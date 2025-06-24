@@ -2,7 +2,7 @@ name: Auto Create Issue Branch
 
 on:
   issues:
-    types: [ assigned ]
+    types: [assigned]
 
 permissions:
   contents: write
@@ -26,7 +26,7 @@ jobs:
             core.setOutput('keyword', keyword);
 
       - name: Validate keyword
-        if: steps.extract_keyword.outputs.keyword == null
+        if: ${{ steps.extract_keyword.outputs.keyword == '' }}
         run: |
           echo "::error::브랜치 키워드가 입력되지 않았습니다."
           exit 1
@@ -59,6 +59,12 @@ jobs:
             tr -cd '[:alnum:]-_' |
             tr '[:upper:]' '[:lower:]' |
             cut -c 1-30)
+          echo "Sanitized branch keyword: $CLEAN_KEYWORD"
+          echo "name=$CLEAN_KEYWORD" >> $GITHUB_OUTPUT
+
+      - name: Debug branch name
+        run: |
+          echo "Final branch: ${{ steps.set_metadata.outputs.prefix }}/${{ github.event.issue.number }}/${{ steps.sanitize.outputs.name }}"
 
       - name: Create branch
         uses: peterjgrainger/action-create-branch@v3.0.0
