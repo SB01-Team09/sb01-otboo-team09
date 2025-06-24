@@ -34,7 +34,7 @@ jobs:
       - name: Set branch metadata
         id: set_metadata
         run: |
-          $labels=$(echo "${{ join(github.event.issue.labels.*.name, ',') }}" | tr '[:upper:]' '[:lower:]')
+          labels=$(echo "${{ join(github.event.issue.labels.*.name, ',') }}" | tr '[:upper:]' '[:lower:]')
           if [[ "$labels" == *"🐞bug"* ]]; then
             echo "prefix=bugfix" >> $GITHUB_OUTPUT
           elif [[ "$labels" == *"✨feature"* ]]; then
