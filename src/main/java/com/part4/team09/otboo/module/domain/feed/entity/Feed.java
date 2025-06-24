@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class Feed extends BaseUpdatableEntity {
 
   @Column(nullable = false)
-  private UUID userId;
+  private UUID authorId;
 
   @Column(nullable = false, columnDefinition = "TEXT")
   private String content;
@@ -27,12 +27,12 @@ public class Feed extends BaseUpdatableEntity {
   @Column(nullable = false)
   private int commentCount;
 
-  public static Feed create(UUID userId, String content) {
-    return new Feed(userId, content, 0, 0);
+  public static Feed create(UUID authorId, String content) {
+    return new Feed(authorId, content, 0, 0);
   }
 
-  private Feed(UUID userId, String content, int likeCount, int commentCount) {
-    this.userId = userId;
+  private Feed(UUID authorId, String content, int likeCount, int commentCount) {
+    this.authorId = authorId;
     this.content = content;
     this.likeCount = likeCount;
     this.commentCount = commentCount;

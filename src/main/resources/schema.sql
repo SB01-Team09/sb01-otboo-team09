@@ -6,7 +6,7 @@ CREATE TABLE feeds
     author_id     UUID        NOT NULL,
     content       TEXT        NOT NULL,
     like_count    INTEGER     NOT NULL,
-    comment_count INTEGER     NOT NULL,
+    comment_count INTEGER     NOT NULL
 );
 
 CREATE TABLE comments
@@ -78,7 +78,7 @@ CREATE TABLE locations
     y          INTEGER
 );
 
-CREATE TABLE locations_names
+CREATE TABLE location_names
 (
     id          UUID PRIMARY KEY,
     created_at  TIMESTAMPTZ  NOT NULL,
@@ -100,7 +100,7 @@ CREATE TABLE humidities
     id                  UUID PRIMARY KEY,
     created_at          TIMESTAMPTZ NOT NULL,
     current             DOUBLE PRECISION,
-    comparedToDayBefore DOUBLE PRECISION
+    compared_to_day_before DOUBLE PRECISION
 );
 
 CREATE TABLE temperatures
@@ -108,7 +108,7 @@ CREATE TABLE temperatures
     id                  UUID PRIMARY KEY,
     created_at          TIMESTAMPTZ NOT NULL,
     current             DOUBLE PRECISION,
-    comparedToDayBefore DOUBLE PRECISION,
+    compared_to_day_before DOUBLE PRECISION,
     min                 DOUBLE PRECISION,
     max                 DOUBLE PRECISION
 );
@@ -118,7 +118,7 @@ CREATE TABLE wind_speeds
     id         UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL,
     speed      DOUBLE PRECISION,
-    asWord     VARCHAR(50)
+    as_word     VARCHAR(50)
 );
 
 CREATE TABLE weathers
@@ -127,12 +127,12 @@ CREATE TABLE weathers
     created_at       TIMESTAMPTZ NOT NULL,
     forecasted_at    TIMESTAMPTZ NOT NULL,
     forecast_at      TIMESTAMPTZ NOT NULL,
-    skyStatus        VARCHAR(50) NOT NULL,
+    sky_status        VARCHAR(50) NOT NULL,
     location_id      UUID        NOT NULL,
     precipitation_id UUID        NOT NULL,
     humidity_id      UUID        NOT NULL,
     temperature_id   UUID        NOT NULL,
-    wind_speed_id    UUID        NOT NULL,
+    wind_speed_id    UUID        NOT NULL
 );
 
 CREATE TABLE users
@@ -148,6 +148,7 @@ CREATE TABLE users
     birth_date              DATE,
     temperature_sensitivity INTEGER,
     gender                  VARCHAR(10),
+    location_id             uuid,
     profile_image_url       TEXT
 );
 

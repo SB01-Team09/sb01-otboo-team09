@@ -16,21 +16,21 @@ import lombok.NoArgsConstructor;
 public class DirectMessage extends BaseEntity {
 
   @Column(nullable = false)
-  private UUID authorId;
+  private UUID senderId;
 
   @Column(nullable = false)
-  private UUID receiveId;
+  private UUID receiverId;
 
   @Column(nullable = false, columnDefinition = "TEXT")
   private String content;
 
-  public static DirectMessage create(UUID authorId, UUID receiveId, String content) {
-    return new DirectMessage(authorId, receiveId, content);
+  public static DirectMessage create(UUID senderId, UUID receiverId, String content) {
+    return new DirectMessage(senderId, receiverId, content);
   }
 
-  private DirectMessage(UUID authorId, UUID receiveId, String content) {
-    this.authorId = authorId;
-    this.receiveId = receiveId;
+  private DirectMessage(UUID senderId, UUID receiverId, String content) {
+    this.senderId = senderId;
+    this.receiverId = receiverId;
     this.content = content;
   }
 }
