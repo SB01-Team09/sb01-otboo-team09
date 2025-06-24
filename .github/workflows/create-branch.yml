@@ -49,6 +49,7 @@ jobs:
             echo "prefix=refactor" >> $GITHUB_OUTPUT
           else
             echo "prefix=misc" >> $GITHUB_OUTPUT
+          fi
 
       - name: Sanitize branch name
         id: sanitize
