@@ -35,7 +35,7 @@ jobs:
       - name: Create Issue Branch
         uses: robvanderleek/create-issue-branch@main
         with:
-          branch_name: "${{ steps.set_prefix.outputs.prefix }}/#${{ github.event.issue.number }}/${{ github.event.issue.body.branch_keyword }}"
+          branch_name: "${{ steps.set_prefix.outputs.prefix }}/#${{ github.event.issue.number }}/${{ steps.extract_keyword.outputs.keyword }}"
           auto_close_issue: true
           copy_issue_labels_to_pr: true
           copy_issue_assignee_to_pr: true
