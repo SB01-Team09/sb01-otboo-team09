@@ -7,15 +7,32 @@ on:
 permissions:
   contents: write
   issues: read
+  pull-requests: write
 
 jobs:
   create_issue_branch_job:
     runs-on: ubuntu-latest
     steps:
-      - name: Set branch prefix
+      - name: Extract branch keyword from issue body
+        uses: actions/github-script@v6
+        id: extract
+        with:
+          script: |
+            const body = context.payload.issue.body || '';
+            console.log('Issue body:', body);
+            
+            const match = body.match(/### 🌳 Branch Keyword\s*\n\s*(.+)/i);
+            const keyword = match ? match[1].trim() : 'default';
+            
+            console.log('Extracted keyword:', keyword);
+            core.setOutput('keyword', keyword);
+      
+      - name: Set branch prefix based on labels
         id: set_prefix
         run: |
           labels="${{ join(github.event.issue.labels.*.name, ',') }}"
+          echo "Labels: $labels"
+          
           if [[ "$labels" == *"🐞bug"* ]]; then
             echo "prefix=bugfix" >> $GITHUB_OUTPUT
           elif [[ "$labels" == *"✨feature"* ]]; then
@@ -31,12 +48,17 @@ jobs:
           else
             echo "prefix=misc" >> $GITHUB_OUTPUT
           fi
-
+          
+      - name: Debug branch name
+        run: |
+          echo "Branch will be: ${{ steps.set_prefix.outputs.prefix }}/#${{ github.event.issue.number }}/${{ steps.extract.outputs.keyword }}"
+          
       - name: Create Issue Branch
         uses: robvanderleek/create-issue-branch@main
         with:
-          branch_name: "${{ steps.set_prefix.outputs.prefix }}/#${{ github.event.issue.number }}/${{ steps.extract_keyword.outputs.keyword }}"
+          branch_name: "${{ steps.set_prefix.outputs.prefix }}/#${{ github.event.issue.number }}/${{ steps.extract.outputs.keyword }}"
           auto_close_issue: true
+          open_draft_pr: true
           copy_issue_labels_to_pr: true
           copy_issue_assignee_to_pr: true
         env:
