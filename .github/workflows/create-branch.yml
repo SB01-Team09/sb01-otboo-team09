@@ -21,7 +21,7 @@ jobs:
         with:
           script: |
             const body = context.payload.issue.body;
-            const keywordMatch = body.match(/### Branch Keyword\s*\n([^\n]+)/);
+            const keywordMatch = body.match(/🌳 Branch Keyword\s*\n([^\n]+)/);
             const keyword = keywordMatch ? keywordMatch[1].trim() : null;
             core.setOutput('keyword', keyword);
 
@@ -34,8 +34,8 @@ jobs:
       - name: Set branch metadata
         id: set_metadata
         run: |
-          LABELS=$(echo "${{ join(github.event.issue.labels.*.name, ',') }}" | tr '[:upper:]' '[:lower:]')
-          if [[ "LABELS" == *"🐞bug"* ]]; then
+          $labels=$(echo "${{ join(github.event.issue.labels.*.name, ',') }}" | tr '[:upper:]' '[:lower:]')
+          if [[ "$labels" == *"🐞bug"* ]]; then
             echo "prefix=bugfix" >> $GITHUB_OUTPUT
           elif [[ "$labels" == *"✨feature"* ]]; then
             echo "prefix=feature" >> $GITHUB_OUTPUT
@@ -58,9 +58,6 @@ jobs:
             tr -cd '[:alnum:]-_' |
             tr '[:upper:]' '[:lower:]' |
             cut -c 1-30)
-
-          FINAL_NAME="${CLEAN_KEYWORD}${{ steps.set_metadata.outputs.suffix }}"
-          echo "name=${FINAL_NAME}" >> $GITHUB_OUTPUT
 
       - name: Create branch
         uses: peterjgrainger/action-create-branch@v3.0.0
