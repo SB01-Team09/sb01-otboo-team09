@@ -1,0 +1,37 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: JDK 설정
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: gradlew 권한 부여
+        run: chmod +x gradlew
+
+      - name: 테스트 수행
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: ./gradlew test
+
+      - name: codecov 확인
+        uses: codecov/codecov-action@v5
+        with:
+          slug: SB01-Team09/sb01-otboo-team09
+          files: build/reports/jacoco/test/jacocoTestReport.xml

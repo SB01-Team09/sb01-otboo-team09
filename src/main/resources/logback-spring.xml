@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <!-- 로그 디렉토리 설정 -->
+  <property name="LOG_DIR" value="${user.dir}/.logs"/>
+
+  <!-- 공통 패턴 정의: 요청별 ID, 클라이언트 IP, HTTP 메서드, 요청 URL 포함 -->
+  <property name="LOG_PATTERN" value="%d{yy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %-36logger{36} [reqId=%X{requestId} | ip=%X{clientIp} | method=%X{requestMethod} | url=%X{requestUrl}] - %msg%n"/>
+
+  <!-- 콘솔(Appender) -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${LOG_PATTERN}</pattern>
+    </encoder>
+  </appender>
+
+  <!-- 파일(Appender) -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_DIR}/application.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- 일자별 롤링, 14일 보관 -->
+      <fileNamePattern>${LOG_DIR}/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>14</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>${LOG_PATTERN}</pattern>
+    </encoder>
+  </appender>
+
+  <!-- 프로파일별 루트 로거 설정 -->
+  <springProfile name="prod">
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+      <appender-ref ref="FILE"/>
+    </root>
+    <logger name="com.part4.team09.otboo" level="INFO"/>
+  </springProfile>
+
+  <!-- 기본 루트 로거 (프로파일 미지정 시) -->
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+  </root>
+</configuration>

@@ -1,0 +1,43 @@
+name: Auto Create Issue Branch
+
+on:
+  issues:
+    types: [ assigned ]
+
+permissions:
+  contents: write
+  issues: read
+
+jobs:
+  create_issue_branch_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set branch prefix
+        id: set_prefix
+        run: |
+          labels="${{ join(github.event.issue.labels.*.name, ',') }}"
+          if [[ "$labels" == *"🐞bug"* ]]; then
+            echo "prefix=bugfix" >> $GITHUB_OUTPUT
+          elif [[ "$labels" == *"✨feature"* ]]; then
+            echo "prefix=feature" >> $GITHUB_OUTPUT
+          elif [[ "$labels" == *"🍪chore"* ]]; then
+            echo "prefix=chore" >> $GITHUB_OUTPUT
+          elif [[ "$labels" == *"🚀deploy"* ]]; then
+            echo "prefix=deploy" >> $GITHUB_OUTPUT
+          elif [[ "$labels" == *"❗hotfix"* ]]; then
+            echo "prefix=hotfix" >> $GITHUB_OUTPUT
+          elif [[ "$labels" == *"🔧refactor"* ]]; then
+            echo "prefix=refactor" >> $GITHUB_OUTPUT
+          else
+            echo "prefix=misc" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Issue Branch
+        uses: robvanderleek/create-issue-branch@main
+        with:
+          branch_name: "${{ steps.set_prefix.outputs.prefix }}/#${{ github.event.issue.number }}/${{ github.event.issue.body.branch_keyword }}"
+          auto_close_issue: true
+          copy_issue_labels_to_pr: true
+          copy_issue_assignee_to_pr: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
