@@ -27,7 +27,7 @@ public class FollowService {
         if(!userRepository.existsById(followeeId)){
             throw new UserNotFoundException(followeeId);
         }
-        if(followeeId == followerId){
+        if(followeeId.equals(followerId)){
             throw new SelfFollowNotAllowedException(followeeId);
         }
 
@@ -40,6 +40,7 @@ public class FollowService {
         log.info("팔로우 저장 완료: id={}", savedFollow.getId());
 
         // 당한 사람한테 알림 발송
+
 
         return followMapper.toDto(savedFollow);
     }
