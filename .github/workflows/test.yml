@@ -28,7 +28,7 @@ jobs:
       - name: 테스트 수행
         env:
           SPRING_PROFILES_ACTIVE: test
-        run: ./gradlew test -Dlogging.level.org.springframework.jdbc.datasource.init=DEBUG -Dlogging.level.org.h2=DEBUG
+        run: ./gradlew test
 
       - name: codecov 확인
         uses: codecov/codecov-action@v5

@@ -19,8 +19,11 @@ spring:
 
 logging:
   level:
-    org.springframework.jdbc: debug
-    org.springframework.boot.autoconfigure: debug
+    org.springframework.jdbc: trace
+    org.springframework.jdbc.datasource.init: trace
+    org.springframework.boot.autoconfigure: trace
+    org.springframework.boot.autoconfigure.sql: trace
+    h2: trace
     com.sprint.mission.discodeit: debug
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
