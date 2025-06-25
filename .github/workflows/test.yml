@@ -32,10 +32,10 @@ jobs:
 
       - name: 테스트 실패 시 리포트 출력
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: build/reports/tests/test/
+          path: build/reports/
 
       - name: codecov 확인
         uses: codecov/codecov-action@v5
