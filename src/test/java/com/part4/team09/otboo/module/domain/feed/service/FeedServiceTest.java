@@ -1,0 +1,87 @@
+package com.part4.team09.otboo.module.domain.feed.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
+import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.entity.Feed;
+import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
+import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
+import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
+import com.part4.team09.otboo.module.domain.user.entity.User;
+import com.part4.team09.otboo.module.domain.weather.entity.Weather;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class FeedServiceTest {
+
+  @Mock
+  private FeedRepository feedRepository;
+
+  @Mock
+  private FeedMapper feedMapper;
+
+  @InjectMocks
+  private FeedService feedService;
+
+  @BeforeEach
+  void setUp() {
+
+  }
+
+  @Nested
+  @DisplayName("create")
+  public class createdTest {
+    @Test
+    void create_success() {
+      // given
+      User mockUser = mock(User.class);
+      Weather mockWeather = mock(Weather.class);
+      List<Ootd> ootds = List.of();
+
+      FeedCreateRequest request = new FeedCreateRequest(
+          UUID.randomUUID(),
+          UUID.randomUUID(),
+          UUID.randomUUID(),
+          "content"
+      );
+
+      FeedDto feedDto = new FeedDto(
+        UUID.randomUUID(),
+          LocalDateTime.now(),
+          LocalDateTime.now(),
+          mockUser,
+          mockWeather,
+          ootds,
+          "content",
+          0,
+          0,
+          false
+      );
+
+      given(feedMapper.toDto(any(Feed.class))).willReturn(feedDto);
+
+      // when
+      FeedDto result = feedService.create(request);
+
+      // then
+      assertThat(result).isEqualTo(feedDto);
+      verify(feedRepository).save(any());
+    }
+  }
+
+}

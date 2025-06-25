@@ -1,29 +1,20 @@
-package com.part4.team09.otboo.module.domain.feed.service;
+package com.part4.team09.otboo.module.domain.feed.mapper;
 
-import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
-import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
-import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
+import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather.SkyStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
-@Service
-@RequiredArgsConstructor
-public class FeedService {
+@Component
+public class FeedMapper {
 
-  private final FeedRepository feedRepository;
-  private final FeedMapper feedMapper;
-
-  @Transactional
-  public FeedDto create(FeedCreateRequest request) {
-    return new FeedDto(
+  public FeedDto toDto(Feed feed) {
+    return  new FeedDto(
         UUID.randomUUID(),
         LocalDateTime.now(),
         LocalDateTime.now(),
