@@ -25,7 +25,7 @@ public class LocationJobRunner implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-//    init();
+    init();
   }
 
   private void init()
