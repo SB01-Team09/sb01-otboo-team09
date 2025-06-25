@@ -23,11 +23,11 @@ public class FollowController {
     // 팔로우 요청
     @PostMapping
     public ResponseEntity<FollowDto> follow(@RequestBody FollowCreateRequest request){
-        log.info("팔로우 요청: followee={} -> follower={}", request.getFolloweeId(), request.getFollowerId());
+        log.info("팔로우 요청: followee={} -> follower={}", request.followeeId(), request.followerId());
 
-        FollowDto followDto = followService.create(request.getFolloweeId(), request.getFollowerId());
+        FollowDto followDto = followService.create(request.followeeId(), request.followerId());
 
-        log.info("팔로우 완료: followId={}", followDto.getId());
+        log.info("팔로우 완료: followId={}", followDto.id());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

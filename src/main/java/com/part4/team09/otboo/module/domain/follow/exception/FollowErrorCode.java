@@ -1,0 +1,29 @@
+package com.part4.team09.otboo.module.domain.follow.exception;
+
+import com.part4.team09.otboo.module.common.exception.ErrorCode;
+import org.springframework.http.HttpStatus;
+
+public enum FollowErrorCode implements ErrorCode {
+
+    SELF_FOLLOW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다.");
+
+    private final HttpStatus status;
+    private final String message;
+
+    FollowErrorCode(HttpStatus status, String message) {
+        this.status = status;
+        this.message = message;
+    }
+
+    @Override
+    public HttpStatus getHttpStatus() {
+        return this.status;
+    }
+
+    @Override
+    public String getMessage() {
+        return this.message;
+    }
+
+
+}
