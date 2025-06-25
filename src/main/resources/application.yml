@@ -3,6 +3,8 @@ spring:
     name: otboo
   profiles:
     active: dev
+  config:
+    import: optional:file:.env[.properties]
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -14,6 +16,12 @@ spring:
         highlight_sql: true
         use_sql_comments: true
     open-in-view: false
+
+otboo:
+  admin:
+    name: ${ADMIN_NAME}
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
 
 # ?? ?? ??
 logging:

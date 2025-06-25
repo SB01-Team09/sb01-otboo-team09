@@ -20,18 +20,29 @@ public class UserService {
   private final UserMapper userMapper;
 
   @Transactional
-  public UserDto create(UserCreateRequest request) {
+  public UserDto createUser(UserCreateRequest request) {
+    return createUserWithRole(request, User.Role.USER);
+  }
+
+  @Transactional
+  public void createAdmin(UserCreateRequest request) {
+    createUserWithRole(request, User.Role.ADMIN);
+  }
+
+  private UserDto createUserWithRole(UserCreateRequest request, User.Role role) {
 
     String email = request.email();
     checkDuplicateEmail(request.email());
 
     String encodedPassword = passwordEncoder.encode(request.password());
-    User user = User.createUser(email, request.name(), encodedPassword);
+    User user = User.createUserWithRole(email, request.name(), encodedPassword, role);
 
     userRepository.save(user);
 
     return userMapper.toEntity(user, null);
   }
+
+  // 편의 메서드
 
   private void checkDuplicateEmail(String email) {
     if (userRepository.existsByEmail(email)) {

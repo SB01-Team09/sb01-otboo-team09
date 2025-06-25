@@ -32,7 +32,7 @@ class UserServiceTest {
     UserCreateRequest request = new UserCreateRequest("name", "email@test.com", "password!");
 
     // when
-    UserDto userDto = userService.create(request);
+    UserDto userDto = userService.createUser(request);
 
     // then
     assertThat(userDto.email()).isEqualTo("email@test.com");
@@ -46,6 +46,6 @@ class UserServiceTest {
     UserCreateRequest request = new UserCreateRequest("name", "test@test.com", "password!");
 
     // when & then
-    assertThrows(EmailAlreadyExistsException.class, () -> userService.create(request));
+    assertThrows(EmailAlreadyExistsException.class, () -> userService.createUser(request));
   }
 }
