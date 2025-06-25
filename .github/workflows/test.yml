@@ -28,14 +28,7 @@ jobs:
       - name: 테스트 수행
         env:
           SPRING_PROFILES_ACTIVE: test
-        run: ./gradlew test --info --stacktrace --debug
-
-      - name: 테스트 실패 시 리포트 출력
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: build/reports/
+        run: ./gradlew test -Dlogging.level.org.springframework.jdbc.datasource.init=DEBUG -Dlogging.level.org.h2=DEBUG
 
       - name: codecov 확인
         uses: codecov/codecov-action@v5
