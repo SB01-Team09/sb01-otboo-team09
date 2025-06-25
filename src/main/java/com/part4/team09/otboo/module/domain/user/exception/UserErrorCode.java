@@ -5,7 +5,8 @@ import org.springframework.http.HttpStatus;
 
 public enum UserErrorCode implements ErrorCode {
 
-  EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 사용 중인 이메일 입니다.");
+  USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다."),
+  EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 사용 중인 이메일입니다.");
 
   private HttpStatus httpStatus;
   private String message;
