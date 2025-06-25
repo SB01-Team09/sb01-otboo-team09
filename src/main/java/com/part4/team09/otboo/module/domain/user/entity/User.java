@@ -61,6 +61,10 @@ public class User extends BaseUpdatableEntity {
     return new User(email, name, password, Role.ADMIN);
   }
 
+  public static User createUserWithRole(String email, String name, String password, Role role) {
+    return new User(email, name, password, role);
+  }
+
   private User(String email, String name, String password, Role role) {
     this.email = email;
     this.name = name;
@@ -69,7 +73,8 @@ public class User extends BaseUpdatableEntity {
     this.locked = false;
   }
 
-  public void updateProfile(String name, Gender gender, LocalDate birthDate, int temperatureSensitivity, UUID locationId, String profileImageUrl) {
+  public void updateProfile(String name, Gender gender, LocalDate birthDate,
+    int temperatureSensitivity, UUID locationId, String profileImageUrl) {
     this.name = name;
     this.gender = gender;
     this.birthDate = birthDate;
