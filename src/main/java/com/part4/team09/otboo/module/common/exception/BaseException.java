@@ -28,8 +28,7 @@ public class BaseException extends RuntimeException {
     this.details = details;
   }
 
-  public BaseException addDetail(String key, Object value) {
+  public void addDetail(String key, Object value) {
     this.details.put(key, value);
-    return this;
   }
 }
