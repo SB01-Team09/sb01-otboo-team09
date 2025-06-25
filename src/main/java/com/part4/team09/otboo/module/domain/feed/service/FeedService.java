@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.feed.service;
 
 import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
@@ -23,27 +24,9 @@ public class FeedService {
 
   @Transactional
   public FeedDto create(FeedCreateRequest request) {
-    return new FeedDto(
-        UUID.randomUUID(),
-        LocalDateTime.now(),
-        LocalDateTime.now(),
-        User.createUser("email", "name", "password"),
-        Weather.create(
-            LocalDateTime.now(),
-            LocalDateTime.now(),
-            SkyStatus.CLEAR,
-            null,
-            null,
-            null,
-            null,
-            null
-        ),
-        List.of(),
-        "content",
-        0,
-        0,
-        false
-    );
-  }
+    Feed feed = Feed.create(request.authorId(), request.weatherId(), request.content());
+    feedRepository.save(feed);
 
+    return feedMapper.toDto(feed);
+  }
 }
