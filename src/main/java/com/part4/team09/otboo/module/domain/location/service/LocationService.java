@@ -1,7 +1,5 @@
 package com.part4.team09.otboo.module.domain.location.service;
 
-import com.part4.team09.otboo.module.domain.location.dto.response.LocationApiResponse;
-import com.part4.team09.otboo.module.domain.location.dto.response.LocationApiResponse.Document;
 import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
 import com.part4.team09.otboo.module.domain.location.entity.Dong;
 import com.part4.team09.otboo.module.domain.location.entity.Gu;
@@ -13,11 +11,8 @@ import com.part4.team09.otboo.module.domain.location.repository.GuRepository;
 import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
 import com.part4.team09.otboo.module.domain.location.repository.SidoRepository;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +28,10 @@ public class LocationService {
   // latitude 위도 <-> 기상청 x, 카카오 y 37.xxxx
   public WeatherAPILocation getLocation(double longitude, double latitude) {
     String id = locationApiClient.getLocationCode(longitude, latitude);
+    return getLocation(id);
+  }
 
+  public WeatherAPILocation getLocation(String id) {
     Location location = locationRepository.findById(id)
       .orElseThrow(() -> new RuntimeException("현재 위치 정보가 없습니다."));
 
@@ -46,14 +44,12 @@ public class LocationService {
     Dong dong = dongRepository.findById(location.getDongId())
       .orElseThrow(() -> new RuntimeException("현재 위치 동 정보가 없습니다."));
 
-    WeatherAPILocation weatherAPILocation = new WeatherAPILocation(
+    return new WeatherAPILocation(
       dong.getLatitude(),
       dong.getLongitude(),
       dong.getX(),
       dong.getY(),
       List.of(sido.getSidoName(), gu.getGuName(), dong.getDongName())
     );
-
-    return weatherAPILocation;
   }
 }
