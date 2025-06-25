@@ -1,7 +1,19 @@
 package com.part4.team09.otboo.module.domain.location.service;
 
 import com.part4.team09.otboo.module.domain.location.dto.response.LocationApiResponse;
+import com.part4.team09.otboo.module.domain.location.dto.response.LocationApiResponse.Document;
+import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
+import com.part4.team09.otboo.module.domain.location.entity.Dong;
+import com.part4.team09.otboo.module.domain.location.entity.Gu;
 import com.part4.team09.otboo.module.domain.location.entity.Location;
+import com.part4.team09.otboo.module.domain.location.entity.Sido;
+import com.part4.team09.otboo.module.domain.location.external.LocationApiClient;
+import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
+import com.part4.team09.otboo.module.domain.location.repository.GuRepository;
+import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
+import com.part4.team09.otboo.module.domain.location.repository.SidoRepository;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -11,28 +23,37 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class LocationService {
 
-  private static final String BASE_URL = "https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?";
-
-  private final RestClient restClient;
+  private final LocationRepository locationRepository;
+  private final SidoRepository sidoRepository;
+  private final GuRepository guRepository;
+  private final DongRepository dongRepository;
+  private final LocationApiClient locationApiClient;
 
   // longitude 경도 <-> 기상청 y, 카카오 x 127.xxx
   // latitude 위도 <-> 기상청 x, 카카오 y 37.xxxx
-  public Location createLocation(double longitude, double latitude) {
+  public WeatherAPILocation getLocation(double longitude, double latitude) {
+    String id = locationApiClient.getLocationCode(longitude, latitude);
 
-    String requestX = "x=" + String.valueOf(longitude);
-    String requestY = "y=" + String.valueOf(latitude);
-    String requestUrl = BASE_URL + requestX + "&" + requestY;
+    Location location = locationRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("현재 위치 정보가 없습니다."));
 
-    ResponseEntity<LocationApiResponse> response =
-      restClient.get()
-        .uri(requestUrl)
-        .header("Authorization", "KakaoAK 레스트 키")
-        .retrieve()
-        .toEntity(LocationApiResponse.class);
+    Sido sido = sidoRepository.findById(location.getSidoId())
+      .orElseThrow(() -> new RuntimeException("현재 위치 시/도 정보가 없습니다."));
 
-    LocationApiResponse apiResponse = response.getBody();
+    Gu gu = guRepository.findById(location.getGuId())
+      .orElseThrow(() -> new RuntimeException("현재 위치 구 정보가 없습니다."));
 
-    return null;
+    Dong dong = dongRepository.findById(location.getDongId())
+      .orElseThrow(() -> new RuntimeException("현재 위치 동 정보가 없습니다."));
+
+    WeatherAPILocation weatherAPILocation = new WeatherAPILocation(
+      dong.getLatitude(),
+      dong.getLongitude(),
+      dong.getX(),
+      dong.getY(),
+      List.of(sido.getSidoName(), gu.getGuName(), dong.getDongName())
+    );
+
+    return weatherAPILocation;
   }
-
 }
