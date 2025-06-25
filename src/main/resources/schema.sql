@@ -68,22 +68,40 @@ CREATE TABLE notifications
     level       VARCHAR(50)  NOT NULL
 );
 
-CREATE TABLE locations
+CREATE TABLE dongs
 (
     id         UUID PRIMARY KEY,
-    created_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ  NOT NULL,
+    dong_name  VARCHAR(50)  NOT NULL,
     latitude   DOUBLE PRECISION,
     longitude  DOUBLE PRECISION,
     x          INTEGER,
     y          INTEGER
 );
 
-CREATE TABLE location_names
+CREATE TABLE gus
 (
-    id          UUID PRIMARY KEY,
-    created_at  TIMESTAMPTZ  NOT NULL,
-    item        VARCHAR(255) NOT NULL,
-    location_id UUID         NOT NULL
+    id         UUID PRIMARY KEY,
+    created_at TIMESTAMPTZ  NOT NULL,
+    gu_name    VARCHAR(50)  NOT NULL
+);
+
+CREATE TABLE sidos
+(
+    id         UUID PRIMARY KEY,
+    created_at TIMESTAMPTZ  NOT NULL,
+    sido_name  VARCHAR(50)  NOT NULL
+);
+
+CREATE TABLE locations
+(
+    id         VARCHAR(10) PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL,
+    sido_id    UUID NOT NULL,
+    gu_id      UUID NOT NULL,
+    dong_id    UUID NOT NULL,
+
+    CONSTRAINT UK_SidoGuDong UNIQUE (sido_id, gu_id, dong_id)
 );
 
 CREATE TABLE precipitations
@@ -148,7 +166,7 @@ CREATE TABLE users
     birth_date              DATE,
     temperature_sensitivity INTEGER,
     gender                  VARCHAR(10),
-    location_id             uuid,
+    location_id             VARCHAR(10),
     profile_image_url       TEXT
 );
 

@@ -7,7 +7,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,7 +40,7 @@ public class User extends BaseUpdatableEntity {
 
   private int temperatureSensitivity;
 
-  private UUID locationId;
+  private String locationId;
 
   private String profileImageUrl;
 
@@ -69,7 +68,7 @@ public class User extends BaseUpdatableEntity {
     this.locked = false;
   }
 
-  public void updateProfile(String name, Gender gender, LocalDate birthDate, int temperatureSensitivity, UUID locationId, String profileImageUrl) {
+  public void updateProfile(String name, Gender gender, LocalDate birthDate, int temperatureSensitivity, String locationId, String profileImageUrl) {
     this.name = name;
     this.gender = gender;
     this.birthDate = birthDate;
