@@ -11,7 +11,7 @@ public record UserDto(
   String email,
   String name,
   Role role,
-  List<String> linkedOAuthProviders, // TODO : 수정 예정
+  List<String> linkedOAuthProviders, // TODO : OAuth 하면서 수정 예정
   boolean locked
 ) {
 
