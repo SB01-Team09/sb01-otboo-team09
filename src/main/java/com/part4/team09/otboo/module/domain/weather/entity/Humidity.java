@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.weather.entity;
 
 import com.part4.team09.otboo.module.common.entity.BaseEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 public class Humidity extends BaseEntity {
 
   private double current;
+
   private double comparedToDayBefore;
 
   public static Humidity create(double current, double comparedToDayBefore) {
