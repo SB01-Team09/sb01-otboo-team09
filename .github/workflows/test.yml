@@ -28,7 +28,14 @@ jobs:
       - name: 테스트 수행
         env:
           SPRING_PROFILES_ACTIVE: test
-        run: ./gradlew test
+        run: ./gradlew test --info --stacktrace --debug
+
+      - name: 테스트 실패 시 리포트 출력
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: build/reports/tests/test/
 
       - name: codecov 확인
         uses: codecov/codecov-action@v5
