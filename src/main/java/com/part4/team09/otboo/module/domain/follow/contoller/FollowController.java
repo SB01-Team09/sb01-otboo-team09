@@ -6,11 +6,10 @@ import com.part4.team09.otboo.module.domain.follow.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
+
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -32,6 +31,19 @@ public class FollowController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(followDto);
+    }
+
+    // TODO: 팔로잉 리스트 조회
+    @GetMapping("/api/follows/followings")
+    public ResponseEntity<FollowDto> getFollowingList(
+            @RequestParam UUID followerId,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) UUID idAfter,
+            @RequestParam Integer limit,
+            @RequestParam(required = false) String nameLike
+            ){
+
+
     }
 
 }
