@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
