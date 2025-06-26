@@ -11,7 +11,7 @@ public record FeedDto(
     UUID id,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
-    User author,
+    AuthorDto authorDto,
     Weather weather,
     List<Ootd> ootds,
     String content,
