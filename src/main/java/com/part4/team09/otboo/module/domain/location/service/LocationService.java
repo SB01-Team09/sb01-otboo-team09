@@ -5,6 +5,7 @@ import com.part4.team09.otboo.module.domain.location.entity.Dong;
 import com.part4.team09.otboo.module.domain.location.entity.Gu;
 import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.entity.Sido;
+import com.part4.team09.otboo.module.domain.location.exception.LocationNotFoundException;
 import com.part4.team09.otboo.module.domain.location.external.LocationApiClient;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
 import com.part4.team09.otboo.module.domain.location.repository.GuRepository;
@@ -33,16 +34,16 @@ public class LocationService {
 
   public WeatherAPILocation getLocation(String id) {
     Location location = locationRepository.findById(id)
-      .orElseThrow(() -> new RuntimeException("현재 위치 정보가 없습니다."));
+      .orElseThrow(() -> LocationNotFoundException.withNameAndId("location", id));
 
     Sido sido = sidoRepository.findById(location.getSidoId())
-      .orElseThrow(() -> new RuntimeException("현재 위치 시/도 정보가 없습니다."));
+      .orElseThrow(() -> LocationNotFoundException.withNameAndId("sido", location.getSidoId()));
 
     Gu gu = guRepository.findById(location.getGuId())
-      .orElseThrow(() -> new RuntimeException("현재 위치 구 정보가 없습니다."));
+      .orElseThrow(() -> LocationNotFoundException.withNameAndId("gu", location.getGuId()));
 
     Dong dong = dongRepository.findById(location.getDongId())
-      .orElseThrow(() -> new RuntimeException("현재 위치 동 정보가 없습니다."));
+      .orElseThrow(() -> LocationNotFoundException.withNameAndId("dong", location.getDongId()));
 
     return new WeatherAPILocation(
       dong.getLatitude(),
