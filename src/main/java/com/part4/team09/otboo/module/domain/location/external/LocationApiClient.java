@@ -30,7 +30,7 @@ public class LocationApiClient {
     LocationApiResponse apiResponse = response.getBody();
 
     if (apiResponse == null || apiResponse.documents().isEmpty()) {
-      throw new RuntimeException("좌표에 해당하는 주소를 찾을 수 없습니다.");
+      throw new RuntimeException("좌표에 해당하는 주소를 찾을 수 없습니다."); // 추후 예외 수정
     }
 
     return apiResponse.documents().get(1).code();
