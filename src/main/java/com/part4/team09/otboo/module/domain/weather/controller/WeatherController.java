@@ -29,7 +29,7 @@ public class WeatherController {
 
   @GetMapping
   public ResponseEntity<Void> getWeather() {
-    weatherApiClient.getWeatherApiResponse();
+    weatherApiClient.getWeatherApiResponse(60, 127);
 
     return null;
   }
