@@ -15,7 +15,7 @@ public class LocationApiClient {
 
   private final RestClient restClient;
 
-  @Value("${KAKAO_REST_API_KEY}")
+  @Value("${KAKAO_REST_API_KEY:dev-placeholder-key}")
   private String API_KEY;
 
   public String getLocationCode(double longitude, double latitude) {
