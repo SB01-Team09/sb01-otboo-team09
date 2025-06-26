@@ -1,6 +1,8 @@
 package com.part4.team09.otboo.module.domain.clothes.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -11,7 +13,6 @@ import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDe
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.SelectableValueRepository;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -50,7 +51,7 @@ class SelectableValueServiceTest {
           .map(value -> SelectableValue.create(defId, value))
           .toList();
 
-      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.of(def));
+      given(clothesAttributeDefRepository.existsById(defId)).willReturn(true);
       given(selectableValueRepository.saveAll(anyList())).willReturn(selectableValues);
 
       // when
@@ -59,22 +60,65 @@ class SelectableValueServiceTest {
       // then
       assertNotNull(result);
       assertEquals(result.get(0), selectableValues.get(0));
-      then(clothesAttributeDefRepository).should().findById(defId);
+      then(clothesAttributeDefRepository).should().existsById(defId);
       then(selectableValueRepository).should().saveAll(anyList());
     }
 
     @Test
-    @DisplayName("속성 정의 id 중복")
-    void create_duplicate_def_id() {
+    @DisplayName("잘못된 속성 정의 id")
+    void create_invalid_id() {
 
       // given
       UUID defId = UUID.randomUUID();
-      List<String> values = List.of("S", "M", "L", "XL");
 
-      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.empty());
+      given(clothesAttributeDefRepository.existsById(defId)).willReturn(false);
 
       // when, then
-      assertThrows(ClothesAttributeDefNotFoundException.class, () -> selectableValueService.create(defId, values));
+      assertThrows(ClothesAttributeDefNotFoundException.class,
+          () -> selectableValueService.create(defId, List.of()));
+    }
+  }
+
+  @Nested
+  @DisplayName("속성 값 수정")
+  class Update {
+
+    @Test
+    @DisplayName("수정 성공")
+    void update_success() {
+
+      // given
+      UUID defId = UUID.randomUUID();
+      List<String> newValues = List.of("없음", "조금 있음", "있음");
+      List<SelectableValue> selectableValues = newValues.stream()
+          .map(value -> SelectableValue.create(defId, value))
+          .toList();
+
+      given(clothesAttributeDefRepository.existsById(defId)).willReturn(true);
+      given(selectableValueRepository.saveAll(anyList())).willReturn(selectableValues);
+
+      // when
+      List<SelectableValue> result = selectableValueService.update(defId, newValues);
+
+      // then
+      assertNotNull(result);
+      assertEquals(result, selectableValues);
+      then(clothesAttributeDefRepository).should().existsById(defId);
+      then(selectableValueRepository).should().saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("잘못된 속성 정의 id")
+    void update_invalid_id() {
+
+      // given
+      UUID defId = UUID.randomUUID();
+
+      given(clothesAttributeDefRepository.existsById(defId)).willReturn(false);
+
+      // when, then
+      assertThrows(ClothesAttributeDefNotFoundException.class,
+          () -> selectableValueService.update(defId, List.of()));
     }
   }
 }
