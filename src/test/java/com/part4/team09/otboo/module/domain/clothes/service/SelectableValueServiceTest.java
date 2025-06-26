@@ -46,7 +46,6 @@ class SelectableValueServiceTest {
       UUID defId = UUID.randomUUID();
       List<String> values = List.of("S", "M", "L", "XL");
 
-      ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
       List<SelectableValue> selectableValues = values.stream()
           .map(value -> SelectableValue.create(defId, value))
           .toList();
