@@ -21,12 +21,11 @@ public class SelectableValueService {
   public List<SelectableValue> create(UUID defId, List<String> values) {
 
     clothesAttributeDefRepository.findById(defId)
-        .orElseThrow(() -> ClothesAttributeDefNotFoundException.withId(defId));
-
+      .orElseThrow(() -> ClothesAttributeDefNotFoundException.withId(defId));
 
     List<SelectableValue> selectableValues = values.stream()
-        .map(value -> SelectableValue.create(defId, value))
-        .toList();
+      .map(value -> SelectableValue.create(defId, value))
+      .toList();
 
     return selectableValueRepository.saveAll(selectableValues);
   }

@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.clothes.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -38,15 +39,17 @@ class ClothesAttributeInfoServiceTest {
     void create_success() {
 
       // given
-      ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest("사이즈", List.of("S", "M", "L"));
+      ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest("사이즈",
+        List.of("S", "M", "L"));
 
       ClothesAttributeDef def = ClothesAttributeDef.create(request.name());
       List<SelectableValue> selectableValues = request.selectableValues().stream()
-          .map(value -> SelectableValue.create(def.getId(), value))
-          .toList();
+        .map(value -> SelectableValue.create(def.getId(), value))
+        .toList();
 
       given(clothesAttributeDefService.create(request.name())).willReturn(def);
-      given(selectableValueService.create(def.getId(), request.selectableValues())).willReturn(selectableValues);
+      given(selectableValueService.create(def.getId(), request.selectableValues())).willReturn(
+        selectableValues);
 
       // when
       ClothesAttributeDefDto result = clothesAttributeInfoService.create(request);
