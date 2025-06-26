@@ -10,19 +10,19 @@ import java.util.List;
 
 public record ClothesUpdateRequest(
 
-    // 의상 이름
-    @NotBlank(message = "의상 이름은 필수입니다.")
-    @Size(max = 50, message = "의상 이름은 50자 이하여야 합니다.")
-    String name,
+  // 의상 이름
+  @NotBlank(message = "의상 이름은 필수입니다.")
+  @Size(max = 50, message = "의상 이름은 50자 이하여야 합니다.")
+  String name,
 
-    // 의상 타입
-    @NotNull(message = "의상 타입은 필수입니다.")
-    ClothesType type,
+  // 의상 타입
+  @NotNull(message = "의상 타입은 필수입니다.")
+  ClothesType type,
 
-    // 의상 속성
-    @Valid
-    @NotNull(message = "속성 리스트는 null일 수 없습니다.")
-    List<ClothesAttributeDto> attributes
+  // 의상 속성
+  @Valid
+  @NotNull(message = "속성 리스트는 null일 수 없습니다.")
+  List<ClothesAttributeDto> attributes
 ) {
 
 }

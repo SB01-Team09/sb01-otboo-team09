@@ -1,6 +1,8 @@
 package com.part4.team09.otboo.module.domain.clothes.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -47,8 +49,8 @@ class SelectableValueServiceTest {
 
       ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
       List<SelectableValue> selectableValues = values.stream()
-          .map(value -> SelectableValue.create(defId, value))
-          .toList();
+        .map(value -> SelectableValue.create(defId, value))
+        .toList();
 
       given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.of(def));
       given(selectableValueRepository.saveAll(anyList())).willReturn(selectableValues);
@@ -74,7 +76,8 @@ class SelectableValueServiceTest {
       given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.empty());
 
       // when, then
-      assertThrows(ClothesAttributeDefNotFoundException.class, () -> selectableValueService.create(defId, values));
+      assertThrows(ClothesAttributeDefNotFoundException.class,
+        () -> selectableValueService.create(defId, values));
     }
   }
 }

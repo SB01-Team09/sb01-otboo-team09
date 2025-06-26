@@ -24,7 +24,8 @@ public class ClothesAttributeDefController {
 
   // 의상 속성 정의 등록
   @PostMapping
-  ResponseEntity<ClothesAttributeDefDto> create(@Valid @RequestBody ClothesAttributeDefCreateRequest request) {
+  ResponseEntity<ClothesAttributeDefDto> create(
+    @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
 
     ClothesAttributeDefDto response = clothesAttributeInfoService.create(request);
 

@@ -1,12 +1,9 @@
 package com.part4.team09.otboo.module.domain.clothes.service;
 
 
-
-
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
-
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +23,10 @@ public class ClothesAttributeInfoService {
 
     ClothesAttributeDef def = clothesAttributeDefService.create(request.name());
 
-    List<String> valueList = selectableValueService.create(def.getId(), request.selectableValues()).stream()
-        .map(SelectableValue::getItem)
-        .toList();
+    List<String> valueList = selectableValueService.create(def.getId(), request.selectableValues())
+      .stream()
+      .map(SelectableValue::getItem)
+      .toList();
 
     return new ClothesAttributeDefDto(def.getId(), def.getName(), valueList);
   }
