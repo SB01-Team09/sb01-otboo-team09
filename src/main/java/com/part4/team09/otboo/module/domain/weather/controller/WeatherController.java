@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.weather.controller;
 
 import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
 import com.part4.team09.otboo.module.domain.location.service.LocationService;
+import com.part4.team09.otboo.module.domain.weather.external.WeatherApiClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WeatherController {
 
   private final LocationService locationService;
+  private final WeatherApiClient weatherApiClient;
 
   @GetMapping("/location")
   public ResponseEntity<WeatherAPILocation> getLocation(
@@ -25,4 +27,10 @@ public class WeatherController {
     return ResponseEntity.ok(response);
   }
 
+  @GetMapping
+  public ResponseEntity<Void> getWeather() {
+    weatherApiClient.getWeatherApiResponse();
+
+    return null;
+  }
 }
