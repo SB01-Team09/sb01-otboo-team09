@@ -28,7 +28,7 @@ public class WeatherApiClient {
 //    String numOfRows = "944";
     String numOfRows = "2";
     String pageNum = "1";
-    String baseDate = getYesterdayDate();
+    String baseDate = getDate();
     String baseTime = "2300";
     String nx = String.valueOf(x);
     String ny = String.valueOf(y);
@@ -52,9 +52,9 @@ public class WeatherApiClient {
     return apiResponse.getBody().response().body().items().item();
   }
 
-  private String getYesterdayDate() {
+  private String getDate() {
     return LocalDate.now()
-      .minusDays(1)
+      .minusDays(2)
       .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
   }
 }
