@@ -1,10 +1,14 @@
 package com.part4.team09.otboo.module.domain.clothes.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,6 +29,34 @@ class SelectableValueRepositoryTest {
 
   @Autowired
   private EntityManager entityManager;
+
+  @Nested
+  @DisplayName("속성 정의 id로 속성 값들 찾기")
+  class FindAllByAttributeDefId {
+
+    @Test
+    @DisplayName("찾기 성공")
+    void find_all_by_attribute_def_id() {
+      // given
+      UUID defId = UUID.randomUUID();
+      List<SelectableValue> selectableValues = Stream.of("S", "M", "L")
+          .map(value -> SelectableValue.create(defId, value))
+          .toList();
+
+      selectableValueRepository.saveAll(selectableValues);
+      entityManager.flush();
+      entityManager.clear();
+
+      // given
+      List<SelectableValue> results = selectableValueRepository.findAllByAttributeDefId(defId);
+
+      // then
+      assertEquals(
+          results.stream().map(SelectableValue::getItem).toList(),
+          selectableValues.stream().map(SelectableValue::getItem).toList()
+      );
+    }
+  }
 
   @Nested
   @DisplayName("의상 속성 정의 id로 속성 값 전부 삭제")
@@ -51,7 +83,7 @@ class SelectableValueRepositoryTest {
       List<SelectableValue> result = selectableValueRepository.findAll();
 
       // then
-      assertEquals(result, List.of());
+      assertTrue(result.isEmpty());
     }
 
     @Test
@@ -63,6 +95,31 @@ class SelectableValueRepositoryTest {
 
       // when, then
       assertDoesNotThrow(() -> selectableValueRepository.deleteAllByAttributeDefId(invalidId));
+    }
+  }
+
+  @Nested
+  @DisplayName("아이디 리스트로 삭제")
+  class DeleteByIdIn {
+
+    @Test
+    @DisplayName("리스트로 삭제 성공")
+    void delete_by_id_in() {
+
+      // given
+      UUID id = UUID.randomUUID();
+      SelectableValue selectableValue = SelectableValue.create(id, "S");
+
+      selectableValueRepository.save(selectableValue);
+      entityManager.flush();
+      entityManager.clear();
+
+      // when
+      selectableValueRepository.deleteByIdIn(List.of(selectableValue.getId()));
+      List<SelectableValue> result = selectableValueRepository.findAll();
+
+      // then
+      assertTrue(result.isEmpty());
     }
   }
 }
