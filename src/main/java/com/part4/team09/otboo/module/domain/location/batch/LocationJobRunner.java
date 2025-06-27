@@ -9,6 +9,7 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -18,14 +19,15 @@ public class LocationJobRunner implements CommandLineRunner {
   private final JobLauncher jobLauncher;
   private final Job locationImportJob;
 
-  public LocationJobRunner(JobLauncher jobLauncher, Job locationImportJob) {
+  public LocationJobRunner(JobLauncher jobLauncher,
+    @Qualifier("locationJob") Job locationImportJob) {
     this.jobLauncher = jobLauncher;
     this.locationImportJob = locationImportJob;
   }
 
   @Override
   public void run(String... args) throws Exception {
-    init();
+//    init();
   }
 
   private void init()

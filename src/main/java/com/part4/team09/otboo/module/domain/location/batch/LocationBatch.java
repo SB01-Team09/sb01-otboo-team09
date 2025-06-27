@@ -60,7 +60,7 @@ public class LocationBatch {
       .build();
   }
 
-  @Bean
+  @Bean("locationJob")
   public Job locationImportJob(JobRepository jobRepository, Step locationStep) {
     return new JobBuilder("locationImportJob", jobRepository)
       .start(locationStep)
