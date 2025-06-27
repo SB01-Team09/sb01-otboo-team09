@@ -1,6 +1,8 @@
 package com.part4.team09.otboo.module.domain.clothes.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -63,7 +65,8 @@ class ClothesAttributeDefServiceTest {
       given(clothesAttributeDefRepository.existsByName(name)).willReturn(true);
 
       // when, then
-      assertThrows(ClothesAttributeDefAlreadyExistsException.class, () -> clothesAttributeDefService.create(name));
+      assertThrows(ClothesAttributeDefAlreadyExistsException.class,
+        () -> clothesAttributeDefService.create(name));
     }
   }
 

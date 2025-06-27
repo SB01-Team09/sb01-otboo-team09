@@ -29,7 +29,8 @@ public class SelectableValueService {
 
     // 속성 값 생성
     List<SelectableValue> selectableValues = values.stream()
-        .map(value -> SelectableValue.create(defId, value)).toList();
+      .map(value -> SelectableValue.create(defId, value))
+      .toList();
 
     log.debug("의상 속성 명 생성 완료: defId = {}, values = {}", defId,
         selectableValues.stream()

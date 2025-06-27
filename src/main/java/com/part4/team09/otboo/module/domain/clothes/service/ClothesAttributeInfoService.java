@@ -36,9 +36,9 @@ public class ClothesAttributeInfoService {
     ClothesAttributeDef def = clothesAttributeDefService.create(request.name());
 
     List<String> valueList = selectableValueService.create(def.getId(), request.selectableValues())
-        .stream()
-        .map(SelectableValue::getItem)
-        .toList();
+      .stream()
+      .map(SelectableValue::getItem)
+      .toList();
 
     log.debug("의상 속성 정의 생성 완료: defId = {}, name = {}, values = {}", def.getId(), def.getName(),
         valueList);

@@ -46,8 +46,8 @@ class SelectableValueServiceTest {
       List<String> values = List.of("S", "M", "L", "XL");
 
       List<SelectableValue> selectableValues = values.stream()
-          .map(value -> SelectableValue.create(defId, value))
-          .toList();
+        .map(value -> SelectableValue.create(defId, value))
+        .toList();
 
       given(clothesAttributeDefRepository.existsById(defId)).willReturn(true);
       given(selectableValueRepository.saveAll(anyList())).willReturn(selectableValues);
