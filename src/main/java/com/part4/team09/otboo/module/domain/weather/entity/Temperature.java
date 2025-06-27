@@ -14,15 +14,16 @@ import lombok.NoArgsConstructor;
 public class Temperature extends BaseEntity {
 
   private double current;
-  private double comparedToDayBefore;
+  private Double comparedToDayBefore;
   private double min;
   private double max;
 
-  public static Temperature create(double current, double comparedToDayBefore, double min, double max) {
+  public static Temperature create(double current, Double comparedToDayBefore, double min,
+    double max) {
     return new Temperature(current, comparedToDayBefore, min, max);
   }
 
-  private Temperature(double current, double comparedToDayBefore, double min, double max) {
+  private Temperature(double current, Double comparedToDayBefore, double min, double max) {
     this.current = current;
     this.comparedToDayBefore = comparedToDayBefore;
     this.min = min;

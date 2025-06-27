@@ -25,8 +25,8 @@ public class WeatherApiClient {
   private String SERVICE_KEY;
 
   public List<Item> getWeatherApiResponse(int x, int y) {
-//    String numOfRows = "944";
-    String numOfRows = "2";
+    String numOfRows = "944";
+//    String numOfRows = "2";
     String pageNum = "1";
     String baseDate = getDate();
     String baseTime = "2300";
