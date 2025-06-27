@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SelectableValueRepository extends JpaRepository<SelectableValue, UUID> {
 
+  void deleteAllByAttributeDefId(UUID attributeDefId);
 }
