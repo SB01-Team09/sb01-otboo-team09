@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.follow.contoller;
 
 import com.part4.team09.otboo.module.domain.follow.dto.FollowCreateRequest;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
+import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,28 +23,28 @@ public class FollowController {
     // 팔로우 요청
     @PostMapping
     public ResponseEntity<FollowDto> follow(@RequestBody FollowCreateRequest request){
-        log.info("팔로우 요청: followee={} -> follower={}", request.followeeId(), request.followerId());
 
         FollowDto followDto = followService.create(request.followeeId(), request.followerId());
-
-        log.info("팔로우 완료: followId={}", followDto.id());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(followDto);
     }
 
-    // TODO: 팔로잉 리스트 조회
-    @GetMapping("/api/follows/followings")
-    public ResponseEntity<FollowDto> getFollowingList(
+    // 팔로잉 목록 조회
+    @GetMapping("/followings")
+    public ResponseEntity<FollowListResponse> getFollowings(
             @RequestParam UUID followerId,
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) UUID idAfter,
-            @RequestParam Integer limit,
+            @RequestParam(defaultValue = "10") Integer limit,
             @RequestParam(required = false) String nameLike
             ){
 
+        FollowListResponse response = followService.getFollowings(followerId, idAfter, limit, nameLike);
 
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
     }
-
 }
