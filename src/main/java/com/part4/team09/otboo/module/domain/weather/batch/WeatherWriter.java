@@ -11,6 +11,7 @@ import com.part4.team09.otboo.module.domain.weather.repository.PrecipitationRepo
 import com.part4.team09.otboo.module.domain.weather.repository.TemperatureRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.WindSpeedRepository;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
@@ -28,25 +29,71 @@ public class WeatherWriter implements ItemWriter<WeatherData> {
 
   @Override
   public void write(Chunk<? extends WeatherData> weatherDatas) throws Exception {
-    weatherDatas.forEach(
-      weatherData -> {
-        Humidity humidity = humidityRepository.save(weatherData.humidity());
-        Precipitation precipitation = precipitationRepository.save(weatherData.precipitation());
-        Temperature temperature = temperatureRepository.save(weatherData.temperature());
-        WindSpeed windSpeed = windSpeedRepository.save(weatherData.windSpeed());
-
-        Weather weather = Weather.create(
-          weatherData.forecastAt(),
-          weatherData.forecastedAt(),
-          weatherData.skyStatus(),
-          weatherData.locationId(),
-          precipitation.getId(),
-          humidity.getId(),
-          temperature.getId(),
-          windSpeed.getId()
+    for (WeatherData weatherData : weatherDatas) {
+      weatherRepository
+        .findByLocationIdAndForecastAt(weatherData.locationId(), weatherData.forecastAt())
+        .ifPresentOrElse(
+          existingWeather -> updateExistingWeather(existingWeather, weatherData),
+          () -> saveNewWeather(weatherData)
         );
-        weatherRepository.save(weather);
-      }
+    }
+  }
+
+  private void updateExistingWeather(Weather existingWeather, WeatherData weatherData) {
+    updateHumidity(existingWeather.getHumidityId(), weatherData.humidity());
+    updatePrecipitation(existingWeather.getPrecipitationId(), weatherData.precipitation());
+    updateTemperature(existingWeather.getTemperatureId(), weatherData.temperature());
+    updateWindSpeed(existingWeather.getWindSpeedId(), weatherData.windSpeed());
+  }
+
+  private void updateHumidity(UUID humidityId, Humidity newHumidity) {
+    humidityRepository.findById(humidityId).ifPresent(humidity -> {
+      humidity.updateCurrent(newHumidity.getCurrent());
+      humidity.updateComparedToDayBefore(newHumidity.getComparedToDayBefore());
+    });
+  }
+
+  private void updatePrecipitation(UUID precipitationId, Precipitation newPrecipitation) {
+    precipitationRepository.findById(precipitationId).ifPresent(precipitation -> {
+      precipitation.updateType(newPrecipitation.getType());
+      precipitation.updateAmount(newPrecipitation.getAmount());
+      precipitation.updateProbability(newPrecipitation.getProbability());
+    });
+  }
+
+  private void updateTemperature(UUID temperatureId, Temperature newTemperature) {
+    temperatureRepository.findById(temperatureId).ifPresent(temperature -> {
+      temperature.updateCurrent(newTemperature.getCurrent());
+      temperature.updateComparedToDayBefore(newTemperature.getComparedToDayBefore());
+      temperature.updateMax(newTemperature.getMax());
+      temperature.updateMin(newTemperature.getMin());
+    });
+  }
+
+  private void updateWindSpeed(UUID windSpeedId, WindSpeed newWindSpeed) {
+    windSpeedRepository.findById(windSpeedId).ifPresent(windSpeed -> {
+      windSpeed.updateSpeed(newWindSpeed.getSpeed());
+      windSpeed.updateAsWord(newWindSpeed.getAsWord());
+    });
+  }
+
+  private void saveNewWeather(WeatherData weatherData) {
+    humidityRepository.save(weatherData.humidity());
+    precipitationRepository.save(weatherData.precipitation());
+    temperatureRepository.save(weatherData.temperature());
+    windSpeedRepository.save(weatherData.windSpeed());
+
+    Weather newWeather = Weather.create(
+      weatherData.forecastAt(),
+      weatherData.forecastedAt(),
+      weatherData.skyStatus(),
+      weatherData.locationId(),
+      weatherData.precipitation().getId(),
+      weatherData.humidity().getId(),
+      weatherData.temperature().getId(),
+      weatherData.windSpeed().getId()
     );
+
+    weatherRepository.save(newWeather);
   }
 }

@@ -49,4 +49,17 @@ public class Precipitation extends BaseEntity {
     this.amount = amount;
     this.probability = probability;
   }
+
+  public void updateType(
+    PrecipitationType type) {
+    this.type = type;
+  }
+
+  public void updateAmount(double amount) {
+    this.amount = amount;
+  }
+
+  public void updateProbability(double probability) {
+    this.probability = probability;
+  }
 }

@@ -42,4 +42,12 @@ public class WindSpeed extends BaseEntity {
     this.speed = speed;
     this.asWord = asWord;
   }
+
+  public void updateSpeed(double speed) {
+    this.speed = speed;
+  }
+
+  public void updateAsWord(AsWord asWord) {
+    this.asWord = asWord;
+  }
 }

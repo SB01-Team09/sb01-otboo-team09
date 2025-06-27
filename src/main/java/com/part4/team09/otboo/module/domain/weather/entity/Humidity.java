@@ -24,4 +24,12 @@ public class Humidity extends BaseEntity {
     this.current = current;
     this.comparedToDayBefore = comparedToDayBefore;
   }
+
+  public void updateCurrent(double current) {
+    this.current = current;
+  }
+
+  public void updateComparedToDayBefore(Double comparedToDayBefore) {
+    this.comparedToDayBefore = comparedToDayBefore;
+  }
 }

@@ -1,6 +1,5 @@
 package com.part4.team09.otboo.module.domain.weather.batch;
 
-import com.part4.team09.otboo.module.domain.location.entity.Dong;
 import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
@@ -16,43 +15,55 @@ import org.springframework.batch.item.ItemStreamReader;
 @RequiredArgsConstructor
 public class WeatherReader implements ItemStreamReader<WeatherApiData> {
 
+  private static final int CHUNK_SIZE = 290;
+
   private final ItemStreamReader<Location> locationReader;
   private final WeatherApiClient weatherApiClient;
   private final DongRepository dongRepository;
+
   private List<Item> currentApiDataBuffer = new ArrayList<>();
   private int currentIndex = 0;
   private Location currentLocation;
 
   @Override
   public WeatherApiData read() throws Exception {
-    // 현재 버퍼에 처리할 데이터가 남아있으면 290개씩 잘라서 반환
-    if (currentIndex < currentApiDataBuffer.size()) {
-      int endIndex = Math.min(currentIndex + 290, currentApiDataBuffer.size());
-      List<Item> subList = currentApiDataBuffer.subList(currentIndex, endIndex);
-      currentIndex = endIndex;
-      return new WeatherApiData(currentLocation.getId(), subList);
+    while (true) {
+      // 아직 처리하지 않은 데이터가 있으면 chunk 로 반환
+      if (hasRemainingChunk()) {
+        return getNextChunk();
+      }
+
+      // 다음 Location 가져오기
+      currentLocation = locationReader.read();
+      if (currentLocation == null) {
+        return null;
+      }
+
+      currentApiDataBuffer = fetchWeatherDataFor(currentLocation);
+      currentIndex = 0;
+
+      // 받아온 데이터가 비어있다면 다음 Location 으로 넘어감
+      if (!currentApiDataBuffer.isEmpty()) {
+        return getNextChunk();
+      }
     }
+  }
 
-    // 버퍼에 처리할 데이터가 없으면 다음 Location 읽고 API 호출해서 데이터 채움
-    currentLocation = locationReader.read();
-    if (currentLocation == null) {
-      return null; // 더 이상 읽을 Location 없으면 종료
-    }
+  private boolean hasRemainingChunk() {
+    return currentIndex < currentApiDataBuffer.size();
+  }
 
-    // 외부 API 호출하여 데이터 받아오기
-    currentApiDataBuffer = callExternalApi(currentLocation);
-    currentIndex = 0;
-
-    // 받아온 데이터가 없으면 다음 Location 시도 (재귀 or 반복)
-    if (currentApiDataBuffer.isEmpty()) {
-      return read(); // 빈 데이터면 재귀 호출하여 다음 Location 처리
-    }
-
-    // 새로 받은 데이터 중 290개씩 첫 번째 chunk 반환
-    int endIndex = Math.min(currentIndex + 290, currentApiDataBuffer.size());
-    List<Item> subList = currentApiDataBuffer.subList(currentIndex, endIndex);
+  private WeatherApiData getNextChunk() {
+    int endIndex = Math.min(currentIndex + CHUNK_SIZE, currentApiDataBuffer.size());
+    List<Item> chunk = currentApiDataBuffer.subList(currentIndex, endIndex);
     currentIndex = endIndex;
-    return new WeatherApiData(currentLocation.getId(), subList);
+    return new WeatherApiData(currentLocation.getId(), chunk);
+  }
+
+  private List<Item> fetchWeatherDataFor(Location location) {
+    return dongRepository.findById(location.getDongId())
+      .map(dong -> weatherApiClient.getWeatherApiResponse(dong.getX(), dong.getY()))
+      .orElseGet(List::of); // 예외 대신 빈 리스트 반환
   }
 
   @Override
@@ -68,10 +79,5 @@ public class WeatherReader implements ItemStreamReader<WeatherApiData> {
   @Override
   public void close() throws ItemStreamException {
     locationReader.close();
-  }
-
-  private List<Item> callExternalApi(Location location) {
-    Dong dong = dongRepository.findById(location.getDongId()).get();
-    return weatherApiClient.getWeatherApiResponse(dong.getX(), dong.getY());
   }
 }

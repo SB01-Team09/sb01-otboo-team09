@@ -29,4 +29,20 @@ public class Temperature extends BaseEntity {
     this.min = min;
     this.max = max;
   }
+
+  public void updateCurrent(double current) {
+    this.current = current;
+  }
+
+  public void updateComparedToDayBefore(Double comparedToDayBefore) {
+    this.comparedToDayBefore = comparedToDayBefore;
+  }
+
+  public void updateMin(double min) {
+    this.min = min;
+  }
+
+  public void updateMax(double max) {
+    this.max = max;
+  }
 }

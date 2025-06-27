@@ -7,7 +7,6 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface WeatherRepository extends JpaRepository<Weather, UUID> {
-
-  Optional<Weather> findFirstByLocationIdAndForecastAtBetween(String locationId,
-    LocalDateTime start, LocalDateTime end);
+  
+  Optional<Weather> findByLocationIdAndForecastAt(String locationId, LocalDateTime forcastAt);
 }

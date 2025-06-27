@@ -7,7 +7,6 @@ import com.part4.team09.otboo.module.domain.weather.entity.Humidity;
 import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
 import com.part4.team09.otboo.module.domain.weather.entity.Precipitation.PrecipitationType;
 import com.part4.team09.otboo.module.domain.weather.entity.Temperature;
-import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather.SkyStatus;
 import com.part4.team09.otboo.module.domain.weather.entity.WindSpeed;
 import com.part4.team09.otboo.module.domain.weather.entity.WindSpeed.AsWord;
@@ -17,7 +16,6 @@ import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
@@ -26,149 +24,144 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class WeatherProcessor implements ItemProcessor<WeatherApiData, WeatherData> {
 
+  private static final String TIME_MORNING = "0600";
+  private static final String TIME_AFTERNOON = "1500";
+  private static final String TIME_NOON = "1200";
+
   private final TemperatureRepository temperatureRepository;
   private final HumidityRepository humidityRepository;
   private final WeatherRepository weatherRepository;
+
   private boolean isYesterday = false;
   private String currentLocationId = null;
 
   @Override
-  public WeatherData process(WeatherApiData data) throws Exception {
-    String locationId = data.locationId();
+  public WeatherData process(WeatherApiData data) {
+    updateLocationContext(data.locationId());
 
+    WeatherExtractionContext context = new WeatherExtractionContext();
+
+    for (Item item : data.items()) {
+      extractForecastData(item, context);
+    }
+
+    if (isYesterday) {
+      setComparedValuesFromYesterday(context, data.locationId());
+    }
+
+    return context.toWeatherData(data.locationId());
+  }
+
+  private void updateLocationContext(String locationId) {
     if (!locationId.equals(currentLocationId)) {
       isYesterday = false;
       currentLocationId = locationId;
     }
-
-    List<Item> items = data.items();
-
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
-
-    double currentHumidity = 0.0; //
-    Double comparedToDayBeforeHumidity = null; //
-
-    PrecipitationType precipitationType = null; //
-    double amount = 0.0; //
-    double probability = 0.0; //
-
-    double currentTemperature = 0.0; //
-    Double comparedToDayBeforeTemperature = null;
-    double minTemperature = 0.0; //
-    double maxTemperature = 0.0; //
-
-    double speed = 0.0; //
-    AsWord asWord = null; //
-
-    LocalDateTime forecastAt = null; //
-    LocalDateTime forecastedAt = null; //
-    SkyStatus skyStatus = null; //
-
-    for (Item item : items) {
-      String fcstTime = item.fcstTime();
-      String fcstDate = item.fcstDate();
-      String category = item.category();
-
-      if (fcstTime.equals("0600")) {
-        if (category.equals("TMN")) {
-          minTemperature = Double.parseDouble(item.fcstValue());
-          String baseDate = item.baseDate();
-          String date = getYesterDayDate();
-          if (fcstDate.equals(date)) {
-            isYesterday = true;
-          }
-        }
-        continue;
-      }
-
-      if (fcstTime.equals("1500")) {
-        if (category.equals("TMX")) {
-          maxTemperature = Double.parseDouble(item.fcstValue());
-        }
-        continue;
-      }
-
-      if (fcstTime.equals("1200")) {
-        if (category.equals("TMP")) {
-          currentTemperature = Double.parseDouble(item.fcstValue());
-          continue;
-        }
-        if (category.equals("WSD")) {
-          speed = Double.parseDouble(item.fcstValue());
-          asWord = AsWord.fromSpeed(speed);
-          continue;
-        }
-        if (category.equals("SKY")) {
-          skyStatus = SkyStatus.of(Integer.parseInt(item.fcstValue()));
-          continue;
-        }
-        if (category.equals("PTY")) {
-          precipitationType = PrecipitationType.of(Integer.parseInt(item.fcstValue()));
-          continue;
-        }
-        if (category.equals("POP")) {
-          probability = Double.parseDouble(item.fcstValue());
-          continue;
-        }
-        if (category.equals("PCP")) {
-          if (item.fcstValue().equals("강수없음")) {
-            continue;
-          } else {
-            amount = Double.parseDouble(item.fcstValue());
-          }
-          continue;
-        }
-        if (category.equals("REH")) {
-          currentHumidity = Double.parseDouble(item.fcstValue());
-
-          String baseAt = item.baseDate() + item.baseTime();
-          String fcstAt = item.fcstDate() + item.fcstTime();
-
-          forecastAt = LocalDateTime.parse(baseAt, formatter);
-          forecastedAt = LocalDateTime.parse(fcstAt, formatter);
-        }
-      }
-    }
-
-    if (isYesterday) {
-      LocalDateTime start = LocalDate.now().minusDays(1).atStartOfDay();
-      LocalDateTime end = LocalDate.now().atStartOfDay();
-      Weather weather = weatherRepository
-        .findFirstByLocationIdAndForecastAtBetween(locationId, start, end).orElse(null);
-
-      if (weather != null) {
-        Temperature findedTemperature =
-          temperatureRepository.findById(weather.getTemperatureId()).get();
-        double yesterdayTemperature = findedTemperature.getCurrent();
-        comparedToDayBeforeTemperature = currentTemperature - yesterdayTemperature;
-
-        Humidity findedHumidity = humidityRepository.findById(weather.getHumidityId()).get();
-        double yesterdayHumidity = findedHumidity.getCurrent();
-        comparedToDayBeforeHumidity = currentHumidity - yesterdayHumidity;
-      }
-    }
-
-    Humidity humidity = Humidity.create(currentHumidity, comparedToDayBeforeHumidity);
-    Precipitation precipitation = Precipitation.create(precipitationType, amount, probability);
-    Temperature temperature = Temperature.create(currentTemperature, comparedToDayBeforeTemperature,
-      minTemperature, maxTemperature);
-    WindSpeed windSpeed = WindSpeed.create(speed, asWord);
-    WeatherData weatherData = new WeatherData(
-      humidity,
-      precipitation,
-      temperature,
-      windSpeed,
-      forecastAt,
-      forecastedAt,
-      skyStatus,
-      locationId
-    );
-    return weatherData;
   }
 
-  private String getYesterDayDate() {
+  private void extractForecastData(Item item, WeatherExtractionContext ctx) {
+    String fcstTime = item.fcstTime();
+    String category = item.category();
+    String value = item.fcstValue();
+
+    if (fcstTime.equals(TIME_MORNING) && category.equals("TMN")) {
+      ctx.minTemperature = Double.parseDouble(value);
+      if (item.fcstDate().equals(getYesterdayDate())) {
+        isYesterday = true;
+      }
+      return;
+    }
+
+    if (fcstTime.equals(TIME_AFTERNOON) && category.equals("TMX")) {
+      ctx.maxTemperature = Double.parseDouble(value);
+      return;
+    }
+
+    if (!fcstTime.equals(TIME_NOON)) {
+      return;
+    }
+
+    switch (category) {
+      case "TMP" -> ctx.currentTemperature = Double.parseDouble(value);
+      case "WSD" -> {
+        ctx.windSpeed = Double.parseDouble(value);
+        ctx.windAsWord = AsWord.fromSpeed(ctx.windSpeed);
+      }
+      case "SKY" -> ctx.skyStatus = SkyStatus.of(Integer.parseInt(value));
+      case "PTY" -> ctx.precipitationType = PrecipitationType.of(Integer.parseInt(value));
+      case "POP" -> ctx.precipitationProbability = Double.parseDouble(value);
+      case "PCP" -> {
+        if (!value.equals("강수없음")) {
+          ctx.precipitationAmount = Double.parseDouble(value);
+        }
+      }
+      case "REH" -> {
+        ctx.currentHumidity = Double.parseDouble(value);
+        String baseAt = item.baseDate() + item.baseTime();
+        String fcstAt = item.fcstDate() + item.fcstTime();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+        ctx.forecastedAt = LocalDateTime.parse(baseAt, formatter);
+        ctx.forecastAt = LocalDateTime.parse(fcstAt, formatter);
+      }
+    }
+  }
+
+  private void setComparedValuesFromYesterday(WeatherExtractionContext ctx, String locationId) {
+    LocalDateTime forecastAt = ctx.forecastAt.minusDays(1);
+
+    weatherRepository.findByLocationIdAndForecastAt(locationId, forecastAt)
+      .ifPresent(weather -> {
+        Temperature t = temperatureRepository.findById(weather.getTemperatureId()).orElse(null);
+        Humidity h = humidityRepository.findById(weather.getHumidityId()).orElse(null);
+        if (t != null) {
+          ctx.comparedToDayBeforeTemperature = ctx.currentTemperature - t.getCurrent();
+        }
+        if (h != null) {
+          ctx.comparedToDayBeforeHumidity = ctx.currentHumidity - h.getCurrent();
+        }
+      });
+  }
+
+  private String getYesterdayDate() {
     return LocalDate.now()
       .minusDays(1)
       .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
   }
+
+  private static class WeatherExtractionContext {
+
+    double currentHumidity = 0.0;
+    Double comparedToDayBeforeHumidity = null;
+
+    PrecipitationType precipitationType = null;
+    double precipitationAmount = 0.0;
+    double precipitationProbability = 0.0;
+
+    double currentTemperature = 0.0;
+    Double comparedToDayBeforeTemperature = null;
+    double minTemperature = 0.0;
+    double maxTemperature = 0.0;
+
+    double windSpeed = 0.0;
+    AsWord windAsWord = null;
+
+    LocalDateTime forecastAt = null;
+    LocalDateTime forecastedAt = null;
+    SkyStatus skyStatus = null;
+
+    WeatherData toWeatherData(String locationId) {
+      return new WeatherData(
+        Humidity.create(currentHumidity, comparedToDayBeforeHumidity),
+        Precipitation.create(precipitationType, precipitationAmount, precipitationProbability),
+        Temperature.create(currentTemperature, comparedToDayBeforeTemperature, minTemperature,
+          maxTemperature),
+        WindSpeed.create(windSpeed, windAsWord),
+        forecastedAt,
+        forecastAt,
+        skyStatus,
+        locationId
+      );
+    }
+  }
 }
+
