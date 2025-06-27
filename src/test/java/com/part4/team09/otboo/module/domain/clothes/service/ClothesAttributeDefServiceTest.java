@@ -66,7 +66,7 @@ class ClothesAttributeDefServiceTest {
 
       // when, then
       assertThrows(ClothesAttributeDefAlreadyExistsException.class,
-        () -> clothesAttributeDefService.create(name));
+          () -> clothesAttributeDefService.create(name));
     }
   }
 
@@ -104,7 +104,45 @@ class ClothesAttributeDefServiceTest {
       given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.empty());
 
       // when, then
-      assertThrows(ClothesAttributeDefNotFoundException.class, () -> clothesAttributeDefService.update(defId, "신축성"));
+      assertThrows(ClothesAttributeDefNotFoundException.class,
+          () -> clothesAttributeDefService.update(defId, "신축성"));
+    }
+  }
+
+  @Nested
+  @DisplayName("의상 속성 정의 찾기")
+  class FindById {
+
+    @Test
+    @DisplayName("찾기 성공")
+    void find_by_id_success() {
+
+      // given
+      UUID id = UUID.randomUUID();
+      ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
+
+      given(clothesAttributeDefRepository.findById(id)).willReturn(Optional.of(def));
+
+      // when
+      ClothesAttributeDef result = clothesAttributeDefService.findById(id);
+
+      // then
+      assertNotNull(result);
+      assertEquals(def, result);
+      then(clothesAttributeDefRepository).should().findById(id);
+    }
+
+    @Test
+    @DisplayName("찾기 실패 - 잘못된 id")
+    void find_by_id_not_found_id() {
+
+      // given
+      UUID id = UUID.randomUUID();
+
+      given(clothesAttributeDefRepository.findById(id)).willReturn(Optional.empty());
+
+      // when, then
+      assertThrows(ClothesAttributeDefNotFoundException.class, () -> clothesAttributeDefService.findById(id));
     }
   }
 }

@@ -5,13 +5,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
+import com.part4.team09.otboo.module.common.entity.BaseEntity;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefMapper;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -31,6 +36,9 @@ class ClothesAttributeInfoServiceTest {
 
   @Mock
   private SelectableValueService selectableValueService;
+
+  @Mock
+  private ClothesAttributeService clothesAttributeService;
 
   @Mock
   private ClothesAttributeDefMapper clothesAttributeDefMapper;
@@ -86,34 +94,88 @@ class ClothesAttributeInfoServiceTest {
   class Update {
 
     @Test
-    @DisplayName("수정 성공")
-    void update_success() {
+    @DisplayName("정의 명 수정 X")
+    void update_when_name_same() {
 
       // given
-      ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("사이즈",
-          List.of("S", "M", "L"));
-
       ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
-      List<SelectableValue> selectableValues = request.selectableValues().stream()
+      List<SelectableValue> oldValues = Stream.of("S", "M", "L")
           .map(value -> SelectableValue.create(def.getId(), value))
           .toList();
-      ClothesAttributeDefDto dto = new ClothesAttributeDefDto(def.getId(), def.getName(),
-          request.selectableValues());
 
-      given(clothesAttributeDefService.update(def.getId(), request.name())).willReturn(def);
-      given(selectableValueService.update(def.getId(), request.selectableValues())).willReturn(selectableValues);
-      given(clothesAttributeDefMapper.toDto(def.getId(), def.getName(), request.selectableValues())).willReturn(dto);
+      ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("사이즈",
+          List.of("S", "M", "XL"));
+
+      Set<String> newValuesSet = new HashSet<>(request.selectableValues());
+
+      List<UUID> valueIdsForDelete = oldValues.stream()
+          .filter(oldValue -> !newValuesSet.contains(oldValue.getItem()))
+          .map(BaseEntity::getId)
+          .toList();
+
+      List<SelectableValue> newSelectableValues = List.of(oldValues.get(0), oldValues.get(1),
+          SelectableValue.create(def.getId(), "XL"));
+      List<String> newValues = List.of("S", "M", "XL");
+      ClothesAttributeDefDto dto = new ClothesAttributeDefDto(def.getId(), request.name(),
+          newValues);
+
+      given(clothesAttributeDefService.findById(def.getId())).willReturn(def);
+      given(selectableValueService.findAllByAttributeDefId(def.getId())).willReturn(oldValues);
+      given(selectableValueService.updateWhenNameSame(def.getId(), valueIdsForDelete,
+          request.selectableValues())).willReturn(newSelectableValues);
+      given(clothesAttributeDefMapper.toDto(def.getId(), request.name(), newValues)).willReturn(
+          dto);
 
       // when
       ClothesAttributeDefDto result = clothesAttributeInfoService.update(def.getId(), request);
 
       // then
       assertNotNull(result);
-      assertEquals(result.id(), def.getId());
-      assertEquals(result.selectableValues(), request.selectableValues());
-      then(clothesAttributeDefService).should().update(def.getId(), request.name());
-      then(selectableValueService).should().update(def.getId(), request.selectableValues());
-      then(clothesAttributeDefMapper).should().toDto(def.getId(), request.name(), request.selectableValues());
+      assertEquals(result.selectableValues(), newSelectableValues.stream()
+          .map(SelectableValue::getItem)
+          .toList());
+      then(clothesAttributeDefService).should().findById(def.getId());
+      then(selectableValueService).should().findAllByAttributeDefId(def.getId());
+      then(selectableValueService).should()
+          .updateWhenNameSame(def.getId(), valueIdsForDelete, request.selectableValues());
+      then(clothesAttributeDefMapper).should().toDto(def.getId(), request.name(), newValues);
+    }
+
+    @Test
+    @DisplayName("정의 명 수정 O")
+    void update_when_name_changed() {
+
+      // given
+      ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
+      List<SelectableValue> oldValues = Stream.of("S", "M", "L")
+          .map(value -> SelectableValue.create(def.getId(), value))
+          .toList();
+      ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("신축성",
+          List.of("없음", "조금 있음", "있음"));
+      ClothesAttributeDef updatedDef = ClothesAttributeDef.create(request.name());
+      List<SelectableValue> newSelectableValues = Stream.of("없음", "조금 있음", "있음")
+          .map(value -> SelectableValue.create(def.getId(), value))
+          .toList();
+      List<String> newValues = List.of("없음", "조금 있음", "있음");
+      ClothesAttributeDefDto dto = new ClothesAttributeDefDto(updatedDef.getId(), updatedDef.getName(), newValues);
+
+      given(clothesAttributeDefService.findById(def.getId())).willReturn(def);
+      given(selectableValueService.findAllByAttributeDefId(def.getId())).willReturn(oldValues);
+      given(clothesAttributeDefService.update(def.getId(), request.name())).willReturn(updatedDef);
+      given(selectableValueService.updateWhenNameChanged(updatedDef.getId(), request.selectableValues()))
+          .willReturn(newSelectableValues);
+      given(clothesAttributeDefMapper.toDto(updatedDef.getId(), request.name(), newValues)).willReturn(dto);
+
+      // when
+      ClothesAttributeDefDto result = clothesAttributeInfoService.update(def.getId(), request);
+
+      // then
+      assertNotNull(result);
+      assertEquals(result.selectableValues(), newValues);
+      then(clothesAttributeDefService).should().findById(def.getId());
+      then(selectableValueService).should().findAllByAttributeDefId(def.getId());
+      then(selectableValueService).should().updateWhenNameChanged(updatedDef.getId(), request.selectableValues());
+      then(clothesAttributeDefMapper).should().toDto(def.getId(), request.name(), newValues);
     }
   }
 }
