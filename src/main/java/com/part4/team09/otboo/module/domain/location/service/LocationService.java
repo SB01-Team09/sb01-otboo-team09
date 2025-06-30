@@ -28,8 +28,12 @@ public class LocationService {
   // longitude 경도 <-> 기상청 y, 카카오 x 127.xxx
   // latitude 위도 <-> 기상청 x, 카카오 y 37.xxxx
   public WeatherAPILocation getLocation(double longitude, double latitude) {
-    String id = locationApiClient.getLocationCode(longitude, latitude);
+    String id = getLocationCodeByCoordinates(longitude, latitude);
     return getLocation(id);
+  }
+
+  public String getLocationCodeByCoordinates(double longitude, double latitude) {
+    return locationApiClient.getLocationCode(longitude, latitude);
   }
 
   public WeatherAPILocation getLocation(String id) {
