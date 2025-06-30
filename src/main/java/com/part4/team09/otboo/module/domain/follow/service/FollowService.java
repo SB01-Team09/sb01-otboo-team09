@@ -16,6 +16,8 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,7 +55,7 @@ public class FollowService {
     }
 
 
-    // TODO: 팔로잉 목록 조회 (클라이언트에선 cursor을 받았지만 여기 서비스 파라미터에서는 제외함)
+    // 팔로잉 목록 조회
     public FollowListResponse getFollowings(UUID followerId, UUID idAfter, int limit, String nameLike){
 
         log.info("팔로잉 목록 조회 시작: followerId={}, idAfter={}, limit={}, nameLike={}", followerId, idAfter, limit, nameLike);
@@ -67,24 +69,18 @@ public class FollowService {
         Pageable pageable = PageRequest.of(0, limit+1);
 
         List<Follow> pagedFollowList;
+        LocalDateTime createdAtAfter = null;
         int totalCount;
-        // 검색어가 있느냐 없느냐로 분기하여 팔로잉 목록 조회 시작
-        if (nameLike == null){ // 검색어 X -> 전체 팔로잉 목록 페이징
-            log.debug("검색어 없이 전체 팔로잉 목록 카운트 시작");
 
-            totalCount = followRepository.countAllFollowings(followerId);
-            pagedFollowList = followRepository.getAllFollowings(followerId, idAfter, pageable);
+        if(idAfter != null) {
+            createdAtAfter = followRepository.findById(idAfter).orElseThrow().getCreatedAt();
+        }
 
-            log.debug("전체 팔로잉 카운트: {}", totalCount);
+        // 팔로잉 목록 조회 시작
+        totalCount = followRepositoryQueryDSL.countFollowings(followerId, nameLike);
+        pagedFollowList = followRepositoryQueryDSL.getFollowings(followerId, idAfter, createdAtAfter, nameLike, pageable);
 
-        }else{ // 검색어 O -> 일부 목록 페이징
-            log.debug("검색 팔로잉 목록 카운트 시작");
-
-            totalCount = followRepositoryQueryDSL.countSearchedFollowings(followerId, nameLike);
-            pagedFollowList = followRepositoryQueryDSL.searchFollowings(followerId, idAfter, nameLike, pageable);
-
-            log.debug("검색 팔로잉 카운트: {}", totalCount);
-            }
+        log.debug("전체 팔로잉 카운트: {}", totalCount);
 
 
         // (limit+1)개만큼 가져온 이유는 hasNext를 계산하기 위함. (limit+1)개를 followList에 저장했기 때문에 사이즈가 limit보다 크다면 hasNext가 true인 것
@@ -114,7 +110,7 @@ public class FollowService {
         log.info("팔로잉 목록 조회 끝");
 
         // 팔로잉 목록 조회에서는 클라이언트가 정렬 조건과 순서를 지정하지 않기 때문에 개발단에서 지정한 걸로 명시해서 반환 (id 기준, DESCENDING)
-        return new FollowListResponse(pagedFollowDtoList, nextCursor, nextIdAfter, hasNext, totalCount,"id", FollowListResponse.SortDirection.DESCENDING);
+        return new FollowListResponse(pagedFollowDtoList, nextCursor, nextIdAfter, hasNext, totalCount,"createdAt, id", FollowListResponse.SortDirection.DESCENDING);
     }
 
     // cursor 인코딩 로직

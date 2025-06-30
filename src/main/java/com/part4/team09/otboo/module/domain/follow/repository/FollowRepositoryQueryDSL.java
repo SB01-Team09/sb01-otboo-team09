@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,24 +22,24 @@ public class FollowRepositoryQueryDSL {
 
     // 검색 O : QueryDSL
 
-    // 검색어 팔로잉 목록 조회: idAfter가 null이면 처음부터 반환, null이 아니면 커서페이징대로 진행
-    public List<Follow> searchFollowings(UUID followerId, UUID idAfter, String nameLike, Pageable pageable) {
+    // 팔로잉 목록 조회: idAfter가 null이면 처음부터 반환, null이 아니면 커서페이징대로 진행
+    public List<Follow> getFollowings(UUID followerId, UUID idAfter, LocalDateTime createdAtAfter, String nameLike, Pageable pageable) {
         return queryFactory
                 .selectFrom(follow)
                 .join(user).on(follow.followeeId.eq(user.id))
                 .where(
                         follow.followerId.eq(followerId),
                         user.name.likeIgnoreCase("%" + nameLike + "%"),
-                        cursorCondition(idAfter) // null일 때 처리를 위해 메서드로 따로 뺐습니다
+                        cursorCondition(createdAtAfter, idAfter) // null일 때 처리를 위해 메서드로 따로 뺐습니다
                 )
-                .orderBy(follow.id.desc())
+                .orderBy(follow.createdAt.desc(), follow.id.desc())
                 .limit(pageable.getPageSize())
                 .fetch();
     }
 
 
-    // 검색어 팔로잉 목록 개수 (totalCount)
-    public int countSearchedFollowings(UUID followerId, String nameLike){
+    // 팔로잉 목록 개수 (totalCount)
+    public int countFollowings(UUID followerId, String nameLike){
         Long count = queryFactory
                 .select(follow.count())
                 .from(follow)
@@ -56,12 +57,13 @@ public class FollowRepositoryQueryDSL {
 
 
     // 검색어 팔로잉 조회 커서조건
-    private BooleanExpression cursorCondition(UUID idAfter) {
-        if (idAfter == null) {
+    private BooleanExpression cursorCondition(LocalDateTime createdAtAfter, UUID idAfter) {
+        if (createdAtAfter == null || idAfter == null) {
             return null;
         }
 
-        return follow.id.lt(idAfter); // id 내림차순이니까 id가 idAfter 커서보다 작은 경우
+        return follow.createdAt.lt(createdAtAfter)
+                .or(follow.createdAt.eq(createdAtAfter).and(follow.id.lt(idAfter)));
     }
 
 }
