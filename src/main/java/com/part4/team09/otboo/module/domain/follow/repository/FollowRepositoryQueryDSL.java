@@ -22,13 +22,28 @@ public class FollowRepositoryQueryDSL {
 
     // 검색 O : QueryDSL
 
-    // 팔로잉 목록 조회: idAfter가 null이면 처음부터 반환, null이 아니면 커서페이징대로 진행
+    // 팔로잉 목록 조회: nameLike이 null이면 검색어 x 결과, null이 아니면 검색 결과
     public List<Follow> getFollowings(UUID followerId, UUID idAfter, LocalDateTime createdAtAfter, String nameLike, Pageable pageable) {
         return queryFactory
                 .selectFrom(follow)
                 .join(user).on(follow.followeeId.eq(user.id))
                 .where(
                         follow.followerId.eq(followerId),
+                        user.name.likeIgnoreCase("%" + nameLike + "%"),
+                        cursorCondition(createdAtAfter, idAfter) // null일 때 처리를 위해 메서드로 따로 뺐습니다
+                )
+                .orderBy(follow.createdAt.desc(), follow.id.desc())
+                .limit(pageable.getPageSize())
+                .fetch();
+    }
+
+    // 팔로워 목록 조회: nameLike이 null이면 검색어 x 결과, null이 아니면 검색 결과
+    public List<Follow> getFollowers(UUID followeeId, UUID idAfter, LocalDateTime createdAtAfter, String nameLike, Pageable pageable) {
+        return queryFactory
+                .selectFrom(follow)
+                .join(user).on(follow.followerId.eq(user.id))
+                .where(
+                        follow.followeeId.eq(followeeId),
                         user.name.likeIgnoreCase("%" + nameLike + "%"),
                         cursorCondition(createdAtAfter, idAfter) // null일 때 처리를 위해 메서드로 따로 뺐습니다
                 )
@@ -53,6 +68,21 @@ public class FollowRepositoryQueryDSL {
         return count != null ? Math.toIntExact(count) : 0;
         // SQL 에선 count를 BIGINT로 반환하는데 QueryDSL은 이를 Long으로 받아옴. 그래서 toIntExact메서드로 int로 변환
         // (int)(long)count 캐스팅은 범위 초과시 에러를 던지지 않는데 toIntExact는 던지기 때문에 더 안전한 방법
+    }
+
+    // 팔로워 목록 개수 (totalCount)
+    public int countFollowers(UUID followeeId, String nameLike){
+        Long count = queryFactory
+                .select(follow.count())
+                .from(follow)
+                .join(user).on(follow.followerId.eq(user.id))
+                .where(
+                        follow.followeeId.eq(followeeId),
+                        user.name.likeIgnoreCase("%" + nameLike + "%")
+                )
+                .fetchOne();
+
+        return count != null ? Math.toIntExact(count) : 0;
     }
 
 

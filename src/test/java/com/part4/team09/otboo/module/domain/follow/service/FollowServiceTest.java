@@ -132,6 +132,52 @@ class FollowServiceTest {
         assertThat(result.nextIdAfter()).isEqualTo(follow1.getId());
     }
 
+    @Test
+    @DisplayName("팔로워 목록 조회 성공")
+    void searchFollowers() {
+        // given
+        UUID followeeId = UUID.randomUUID();
+        UUID followerId = UUID.randomUUID();
+
+        UUID idAfter = UUID.randomUUID(); // 커서 기준 ID
+        LocalDateTime createdAtAfter = LocalDateTime.of(2025, 6, 30, 12, 0); // 커서 기준 시간
+        int limit = 1;
+        String nameLike = "연경";
+
+        // follow2: 커서 기준이 되는 데이터
+        Follow follow2 = Follow.create(followeeId, followerId);
+        ReflectionTestUtils.setField(follow2, "id", idAfter);
+        ReflectionTestUtils.setField(follow2, "createdAt", createdAtAfter);
+
+        // follow1: 커서 이후 데이터
+        Follow follow1 = Follow.create(followeeId, followerId);
+        ReflectionTestUtils.setField(follow1, "id", UUID.randomUUID());
+        ReflectionTestUtils.setField(follow1, "createdAt", createdAtAfter.minusSeconds(1)); // createdAt이 더 과거여야함
+
+        List<Follow> follows = List.of(follow1, follow2);
+
+        // Mock 설정
+        when(followRepository.findById(idAfter)).thenReturn(Optional.of(follow2));
+        when(followRepositoryQueryDSL.countFollowers(followeeId, nameLike)).thenReturn(2);
+        when(followRepositoryQueryDSL.getFollowers(eq(followeeId), eq(idAfter), eq(createdAtAfter), eq(nameLike), any()))
+                .thenReturn(follows);
+
+        when(followMapper.toDto(any())).thenReturn(
+                new FollowDto(
+                        follow1.getId(),
+                        new UserSummary(followeeId, "followee", null),
+                        new UserSummary(followerId, "follower", null)
+                )
+        );
+
+        // when
+        FollowListResponse result = followService.getFollowers(followeeId, idAfter, limit, nameLike);
+
+        // then
+        assertThat(result.hasNext()).isTrue();
+        assertThat(result.data()).hasSize(1);
+        assertThat(result.nextIdAfter()).isEqualTo(follow1.getId());
+    }
 
     @Test
     @DisplayName("limit 0 이하 예외")
