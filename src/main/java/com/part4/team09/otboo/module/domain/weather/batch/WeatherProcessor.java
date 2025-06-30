@@ -33,11 +33,10 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, WeatherDa
   private final WeatherRepository weatherRepository;
 
   private boolean isYesterday = false;
-  private String currentLocationId = null;
 
   @Override
   public WeatherData process(WeatherApiData data) {
-    updateLocationContext(data.locationId());
+    updateLocationContext();
 
     WeatherExtractionContext context = new WeatherExtractionContext();
 
@@ -45,18 +44,15 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, WeatherDa
       extractForecastData(item, context);
     }
 
-    if (isYesterday) {
+    if (!isYesterday) {
       setComparedValuesFromYesterday(context, data.locationId());
     }
 
     return context.toWeatherData(data.locationId());
   }
 
-  private void updateLocationContext(String locationId) {
-    if (!locationId.equals(currentLocationId)) {
-      isYesterday = false;
-      currentLocationId = locationId;
-    }
+  private void updateLocationContext() {
+    isYesterday = false;
   }
 
   private void extractForecastData(Item item, WeatherExtractionContext ctx) {
