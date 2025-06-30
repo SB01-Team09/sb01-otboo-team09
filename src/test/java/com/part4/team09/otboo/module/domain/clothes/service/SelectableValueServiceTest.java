@@ -198,4 +198,23 @@ class SelectableValueServiceTest {
       then(selectableValueRepository).should().findAllByAttributeDefId(defId);
     }
   }
+
+  @Nested
+  @DisplayName("의상 속성 값 리스트 삭제")
+  class DeleteByIdIn {
+
+    @Test
+    @DisplayName("삭제 성공")
+    void delete_by_id_in_success() {
+
+      // given
+      List<UUID> valueIds = List.of(UUID.randomUUID(), UUID.randomUUID());
+
+      // when
+      selectableValueService.deleteByIdIn(valueIds);
+
+      // then
+      then(selectableValueRepository).should().deleteByIdIn(valueIds);
+    }
+  }
 }

@@ -178,4 +178,34 @@ class ClothesAttributeInfoServiceTest {
       then(clothesAttributeDefMapper).should().toDto(def.getId(), request.name(), newValues);
     }
   }
+
+  @Nested
+  @DisplayName("의상 속성 삭제")
+  class Delete {
+
+    @Test
+    @DisplayName("성공")
+    void delete_success() {
+
+      // given
+      ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
+      SelectableValue selectableValue1 = SelectableValue.create(def.getId(), "S");
+      SelectableValue selectableValue2 = SelectableValue.create(def.getId(), "M");
+      List<SelectableValue> values = List.of(selectableValue1, selectableValue2);
+      List<UUID> valueIds = values.stream().map(BaseEntity::getId).toList();
+
+      given(clothesAttributeDefService.findById(def.getId())).willReturn(def);
+      given(selectableValueService.findAllByAttributeDefId(def.getId())).willReturn(values);
+
+      // when
+      clothesAttributeInfoService.delete(def.getId());
+
+      // then
+      then(clothesAttributeDefService).should().findById(def.getId());
+      then(selectableValueService).should().findAllByAttributeDefId(def.getId());
+      then(clothesAttributeService).should().deleteBySelectableValueIdIn(valueIds);
+      then(selectableValueService).should().deleteByIdIn(valueIds);
+      then(clothesAttributeDefService).should().delete(def.getId());
+    }
+  }
 }

@@ -17,9 +17,9 @@ public class ClothesAttributeService {
 
   private final ClothesAttributeRepository clothesAttributeRepository;
 
-  public void deleteBySelectableValueIdIn(List<UUID> oldValueIds) {
+  public void deleteBySelectableValueIdIn(List<UUID> valueIds) {
+    log.debug("의상 속성 값 - 의상 연관 삭제: valueIds = {}", valueIds);
 
-    // 로직이 더 추가되면 테스트 작성하겠습니다.
-    clothesAttributeRepository.deleteBySelectableValueIdIn(oldValueIds);
+    clothesAttributeRepository.deleteBySelectableValueIdIn(valueIds);
   }
 }

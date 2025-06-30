@@ -104,6 +104,13 @@ public class SelectableValueService {
     return selectableValueRepository.findAllByAttributeDefId(defId);
   }
 
+  // 속성 정의 명 리스트로 삭제
+  public void deleteByIdIn(List<UUID> valueIds) {
+    log.debug("의상 속성 값 삭제: valueIds = {}", valueIds);
+
+    selectableValueRepository.deleteByIdIn(valueIds);
+  }
+
   // defId 유효성 검사
   private void validateDefId(UUID defId) {
 

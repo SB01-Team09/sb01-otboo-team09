@@ -145,4 +145,23 @@ class ClothesAttributeDefServiceTest {
       assertThrows(ClothesAttributeDefNotFoundException.class, () -> clothesAttributeDefService.findById(id));
     }
   }
+
+  @Nested
+  @DisplayName("의상 속성 정의 삭제")
+  class Delete {
+
+    @Test
+    @DisplayName("삭제 성공")
+    void delete_success() {
+
+      // given
+      UUID defId = UUID.randomUUID();
+
+      // when
+      clothesAttributeDefService.delete(defId);
+
+      // then
+      then(clothesAttributeDefRepository).should().deleteById(defId);
+    }
+  }
 }

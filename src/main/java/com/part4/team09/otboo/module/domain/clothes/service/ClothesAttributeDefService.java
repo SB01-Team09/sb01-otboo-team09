@@ -64,4 +64,11 @@ public class ClothesAttributeDefService {
           return ClothesAttributeDefNotFoundException.withId(defId);
         });
   }
+
+  // 의상 속성 정의 명 삭제
+  public void delete(UUID defId) {
+    log.debug("의상 속성 정의 명 삭제 시작: defId = {}", defId);
+
+    clothesAttributeDefRepository.deleteById(defId);
+  }
 }
