@@ -64,4 +64,15 @@ public class FollowController {
                 .status(HttpStatus.OK)
                 .body(response);
     }
+
+    // 팔로우 삭제
+    @DeleteMapping("/{followId}")
+    public ResponseEntity<Void> Unfollow(@PathVariable UUID followId){
+        followService.deleteFollow(followId);
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
+    }
+
 }

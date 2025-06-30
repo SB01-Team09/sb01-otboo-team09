@@ -3,6 +3,7 @@ package com.part4.team09.otboo.module.domain.follow.service;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
+import com.part4.team09.otboo.module.domain.follow.exception.FollowNotFoundException;
 import com.part4.team09.otboo.module.domain.follow.exception.NegativeLimitNotAllowed;
 import com.part4.team09.otboo.module.domain.follow.exception.SelfFollowNotAllowedException;
 import com.part4.team09.otboo.module.domain.follow.mapper.FollowMapper;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,7 +60,7 @@ public class FollowService {
 
         log.info("팔로잉 목록 조회 시작: followerId={}, idAfter={}, limit={}, nameLike={}", followerId, idAfter, limit, nameLike);
 
-        // limit 예외처리
+        // limit은 0보다 커야 한다는 예외처리
         if (limit <= 0) {
             throw new NegativeLimitNotAllowed(limit);
         }
@@ -72,6 +72,7 @@ public class FollowService {
         LocalDateTime createdAtAfter = null;
         int totalCount;
 
+        // createdAt을 기준으로 정렬하기 위해 현재 idAfter로 가장 마지막 값의 createdAt을 가져오기
         if(idAfter != null) {
             createdAtAfter = followRepository.findById(idAfter).orElseThrow().getCreatedAt();
         }
@@ -131,6 +132,7 @@ public class FollowService {
         LocalDateTime createdAtAfter = null;
         int totalCount;
 
+        // createdAt을 기준으로 정렬하기 위해 현재 idAfter로 가장 마지막 값의 createdAt을 가져오기
         if(idAfter != null) {
             createdAtAfter = followRepository.findById(idAfter).orElseThrow().getCreatedAt();
         }
@@ -181,4 +183,12 @@ public class FollowService {
         return cursor;
     }
 
+    // 팔로우 삭제
+    public void deleteFollow(UUID followId){
+        // 해당 팔로우가 애초에 존재하지 않아서 취소할 수 없음 예외
+        if(!followRepository.existsById(followId)){
+            throw new FollowNotFoundException(followId);
+        }
+        followRepository.deleteById(followId);
+    }
 }
