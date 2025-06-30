@@ -53,4 +53,15 @@ public class ClothesAttributeDefService {
     log.debug("의상 속성 정의 명 수정 완료: defId = {}, name = {}", def.getId(), def.getName());
     return def;
   }
+
+  // 의상 속성 정의 명 찾기
+  public ClothesAttributeDef findById(UUID defId) {
+    log.debug("의상 속성 정의 명 찾기 시작: defId = {}", defId);
+
+    return clothesAttributeDefRepository.findById(defId)
+        .orElseThrow(() -> {
+          log.warn("의상 속성 정의가 존재하지 않습니다. id = {}", defId);
+          return ClothesAttributeDefNotFoundException.withId(defId);
+        });
+  }
 }
