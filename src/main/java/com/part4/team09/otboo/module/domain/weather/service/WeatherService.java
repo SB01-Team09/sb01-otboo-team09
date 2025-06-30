@@ -8,6 +8,8 @@ import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
 import com.part4.team09.otboo.module.domain.weather.entity.Temperature;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.entity.WindSpeed;
+import com.part4.team09.otboo.module.domain.weather.exception.WeatherErrorCode;
+import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundException;
 import com.part4.team09.otboo.module.domain.weather.mapper.WeatherMapper;
 import com.part4.team09.otboo.module.domain.weather.repository.HumidityRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.PrecipitationRepository;
@@ -33,9 +35,11 @@ public class WeatherService {
   private final WeatherMapper weatherMapper;
 
   public final List<WeatherDto> getWeather(double longitude, double latitude) {
+    // 지역 정보 조회 및 dto 변환
     String locationId = locationService.getLocationCodeByCoordinates(longitude, latitude);
     WeatherAPILocation location = locationService.getLocation(locationId);
 
+    // 지역에 해당하는 날씨 정보 리스트 조회 및 dto 변환
     LocalDateTime forecastAt = LocalDate.now().atTime(12, 0);
     List<Weather> weathers = weatherRepository
       .findByLocationIdAndForecastAtGreaterThanEqual(locationId, forecastAt);
@@ -43,18 +47,22 @@ public class WeatherService {
     List<WeatherDto> weatherDtos = weathers.stream()
       .map(weather -> {
         Humidity humidity = humidityRepository.findById(weather.getHumidityId())
-          .orElseThrow();
+          .orElseThrow(() -> WeatherNotFoundException
+            .withId(WeatherErrorCode.HUMIDITY_NOF_FOUND, weather.getHumidityId()));
 
         Precipitation precipitation = precipitationRepository.findById(weather.getPrecipitationId())
-          .orElseThrow();
+          .orElseThrow(() -> WeatherNotFoundException
+            .withId(WeatherErrorCode.PRECIPITATION_NOF_FOUND, weather.getPrecipitationId()));
 
         Temperature temperature = temperatureRepository.findById(weather.getTemperatureId())
-          .orElseThrow();
+          .orElseThrow(() -> WeatherNotFoundException
+            .withId(WeatherErrorCode.TEMPERATURE_NOF_FOUND, weather.getTemperatureId()));
 
         WindSpeed windSpeed = windSpeedRepository.findById(weather.getWindSpeedId())
-          .orElseThrow();
+          .orElseThrow(() -> WeatherNotFoundException
+            .withId(WeatherErrorCode.WINDSPEED_NOF_FOUND, weather.getWindSpeedId()));
 
-        WeatherDto weatherDto = weatherMapper.toWeatherDto(
+        return weatherMapper.toWeatherDto(
           weather.getId(),
           weather.getForecastedAt(),
           weather.getForecastAt(),
@@ -65,8 +73,6 @@ public class WeatherService {
           weatherMapper.toTemperatureDto(temperature),
           weatherMapper.toWindSpeedDto(windSpeed)
         );
-
-        return weatherDto;
       })
       .toList();
 
