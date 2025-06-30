@@ -1,6 +1,7 @@
-package com.part4.team09.otboo.module.domain.location.batch;
+package com.part4.team09.otboo.module.domain.weather.batch;
 
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -14,20 +15,18 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LocationJobRunner implements CommandLineRunner {
+@RequiredArgsConstructor
+public class WeatherJobLauncher implements CommandLineRunner {
 
   private final JobLauncher jobLauncher;
-  private final Job locationImportJob;
 
-  public LocationJobRunner(JobLauncher jobLauncher,
-    @Qualifier("locationJob") Job locationImportJob) {
-    this.jobLauncher = jobLauncher;
-    this.locationImportJob = locationImportJob;
-  }
+  @Qualifier("weatherJob")
+  private final Job weatherJob;
 
   @Override
   public void run(String... args) throws Exception {
 //    init();
+    // 추후 스케줄러로 전환할 예정
   }
 
   private void init()
@@ -37,6 +36,6 @@ public class LocationJobRunner implements CommandLineRunner {
       .addString("unique", UUID.randomUUID().toString())  // 항상 새로운 파라미터
       .toJobParameters();
 
-    jobLauncher.run(locationImportJob, params);
+    jobLauncher.run(weatherJob, params);
   }
 }
