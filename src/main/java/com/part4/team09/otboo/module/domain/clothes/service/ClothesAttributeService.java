@@ -1,6 +1,5 @@
 package com.part4.team09.otboo.module.domain.clothes.service;
 
-import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeRepository;
 import java.util.List;
 import java.util.UUID;
