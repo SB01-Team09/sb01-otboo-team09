@@ -47,4 +47,21 @@ public class FollowController {
                 .status(HttpStatus.OK)
                 .body(response);
     }
+
+    // 팔로워 목록 조회
+    @GetMapping("/followers")
+    public ResponseEntity<FollowListResponse> getFollowers(
+            @RequestParam UUID followeeId,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) UUID idAfter,
+            @RequestParam(defaultValue = "10") Integer limit,
+            @RequestParam(required = false) String nameLike
+    ){
+
+        FollowListResponse response = followService.getFollowers(followeeId, idAfter, limit, nameLike);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
 }

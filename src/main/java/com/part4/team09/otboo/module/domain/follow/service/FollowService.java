@@ -109,7 +109,64 @@ public class FollowService {
         log.debug("nextCursor: {}", nextCursor);
         log.info("팔로잉 목록 조회 끝");
 
-        // 팔로잉 목록 조회에서는 클라이언트가 정렬 조건과 순서를 지정하지 않기 때문에 개발단에서 지정한 걸로 명시해서 반환 (id 기준, DESCENDING)
+        // 팔로잉, 팔로워 목록 조회에서는 클라이언트가 정렬 조건과 순서를 지정하지 않기 때문에 개발단에서 지정한 걸로 명시해서 반환 (id 기준, DESCENDING)
+        return new FollowListResponse(pagedFollowDtoList, nextCursor, nextIdAfter, hasNext, totalCount,"createdAt, id", FollowListResponse.SortDirection.DESCENDING);
+    }
+
+
+    // 팔로워 목록 조회
+    public FollowListResponse getFollowers(UUID followeeId, UUID idAfter, int limit, String nameLike){
+
+        log.info("팔로워 목록 조회 시작: followeeId={}, idAfter={}, limit={}, nameLike={}", followeeId, idAfter, limit, nameLike);
+
+        // limit 예외처리
+        if (limit <= 0) {
+            throw new NegativeLimitNotAllowed(limit);
+        }
+
+        // JPQL 쿼리문에 페이징할 사이즈를 전달하기 위한 pageable 객체
+        Pageable pageable = PageRequest.of(0, limit+1);
+
+        List<Follow> pagedFollowList;
+        LocalDateTime createdAtAfter = null;
+        int totalCount;
+
+        if(idAfter != null) {
+            createdAtAfter = followRepository.findById(idAfter).orElseThrow().getCreatedAt();
+        }
+
+        // 팔로워 목록 조회 시작
+        totalCount = followRepositoryQueryDSL.countFollowers(followeeId, nameLike);
+        pagedFollowList = followRepositoryQueryDSL.getFollowers(followeeId, idAfter, createdAtAfter, nameLike, pageable);
+
+        log.debug("전체 팔로워 카운트: {}", totalCount);
+
+
+        // hasNext 판단 후, 진짜 data는 (limit)개만큼 subList로 가져오기
+        boolean hasNext = pagedFollowList.size() > limit;
+        if(hasNext){
+            pagedFollowList = pagedFollowList.subList(0, limit);
+        }
+
+        // 필로워 목록 데이터 Dto 변환
+        List<FollowDto> pagedFollowDtoList = pagedFollowList.stream()
+                .map(followMapper::toDto)
+                .collect(Collectors.toList());
+
+
+        // 다음 커서 생성
+        UUID nextIdAfter = null;
+
+        if (hasNext && !pagedFollowList.isEmpty()) { // pagedFollowList NPE 방지하기
+            nextIdAfter = pagedFollowList.get(limit - 1).getId();
+        }
+
+        String nextCursor = encodeIdAfterToCursor(nextIdAfter); // cursor는 idAfter을 Base64로 인코딩해서 만듭니다
+
+        log.debug("hasNext: {}, 실제 반환 개수: {}", hasNext, pagedFollowList.size());
+        log.debug("nextCursor: {}", nextCursor);
+        log.info("팔로워 목록 조회 끝");
+
         return new FollowListResponse(pagedFollowDtoList, nextCursor, nextIdAfter, hasNext, totalCount,"createdAt, id", FollowListResponse.SortDirection.DESCENDING);
     }
 
