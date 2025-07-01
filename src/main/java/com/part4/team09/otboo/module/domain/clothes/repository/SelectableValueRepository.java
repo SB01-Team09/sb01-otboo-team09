@@ -10,6 +10,8 @@ public interface SelectableValueRepository extends JpaRepository<SelectableValue
 
   List<SelectableValue> findAllByAttributeDefId(UUID defId);
 
+  List<SelectableValue> findAllByAttributeDefIdIn(List<UUID> defIds);
+
   void deleteAllByAttributeDefId(UUID attributeDefId);
 
   void deleteByIdIn(List<UUID> valueIdsForDelete);
