@@ -8,5 +8,5 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    UserDto toEntity(User user, List<String> linkedOAuthProviders);
+    UserDto toDto(User user, List<String> linkedOAuthProviders);
 }

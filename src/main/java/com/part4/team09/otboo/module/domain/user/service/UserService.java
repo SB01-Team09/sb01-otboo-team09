@@ -4,9 +4,11 @@ import com.part4.team09.otboo.module.domain.user.dto.UserCreateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.EmailAlreadyExistsException;
+import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.mapper.UserMapper;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,15 +41,17 @@ public class UserService {
 
     userRepository.save(user);
 
-    return userMapper.toEntity(user, null);
+    return userMapper.toDto(user, null);
   }
-
-  // 편의 메서드
 
   private void checkDuplicateEmail(String email) {
     if (userRepository.existsByEmail(email)) {
       throw new EmailAlreadyExistsException(email);
     }
+  }
+
+  private User findByIdOrThrow(UUID id) {
+    return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
   }
 
 }
