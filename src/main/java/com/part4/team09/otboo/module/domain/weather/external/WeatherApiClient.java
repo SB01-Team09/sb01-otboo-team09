@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.weather.external;
 
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherApiResponse;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherApiResponse.Response.Body.Items.Item;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -17,6 +18,8 @@ import org.springframework.web.client.RestClient;
 public class WeatherApiClient {
 
   private static final String BASE_URL = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?";
+
+  private final MeterRegistry meterRegistry;
 
   @Qualifier("weatherRestClient")
   private final RestClient restClient;
@@ -48,6 +51,10 @@ public class WeatherApiClient {
       .uri(url)
       .retrieve()
       .toEntity(WeatherApiResponse.class);
+
+    meterRegistry
+      .counter("method_calls", "method", "getWeatherApiResponse")
+      .increment();
 
     return apiResponse.getBody().response().body().items().item();
   }

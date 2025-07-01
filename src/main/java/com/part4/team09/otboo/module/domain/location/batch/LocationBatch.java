@@ -1,8 +1,10 @@
 package com.part4.team09.otboo.module.domain.location.batch;
 
+import com.part4.team09.otboo.module.common.monitoring.BatchMonitoringListener;
 import com.part4.team09.otboo.module.domain.location.dto.response.TLocation;
 import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -61,8 +63,10 @@ public class LocationBatch {
   }
 
   @Bean("locationJob")
-  public Job locationImportJob(JobRepository jobRepository, Step locationStep) {
+  public Job locationImportJob(JobRepository jobRepository, Step locationStep,
+    MeterRegistry meterRegistry) {
     return new JobBuilder("locationImportJob", jobRepository)
+      .listener(new BatchMonitoringListener(meterRegistry))
       .start(locationStep)
       .build();
   }
