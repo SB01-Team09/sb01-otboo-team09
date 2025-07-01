@@ -90,6 +90,12 @@ class ClothesAttributeInfoServiceTest {
   }
 
   @Nested
+  @DisplayName("의상 속성 찾기")
+  class FindByCursor {
+
+  }
+
+  @Nested
   @DisplayName("의상 속성 수정")
   class Update {
 
