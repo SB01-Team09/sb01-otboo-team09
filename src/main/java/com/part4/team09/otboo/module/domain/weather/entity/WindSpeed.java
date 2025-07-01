@@ -21,7 +21,17 @@ public class WindSpeed extends BaseEntity {
   private AsWord asWord;
 
   public enum AsWord {
-    WEAK, MODERATE, STRONG
+    WEAK, MODERATE, STRONG;
+
+    public static AsWord fromSpeed(double speed) {
+      if (speed < 9) {
+        return WEAK;
+      }
+      if (speed < 14) {
+        return MODERATE;
+      }
+      return STRONG;
+    }
   }
 
   public static WindSpeed create(double speed, AsWord asWord) {
@@ -30,6 +40,14 @@ public class WindSpeed extends BaseEntity {
 
   private WindSpeed(double speed, AsWord asWord) {
     this.speed = speed;
+    this.asWord = asWord;
+  }
+
+  public void updateSpeed(double speed) {
+    this.speed = speed;
+  }
+
+  public void updateAsWord(AsWord asWord) {
     this.asWord = asWord;
   }
 }
