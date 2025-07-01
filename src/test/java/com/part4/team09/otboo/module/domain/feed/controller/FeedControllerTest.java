@@ -78,7 +78,7 @@ class FeedControllerTest {
 
       given(feedService.create(any(FeedCreateRequest.class))).willReturn(feedDto);
 
-      // When & Then
+      // when & then
       mockMvc.perform(post("/api/feeds")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request))
