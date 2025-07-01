@@ -1,9 +1,12 @@
 package com.part4.team09.otboo.module.domain.user.service;
 
-import com.part4.team09.otboo.module.domain.user.dto.UserCreateRequest;
+import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
+import com.part4.team09.otboo.module.domain.location.service.LocationService;
+import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
-import com.part4.team09.otboo.module.domain.user.dto.UserLockUpdateRequest;
-import com.part4.team09.otboo.module.domain.user.dto.UserRoleUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserRoleUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import com.part4.team09.otboo.module.domain.user.exception.EmailAlreadyExistsException;
@@ -24,6 +27,7 @@ public class UserService {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final UserMapper userMapper;
+  private final LocationService locationService;
 
   @Transactional
   public UserDto createUser(UserCreateRequest request) {
@@ -43,7 +47,19 @@ public class UserService {
     User user = User.createUserWithRole(email, request.name(), encodedPassword, role);
 
     userRepository.save(user);
-    return userMapper.toEntity(user, null);
+    return userMapper.toDto(user, null);
+  }
+
+  // 프로필 조회
+  @Transactional
+  public ProfileDto getProfile(UUID id) {
+    User user = findByIdOrThrow(id);
+
+    WeatherAPILocation location = null;
+    if (user.getLocationId() != null) {
+      location = locationService.getLocation(user.getLocationId());
+    }
+    return userMapper.toProfileDto(user, location);
   }
 
   // 권한 변경
@@ -55,7 +71,7 @@ public class UserService {
     if (user.getRole() != newRole) {
       user.changeRole(newRole);
     }
-    return userMapper.toEntity(user, null);
+    return userMapper.toDto(user, null);
   }
 
   // 잠금 상태 변경
@@ -63,13 +79,13 @@ public class UserService {
   public UserDto changeLockStatus(UUID id, @Valid UserLockUpdateRequest request) {
     User user = findByIdOrThrow(id);
     boolean locked = request.locked();
-    
+
     if (locked) {
       user.lock();
     } else {
       user.unlock();
     }
-    return userMapper.toEntity(user, null);
+    return userMapper.toDto(user, null);
   }
 
   private void checkDuplicateEmail(String email) {

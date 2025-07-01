@@ -1,6 +1,6 @@
 package com.part4.team09.otboo.config;
 
-import com.part4.team09.otboo.module.domain.user.dto.UserCreateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
 import com.part4.team09.otboo.module.domain.user.exception.EmailAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;

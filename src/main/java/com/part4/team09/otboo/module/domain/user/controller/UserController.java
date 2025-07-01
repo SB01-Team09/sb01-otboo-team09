@@ -1,15 +1,17 @@
 package com.part4.team09.otboo.module.domain.user.controller;
 
-import com.part4.team09.otboo.module.domain.user.dto.UserCreateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
-import com.part4.team09.otboo.module.domain.user.dto.UserLockUpdateRequest;
-import com.part4.team09.otboo.module.domain.user.dto.UserRoleUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserRoleUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +31,13 @@ public class UserController {
   public ResponseEntity<UserDto> signUp(@Valid @RequestBody UserCreateRequest request) {
     UserDto userDto = userService.createUser(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
+  }
+
+  // 프로필 조회
+  @GetMapping("{userId}/profiles")
+  public ResponseEntity<ProfileDto> getProfile(@PathVariable UUID userId) {
+    ProfileDto profileDto = userService.getProfile(userId);
+    return ResponseEntity.ok(profileDto);
   }
 
   // 유저 권한 변경: 어드민 권한

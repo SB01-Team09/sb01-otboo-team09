@@ -3,10 +3,10 @@ package com.part4.team09.otboo.module.domain.user.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.part4.team09.otboo.module.domain.user.dto.UserCreateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
-import com.part4.team09.otboo.module.domain.user.dto.UserLockUpdateRequest;
-import com.part4.team09.otboo.module.domain.user.dto.UserRoleUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserRoleUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import com.part4.team09.otboo.module.domain.user.exception.EmailAlreadyExistsException;
