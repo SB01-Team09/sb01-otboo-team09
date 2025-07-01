@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
@@ -40,6 +41,9 @@ class FeedServiceTest {
   private FeedMapper feedMapper;
 
   @Mock
+  private OotdService ootdService;
+
+  @Mock
   private UserRepository userRepository;
 
   @Mock
@@ -58,8 +62,9 @@ class FeedServiceTest {
       // given
       User mockUser = mock(User.class);
       Weather mockWeather = mock(Weather.class);
+      Feed mockFeed = mock(Feed.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
-      List<Ootd> ootds = List.of();
+      List<OotdDto> ootdDtos = List.of();
 
       FeedCreateRequest request = new FeedCreateRequest(
           UUID.randomUUID(),
@@ -69,12 +74,12 @@ class FeedServiceTest {
       );
 
       FeedDto feedDto = new FeedDto(
-        UUID.randomUUID(),
+          UUID.randomUUID(),
           LocalDateTime.now(),
           LocalDateTime.now(),
           mockAuthorDto,
           mockWeather,
-          ootds,
+          ootdDtos,
           "content",
           0,
           0,
@@ -83,7 +88,9 @@ class FeedServiceTest {
 
       given(userRepository.findById(any())).willReturn(Optional.of(mockUser));
       given(weatherRepository.findById(any())).willReturn(Optional.of(mockWeather));
-      given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class))).willReturn(feedDto);
+      given(feedRepository.save(any(Feed.class))).willReturn(mockFeed);
+      given(ootdService.create(any(), any())).willReturn(ootdDtos);
+      given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class), any())).willReturn(feedDto);
 
       // when
       FeedDto result = feedService.create(request);

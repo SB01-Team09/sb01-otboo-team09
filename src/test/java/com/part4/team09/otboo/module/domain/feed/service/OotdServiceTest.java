@@ -41,7 +41,7 @@ class OotdServiceTest {
   @Nested
   @DisplayName("오오티디 생성 테스트")
   public class CreateOotdTest {
-    
+
     @Test
     @DisplayName("오오티디 생성 성공")
     void create_ootd_success() {

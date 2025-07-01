@@ -2,7 +2,9 @@ package com.part4.team09.otboo.module.domain.feed.service;
 
 import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
+import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
@@ -10,6 +12,7 @@ import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +27,8 @@ public class FeedService {
   private final FeedRepository feedRepository;
   private final FeedMapper feedMapper;
 
+  private final OotdService ootdService;
+
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
 
@@ -34,11 +39,11 @@ public class FeedService {
     Weather weather = getWeatherOrThrow(request.weatherId());
 
     Feed feed = Feed.create(request.authorId(), request.weatherId(), request.content());
-    feedRepository.save(feed);
+    Feed savedFeed = feedRepository.save(feed);
 
-    // TODO: ootd list 생성하고 저장해서 mapper에 같이 넘기기
+    List<OotdDto> ootdDtos = ootdService.create(savedFeed.getId(), request.clothesIds());
 
-    return feedMapper.toDto(feed, author, weather);
+    return feedMapper.toDto(feed, author, weather, ootdDtos);
   }
 
   // TODO: 유저 커스텀 예외로 변경
@@ -47,7 +52,7 @@ public class FeedService {
         .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
   }
 
-  // TODO: 날시 커스텀 예외로 변경
+  // TODO: 날씨 커스텀 예외로 변경
   private Weather getWeatherOrThrow(UUID weatherId) {
     return weatherRepository.findById(weatherId)
         .orElseThrow(() -> new EntityNotFoundException("Weather not found with id: " + weatherId));
