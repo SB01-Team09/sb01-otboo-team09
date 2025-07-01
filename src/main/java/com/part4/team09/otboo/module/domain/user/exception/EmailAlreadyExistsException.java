@@ -1,12 +1,15 @@
 package com.part4.team09.otboo.module.domain.user.exception;
 
-import com.part4.team09.otboo.module.common.exception.BaseException;
-import java.util.Map;
+public class EmailAlreadyExistsException extends UserException {
 
-public class EmailAlreadyExistsException extends BaseException {
+  public EmailAlreadyExistsException() {
+    super(UserErrorCode.EMAIL_ALREADY_EXISTS);
+  }
 
-  public EmailAlreadyExistsException(String email) {
-    super(UserErrorCode.EMAIL_ALREADY_EXISTS, Map.of("email", email));
+  public static EmailAlreadyExistsException withEmail(String email) {
+    EmailAlreadyExistsException exception = new EmailAlreadyExistsException();
+    exception.addDetail("email", email);
+    return exception;
   }
 
 }
