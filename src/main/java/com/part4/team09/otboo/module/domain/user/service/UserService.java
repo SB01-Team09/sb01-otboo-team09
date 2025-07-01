@@ -57,11 +57,11 @@ public class UserService {
 
   private void checkDuplicateEmail(String email) {
     if (userRepository.existsByEmail(email)) {
-      throw new EmailAlreadyExistsException(email);
+      throw EmailAlreadyExistsException.withEmail(email);
     }
   }
 
   private User findByIdOrThrow(UUID id) {
-    return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+    return userRepository.findById(id).orElseThrow(() -> UserNotFoundException.withId(id));
   }
 }
