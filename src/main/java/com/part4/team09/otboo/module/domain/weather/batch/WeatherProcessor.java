@@ -16,6 +16,8 @@ import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
@@ -87,8 +89,16 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, WeatherDa
       case "PTY" -> ctx.precipitationType = PrecipitationType.of(Integer.parseInt(value));
       case "POP" -> ctx.precipitationProbability = Double.parseDouble(value);
       case "PCP" -> {
-        if (!value.equals("강수없음")) {
-          ctx.precipitationAmount = Double.parseDouble(value);
+        if (value.equals("1mm 미만")) {
+          ctx.precipitationAmount = 0.5; // 임시 값
+        } else if (value.equals("강수없음")) {
+          ctx.precipitationAmount = 0.0;
+        } else {
+          Pattern pattern = Pattern.compile("(\\d+(\\.\\d+)?)\\s*mm");
+          Matcher matcher = pattern.matcher(value);
+          if (matcher.find()) {
+            ctx.precipitationAmount = Double.parseDouble(matcher.group(1));
+          }
         }
       }
       case "REH" -> {
