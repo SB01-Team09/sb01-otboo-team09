@@ -1,10 +1,12 @@
 package com.part4.team09.otboo.module.domain.weather.batch;
 
+import com.part4.team09.otboo.module.common.monitoring.BatchMonitoringListener;
 import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.external.WeatherApiClient;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -53,8 +55,10 @@ public class WeatherBatch {
   }
 
   @Bean("weatherJob")
-  public Job weatherJob(JobRepository jobRepository, Step weatherStep) {
+  public Job weatherJob(JobRepository jobRepository, Step weatherStep,
+    MeterRegistry meterRegistry) {
     return new JobBuilder("weatherJob", jobRepository)
+      .listener(new BatchMonitoringListener(meterRegistry))
       .start(weatherStep)
       .build();
   }
