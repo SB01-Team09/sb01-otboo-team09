@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
+import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
+import com.part4.team09.otboo.module.domain.feed.mapper.OotdMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
 import java.util.List;
 import java.util.UUID;
@@ -24,14 +26,14 @@ class OotdServiceTest {
   @Mock
   private OotdRepository ootdRepository;
 
+  @Mock
+  private OotdMapper ootdMapper;
+
+  @Mock
+  private ClothesRepository clothesRepository;
+
   @InjectMocks
   private OotdService ootdService;
-
-  @BeforeEach
-  void setUp() {
-
-
-  }
 
   @Nested
   @DisplayName("create")
@@ -48,7 +50,7 @@ class OotdServiceTest {
 
       // then
       assertThat(result).isEqualTo(ootdDtos);
-      verify(ootdRepository).save(any());
+      verify(ootdRepository).saveAll(any());
     }
   }
 }

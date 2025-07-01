@@ -1,26 +1,51 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
-import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
+import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
+import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
+import com.part4.team09.otboo.module.domain.feed.mapper.OotdMapper;
+import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
+import jakarta.persistence.EntityNotFoundException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class OotdService {
 
+  private final OotdRepository ootdRepository;
+  private final OotdMapper ootdMapper;
+
+  private final ClothesRepository clothesRepository;
+
+  @Transactional
   public List<OotdDto> create(UUID feedId, List<UUID> clothesIds) {
-      return Collections.singletonList(new OotdDto
-          (
-              UUID.randomUUID(),
-              "name",
-              "imageUrl",
-              ClothesType.BAG,
-              List.of()
-          ));
+    List<Ootd> ootds = new ArrayList<>();
+    List<Clothes> clothes = new ArrayList<>();
+
+    for (UUID clothesId : clothesIds) {
+      Clothes clothing = getClothesOrThrow(clothesId);
+      clothes.add(clothing);
+
+      Ootd ootd = Ootd.create(feedId, clothesId);
+      ootds.add(ootd);
+    }
+
+    ootdRepository.saveAll(ootds);
+
+    return clothes.stream()
+        .map(ootdMapper::toDto)
+        .toList();
+  }
+
+  private Clothes getClothesOrThrow(UUID clothesId) {
+    return clothesRepository.findById(clothesId)
+        .orElseThrow(() -> new EntityNotFoundException());
   }
 }
