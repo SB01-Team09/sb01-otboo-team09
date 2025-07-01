@@ -30,6 +30,7 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
   }
 
+  // 어드민 권한
   @PatchMapping("/{userId}/role")
   public ResponseEntity<UserDto> changeRole(
     @PathVariable UUID userId,

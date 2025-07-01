@@ -47,10 +47,10 @@ public class UserService {
   @Transactional
   public UserDto changeRole(UUID id, UserRoleUpdateRequest request) {
     User user = findByIdOrThrow(id);
-    Role role = request.role();
+    Role newRole = request.role();
 
-    if (user.getRole() != role) {
-      user.changeRole(role);
+    if (user.getRole() != newRole) {
+      user.changeRole(newRole);
     }
     return userMapper.toEntity(user, null);
   }

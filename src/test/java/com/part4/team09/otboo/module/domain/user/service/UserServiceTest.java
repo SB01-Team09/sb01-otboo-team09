@@ -8,6 +8,7 @@ import com.part4.team09.otboo.module.domain.user.dto.UserDto;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.EmailAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,10 +22,11 @@ class UserServiceTest {
 
   @Autowired
   private UserRepository userRepository;
-
+  
   @Autowired
   private UserService userService;
 
+  @DisplayName("로그인 성공 테스트")
   @Test
   void create_success() {
 
@@ -38,6 +40,7 @@ class UserServiceTest {
     assertThat(userDto.email()).isEqualTo("email@test.com");
   }
 
+  @DisplayName("이메일이 사용중인 경우 로그인 실패")
   @Test
   void createUser_shouldThrowException_ifEmailAlreadyExists() {
 
