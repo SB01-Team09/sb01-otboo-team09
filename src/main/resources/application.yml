@@ -13,8 +13,9 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
-        highlight_sql: true
-        use_sql_comments: true
+        #        highlight_sql: true
+        #        use_sql_comments: true
+        format_sql: true
     open-in-view: false
   batch:
     job:
@@ -30,7 +31,7 @@ otboo:
 logging:
   level:
     root: info
-    org.hibernate.SQL: debug
+#    org.hibernate.SQL: debug // p6spy로 대신 로깅
 
 # ?????
 management:
