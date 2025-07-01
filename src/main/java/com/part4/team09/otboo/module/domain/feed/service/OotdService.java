@@ -8,7 +8,6 @@ import com.part4.team09.otboo.module.domain.feed.mapper.OotdMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +26,11 @@ public class OotdService {
   @Transactional
   public List<OotdDto> create(UUID feedId, List<UUID> clothesIds) {
     List<Ootd> ootds = new ArrayList<>();
-    List<Clothes> clothes = new ArrayList<>();
+    List<Clothes> selectedClothes = new ArrayList<>();
 
     for (UUID clothesId : clothesIds) {
-      Clothes clothing = getClothesOrThrow(clothesId);
-      clothes.add(clothing);
+      Clothes clothes = getClothesOrThrow(clothesId);
+      selectedClothes.add(clothes);
 
       Ootd ootd = Ootd.create(feedId, clothesId);
       ootds.add(ootd);
@@ -39,7 +38,7 @@ public class OotdService {
 
     ootdRepository.saveAll(ootds);
 
-    return clothes.stream()
+    return selectedClothes.stream()
         .map(ootdMapper::toDto)
         .toList();
   }

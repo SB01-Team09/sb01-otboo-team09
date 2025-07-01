@@ -8,5 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface OotdMapper {
 
+  @Mapping(source = "id", target = "clothesId")
   OotdDto toDto(Clothes clothes);
 }
