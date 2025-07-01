@@ -90,11 +90,19 @@ public class User extends BaseUpdatableEntity {
     this.role = newRole;
   }
 
-  public void lock() {
-    this.locked = true;
+  public boolean lock() {
+    if (!this.locked) {
+      this.locked = true;
+      return true;
+    }
+    return false;
   }
 
-  public void unlock() {
-    this.locked = false;
+  public boolean unlock() {
+    if (this.locked) {
+      this.locked = false;
+      return true;
+    }
+    return false;
   }
 }

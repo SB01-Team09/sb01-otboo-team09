@@ -5,9 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.part4.team09.otboo.module.domain.user.dto.UserCreateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
+import com.part4.team09.otboo.module.domain.user.dto.UserLockUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.UserRoleUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;
+import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import com.part4.team09.otboo.module.domain.user.exception.EmailAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +26,17 @@ class UserServiceTest {
 
   @Autowired
   private UserRepository userRepository;
-  
+
   @Autowired
   private UserService userService;
+
+  private User user;
+
+  @BeforeEach
+  void setUp() {
+    User testUser = User.createUser("testUser@test.com", "test", "password!");
+    user = userRepository.save(testUser);
+  }
 
   @DisplayName("로그인 성공 테스트")
   @Test
@@ -40,15 +52,40 @@ class UserServiceTest {
     assertThat(userDto.email()).isEqualTo("email@test.com");
   }
 
-  @DisplayName("이메일이 사용중인 경우 로그인 실패")
+  @DisplayName("이메일이 사용중인 경우 계정 생성 실패")
   @Test
   void createUser_shouldThrowException_ifEmailAlreadyExists() {
 
     // given
-    userRepository.save(User.createUser("test@test.com", "test", "password!"));
-    UserCreateRequest request = new UserCreateRequest("name", "test@test.com", "password!");
+    UserCreateRequest request = new UserCreateRequest("name", user.getEmail(), "password!");
 
     // when & then
     assertThrows(EmailAlreadyExistsException.class, () -> userService.createUser(request));
+  }
+
+  @DisplayName("유저 권한 변경 성공")
+  @Test
+  void change_role_success() {
+    // given
+    UserRoleUpdateRequest request = new UserRoleUpdateRequest(Role.ADMIN);
+
+    // when
+    UserDto userDto = userService.changeRole(user.getId(), request);
+
+    // then
+    assertThat(userDto.role()).isEqualTo(Role.ADMIN);
+  }
+
+  @DisplayName("유저 잠금 상태 변경 성공")
+  @Test
+  void change_lock_status_success() {
+    // given
+    UserLockUpdateRequest request = new UserLockUpdateRequest(true);
+
+    // when
+    UserDto userDto = userService.changeLockStatus(user.getId(), request);
+
+    // then
+    assertThat(userDto.locked()).isEqualTo(true);
   }
 }

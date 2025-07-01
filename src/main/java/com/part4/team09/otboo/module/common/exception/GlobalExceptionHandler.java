@@ -5,6 +5,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -60,11 +61,29 @@ public class GlobalExceptionHandler {
 
     log.info("Request for unsupported URI: {}", ex.getResourcePath());
 
-    CommonErrorCode errorCode = CommonErrorCode.NOT_FOUND;
+    CommonErrorCode errorCode = CommonErrorCode.URI_NOT_FOUND;
 
     ErrorResponse errorResponse = ErrorResponse.of(
       ex.getClass().getSimpleName(),
-      "지원하지 않는 URI입니다."
+      errorCode.getMessage()
+    );
+
+    return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);
+  }
+
+  // 잘못된 입력 값 : 타입 불일치 등의 json 파싱 실패
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  protected ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
+    HttpMessageNotReadableException ex) {
+
+    log.info("Request with invalid JSON format: {} | Error: {}",
+      ex.getHttpInputMessage(), ex.getMostSpecificCause().getMessage());
+
+    CommonErrorCode errorCode = CommonErrorCode.INVALID_JSON_FORMAT;
+
+    ErrorResponse errorResponse = ErrorResponse.of(
+      ex.getClass().getSimpleName(),
+      errorCode.getMessage()
     );
 
     return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);
