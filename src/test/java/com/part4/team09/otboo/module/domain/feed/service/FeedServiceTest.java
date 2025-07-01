@@ -11,7 +11,6 @@ import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
-import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
@@ -22,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -100,5 +98,4 @@ class FeedServiceTest {
       verify(feedRepository).save(any());
     }
   }
-
 }

@@ -18,4 +18,5 @@ public record FeedDto(
     int commentCount,
     boolean likedByMe
 ) {
+
 }
