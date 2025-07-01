@@ -59,6 +59,41 @@ class SelectableValueRepositoryTest {
   }
 
   @Nested
+  @DisplayName("정의 id 리스트로 속성 값 리스트 반환")
+  class FindAllByAttributeDefIdIn {
+
+    @Test
+    @DisplayName("성공")
+    void find_all_by_attribute_def_id_in_success() {
+
+      // given
+      UUID defId1 = UUID.randomUUID();
+      List<SelectableValue> selectableValues1 = Stream.of("S", "M", "L")
+          .map(value -> SelectableValue.create(defId1, value))
+          .toList();
+      UUID defId2 = UUID.randomUUID();
+      List<SelectableValue> selectableValues2 = Stream.of("없음", "있음", "조금 있음")
+          .map(value -> SelectableValue.create(defId2, value))
+          .toList();
+
+      List<UUID> defIds = List.of(defId1, defId2);
+
+      selectableValueRepository.saveAll(selectableValues1);
+      selectableValueRepository.saveAll(selectableValues2);
+      entityManager.flush();
+      entityManager.clear();
+
+      List<SelectableValue> selectableValues = selectableValueRepository.findAll();
+
+      // when
+      List<SelectableValue> results = selectableValueRepository.findAllByAttributeDefIdIn(defIds);
+
+      // then
+      assertEquals(results, selectableValues);
+    }
+  }
+
+  @Nested
   @DisplayName("의상 속성 정의 id로 속성 값 전부 삭제")
   class DeleteAllByAttributeDefId {
 
