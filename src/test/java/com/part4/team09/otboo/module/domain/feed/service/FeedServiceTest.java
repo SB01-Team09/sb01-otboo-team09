@@ -48,16 +48,13 @@ class FeedServiceTest {
   @InjectMocks
   private FeedService feedService;
 
-  @BeforeEach
-  void setUp() {
-
-  }
-
   @Nested
-  @DisplayName("create")
-  public class createdTest {
+  @DisplayName("피드 생성")
+  public class CreateFeedTest {
+
     @Test
-    void create_success() {
+    @DisplayName("피드 생성 성공")
+    void create_feed_success() {
       // given
       User mockUser = mock(User.class);
       Weather mockWeather = mock(Weather.class);

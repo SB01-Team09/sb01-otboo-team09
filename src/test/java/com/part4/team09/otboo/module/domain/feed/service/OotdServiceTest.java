@@ -1,17 +1,20 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
+import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.mapper.OotdMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -36,14 +39,31 @@ class OotdServiceTest {
   private OotdService ootdService;
 
   @Nested
-  @DisplayName("create")
-  public class createdTest {
+  @DisplayName("오오티디 생성 테스트")
+  public class CreateOotdTest {
+    
     @Test
-    void create_success() {
+    @DisplayName("오오티디 생성 성공")
+    void create_ootd_success() {
       // given
       UUID feedId = UUID.randomUUID();
-      List<UUID> clothesIds = List.of();
-      List<OotdDto> ootdDtos = List.of();
+      UUID clothedID = UUID.randomUUID();
+
+      OotdDto ootdDto = new OotdDto(
+          clothedID,
+          "name",
+          "imageUrl",
+          ClothesType.BAG,
+          List.of()
+      );
+
+      List<UUID> clothesIds = List.of(clothedID);
+      List<OotdDto> ootdDtos = List.of(ootdDto);
+
+      Clothes mockClothes = mock(Clothes.class);
+
+      given(clothesRepository.findById(any())).willReturn(Optional.of(mockClothes));
+      given(ootdMapper.toDto(any(Clothes.class))).willReturn(ootdDto);
 
       // when
       List<OotdDto> result = ootdService.create(feedId, clothesIds);
