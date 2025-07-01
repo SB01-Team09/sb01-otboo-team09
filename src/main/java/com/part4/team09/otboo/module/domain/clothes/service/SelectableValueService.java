@@ -4,10 +4,6 @@ import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.SelectableValueRepository;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -102,6 +98,13 @@ public class SelectableValueService {
   public List<SelectableValue> findAllByAttributeDefId(UUID defId) {
 
     return selectableValueRepository.findAllByAttributeDefId(defId);
+  }
+
+  // 속성 정의 명 리스트로 삭제
+  public void deleteByIdIn(List<UUID> valueIds) {
+    log.debug("의상 속성 값 삭제: valueIds = {}", valueIds);
+
+    selectableValueRepository.deleteByIdIn(valueIds);
   }
 
   // defId 유효성 검사

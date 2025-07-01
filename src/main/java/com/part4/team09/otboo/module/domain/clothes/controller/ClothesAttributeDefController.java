@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,5 +49,16 @@ public class ClothesAttributeDefController {
 
     log.info("의상 속성 정의 수정 응답: {}", HttpStatus.OK.value());
     return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  // 의상 속성 정의 삭제
+  @DeleteMapping("/{definitionId}")
+  ResponseEntity<Void> delete(@PathVariable UUID definitionId) {
+    log.info("의상 속성 정의 삭제 요청");
+
+    clothesAttributeInfoService.delete(definitionId);
+
+    log.info("의상 속성 정의 삭제 응답: {}", HttpStatus.NO_CONTENT.value());
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 }
