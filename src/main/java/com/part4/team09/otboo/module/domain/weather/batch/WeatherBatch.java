@@ -37,6 +37,11 @@ public class WeatherBatch {
       .reader(weatherReader())
       .processor(weatherProcessor)
       .writer(weatherWriter)
+      .faultTolerant()
+      .retryLimit(3) // 최대 3번 재시도
+      .retry(Exception.class)
+      .skip(Exception.class)
+      .skipLimit(50) // 유연한 실패 허용
       .build();
   }
 
