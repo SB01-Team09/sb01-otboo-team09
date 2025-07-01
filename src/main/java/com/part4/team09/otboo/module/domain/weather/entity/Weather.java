@@ -28,7 +28,7 @@ public class Weather extends BaseEntity {
   private SkyStatus skyStatus;
 
   @Column(nullable = false)
-  private UUID locationId;
+  private String locationId;
 
   @Column(nullable = false)
   private UUID precipitationId;
@@ -43,17 +43,29 @@ public class Weather extends BaseEntity {
   private UUID windSpeedId;
 
   public enum SkyStatus {
-    CLEAR, MOSTLY_CLOUDY, CLOUDY
+    CLEAR, MOSTLY_CLOUDY, CLOUDY;
+
+    public static SkyStatus of(int value) {
+      if (value == 1) {
+        return CLEAR;
+      }
+      if (value == 3) {
+        return MOSTLY_CLOUDY;
+      }
+      return CLOUDY;
+    }
   }
 
   public static Weather create(LocalDateTime forecastAt, LocalDateTime forecastedAt, SkyStatus skyStatus,
-      UUID locationId, UUID precipitationId, UUID humidityId, UUID temperatureId, UUID windSpeedId) {
+    String locationId, UUID precipitationId, UUID humidityId, UUID temperatureId,
+    UUID windSpeedId) {
     return new Weather(forecastAt, forecastedAt, skyStatus, locationId, precipitationId, humidityId,
         temperatureId, windSpeedId);
   }
 
   private Weather (LocalDateTime forecastAt, LocalDateTime forecastedAt, SkyStatus skyStatus,
-      UUID locationId, UUID precipitationId, UUID humidityId, UUID temperatureId, UUID windSpeedId) {
+    String locationId, UUID precipitationId, UUID humidityId, UUID temperatureId,
+    UUID windSpeedId) {
     this.forecastAt = forecastAt;
     this.forecastedAt = forecastedAt;
     this.skyStatus = skyStatus;

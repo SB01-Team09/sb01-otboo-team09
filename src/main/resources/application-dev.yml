@@ -2,8 +2,21 @@ server:
   port: 8080
 
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: jdbc:postgresql://localhost:5432/otboo_dev
     username: team09
     password: team09
     driver-class-name: org.postgresql.Driver
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "prometheus"
+
+# P6spy 로깅 레벨 설정
+logging:
+  level:
+    p6spy: debug
