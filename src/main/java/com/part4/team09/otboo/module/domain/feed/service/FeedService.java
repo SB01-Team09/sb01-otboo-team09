@@ -8,6 +8,7 @@ import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
+import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
@@ -46,10 +47,9 @@ public class FeedService {
     return feedMapper.toDto(feed, author, weather, ootdDtos);
   }
 
-  // TODO: 유저 커스텀 예외로 변경
   private User getUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
-        .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+        .orElseThrow(() -> UserNotFoundException.withId(userId));
   }
 
   // TODO: 날씨 커스텀 예외로 변경

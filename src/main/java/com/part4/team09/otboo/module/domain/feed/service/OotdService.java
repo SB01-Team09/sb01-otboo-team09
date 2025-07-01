@@ -43,6 +43,7 @@ public class OotdService {
         .toList();
   }
 
+  // TODO: 의상 커스텀 예외로 변경
   private Clothes getClothesOrThrow(UUID clothesId) {
     return clothesRepository.findById(clothesId)
         .orElseThrow(() -> new EntityNotFoundException());
