@@ -3,6 +3,7 @@ package com.part4.team09.otboo.module.domain.follow.contoller;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowCreateRequest;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
+import com.part4.team09.otboo.module.domain.follow.dto.FollowSummaryDto;
 import com.part4.team09.otboo.module.domain.follow.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
@@ -65,6 +65,18 @@ public class FollowController {
                 .status(HttpStatus.OK)
                 .body(response);
     }
+
+    // 팔로우 요악 정보 조회 TODO: loginUserId 파라미터 수정
+    @GetMapping("/summary")
+    public ResponseEntity<FollowSummaryDto> getFollowSummary(@RequestParam UUID userId, @RequestParam UUID loginUserId){
+
+        FollowSummaryDto response = followService.getFollowSummary(userId, loginUserId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
 
     // 팔로우 삭제
     @DeleteMapping("/{followId}")
