@@ -47,23 +47,40 @@ public class WeatherReader implements ItemStreamReader<WeatherApiData> {
         y = dong.getY();
 
         // 2. 캐시 조회
-        LocalDateTime dateTime = getDate();
-        Weather cachedWeather = weatherCache.getData(x, y, dateTime);
+        LocalDateTime forecastAt = getDate();
+        Weather cachedWeather = weatherCache.getData(x, y, forecastAt);
         if (cachedWeather != null) {
-          // ✅ 캐시에 있으면 저장하고 스킵
-          Weather weather = Weather.create(
-            cachedWeather.getForecastAt(),
-            cachedWeather.getForecastedAt(),
-            cachedWeather.getSkyStatus(),
-            currentLocation.getId(),
-            cachedWeather.getPrecipitationId(),
-            cachedWeather.getHumidityId(),
-            cachedWeather.getTemperatureId(),
-            cachedWeather.getWindSpeedId()
-          );
 
-          weatherRepository.save(weather);
-          weatherRepository.flush();
+          weatherRepository
+            .findByLocationIdAndForecastAt(currentLocation.getId(), forecastAt)
+            .ifPresentOrElse(
+              existingWeather -> {
+                existingWeather.updateForecastedAt(cachedWeather.getForecastedAt());
+                existingWeather.updateForecastAt(cachedWeather.getForecastAt());
+                existingWeather.updateSkyStatus(cachedWeather.getSkyStatus());
+                existingWeather.updateLocationId(currentLocation.getId());
+                existingWeather.updatePrecipitationId(cachedWeather.getPrecipitationId());
+                existingWeather.updateHumidityId(cachedWeather.getHumidityId());
+                existingWeather.updateTemperatureId(cachedWeather.getTemperatureId());
+                existingWeather.updateWindSpeedId(cachedWeather.getWindSpeedId());
+                weatherRepository.save(existingWeather);
+              },
+              () -> {
+                // 캐시에 있으면 저장하고 스킵
+                Weather weather = Weather.create(
+                  cachedWeather.getForecastAt(),
+                  cachedWeather.getForecastedAt(),
+                  cachedWeather.getSkyStatus(),
+                  currentLocation.getId(),
+                  cachedWeather.getPrecipitationId(),
+                  cachedWeather.getHumidityId(),
+                  cachedWeather.getTemperatureId(),
+                  cachedWeather.getWindSpeedId()
+                );
+
+                weatherRepository.save(weather);
+              }
+            );
 
           currentIndex = Math.min(currentIndex + CHUNK_SIZE, currentApiDataBuffer.size());
           continue;
