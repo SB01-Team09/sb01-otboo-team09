@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
@@ -41,7 +42,7 @@ public class FollowController {
             @RequestParam(required = false) String nameLike
             ){
 
-        FollowListResponse response = followService.getFollowings(followerId, idAfter, limit, nameLike);
+        FollowListResponse response = followService.getFollowings(followerId, cursor, idAfter, limit, nameLike);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -58,7 +59,7 @@ public class FollowController {
             @RequestParam(required = false) String nameLike
     ){
 
-        FollowListResponse response = followService.getFollowers(followeeId, idAfter, limit, nameLike);
+        FollowListResponse response = followService.getFollowers(followeeId, cursor, idAfter, limit, nameLike);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

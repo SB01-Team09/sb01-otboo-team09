@@ -1,10 +1,10 @@
 package com.part4.team09.otboo.module.domain.follow.repository;
 
+import com.part4.team09.otboo.module.domain.follow.dto.FollowListRequest;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -23,32 +23,32 @@ public class FollowRepositoryQueryDSL {
     // 검색 O : QueryDSL
 
     // 팔로잉 목록 조회: nameLike이 null이면 검색어 x 결과, null이 아니면 검색 결과
-    public List<Follow> getFollowings(UUID followerId, UUID idAfter, LocalDateTime createdAtAfter, String nameLike, Pageable pageable) {
+    public List<Follow> getFollowings(FollowListRequest request) {
         return queryFactory
                 .selectFrom(follow)
                 .join(user).on(follow.followeeId.eq(user.id))
                 .where(
-                        follow.followerId.eq(followerId),
-                        user.name.likeIgnoreCase("%" + nameLike + "%"),
-                        cursorCondition(createdAtAfter, idAfter) // null일 때 처리를 위해 메서드로 따로 뺐습니다
+                        follow.followerId.eq(request.userId()), // followerId
+                        user.name.likeIgnoreCase("%" + request.nameLike() + "%"),
+                        cursorCondition(request.cursor(), request.idAFter()) // null일 때 처리를 위해 메서드로 따로 뺐습니다
                 )
                 .orderBy(follow.createdAt.desc(), follow.id.desc())
-                .limit(pageable.getPageSize())
+                .limit(request.limit())
                 .fetch();
     }
 
     // 팔로워 목록 조회: nameLike이 null이면 검색어 x 결과, null이 아니면 검색 결과
-    public List<Follow> getFollowers(UUID followeeId, UUID idAfter, LocalDateTime createdAtAfter, String nameLike, Pageable pageable) {
+    public List<Follow> getFollowers(FollowListRequest request) {
         return queryFactory
                 .selectFrom(follow)
                 .join(user).on(follow.followerId.eq(user.id))
                 .where(
-                        follow.followeeId.eq(followeeId),
-                        user.name.likeIgnoreCase("%" + nameLike + "%"),
-                        cursorCondition(createdAtAfter, idAfter) // null일 때 처리를 위해 메서드로 따로 뺐습니다
+                        follow.followeeId.eq(request.userId()), // followeeId
+                        user.name.likeIgnoreCase("%" + request.nameLike() + "%"),
+                        cursorCondition(request.cursor(), request.idAFter()) // null일 때 처리를 위해 메서드로 따로 뺐습니다
                 )
                 .orderBy(follow.createdAt.desc(), follow.id.desc())
-                .limit(pageable.getPageSize())
+                .limit(request.limit())
                 .fetch();
     }
 
@@ -87,13 +87,17 @@ public class FollowRepositoryQueryDSL {
 
 
     // 검색어 팔로잉 조회 커서조건
-    private BooleanExpression cursorCondition(LocalDateTime createdAtAfter, UUID idAfter) {
-        if (createdAtAfter == null || idAfter == null) {
-            return null;
-        }
+    private BooleanExpression cursorCondition(LocalDateTime cursor, UUID idAfter) {
+        if (cursor == null) return null;
 
-        return follow.createdAt.lt(createdAtAfter)
-                .or(follow.createdAt.eq(createdAtAfter).and(follow.id.lt(idAfter)));
+        BooleanExpression condition = follow.createdAt.lt(cursor);
+
+        if (idAfter != null) {
+            condition = condition.or(
+                    follow.createdAt.eq(cursor).and(follow.id.lt(idAfter))
+            );
+        }
+        return condition;
     }
 
 }
