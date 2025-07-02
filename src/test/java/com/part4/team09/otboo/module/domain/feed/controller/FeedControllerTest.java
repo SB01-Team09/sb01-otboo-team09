@@ -59,7 +59,7 @@ class FeedControllerTest {
       FeedCreateRequest request = new FeedCreateRequest(
           UUID.randomUUID(),
           UUID.randomUUID(),
-          List.of(),
+          List.of(UUID.randomUUID()),
           "content"
       );
 
