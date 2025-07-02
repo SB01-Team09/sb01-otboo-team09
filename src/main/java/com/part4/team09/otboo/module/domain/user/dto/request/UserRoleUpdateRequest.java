@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.domain.user.dto;
+package com.part4.team09.otboo.module.domain.user.dto.request;
 
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import jakarta.validation.constraints.NotNull;

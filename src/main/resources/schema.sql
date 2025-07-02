@@ -73,34 +73,36 @@ CREATE TABLE dongs
 (
     id         UUID PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    dong_name  VARCHAR(50)  NOT NULL,
+    dong_name  VARCHAR(50)              NOT NULL,
     latitude   DOUBLE PRECISION,
     longitude  DOUBLE PRECISION,
     x          INTEGER,
-    y          INTEGER
+    y          INTEGER,
+
+    CONSTRAINT uk_dongs_latitude_longitude UNIQUE (latitude, longitude)
 );
 
 CREATE TABLE gus
 (
     id         UUID PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    gu_name    VARCHAR(50)  NOT NULL
+    gu_name    VARCHAR(50)              NOT NULL
 );
 
 CREATE TABLE sidos
 (
     id         UUID PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    sido_name  VARCHAR(50)  NOT NULL
+    sido_name  VARCHAR(50)              NOT NULL
 );
 
 CREATE TABLE locations
 (
     id         VARCHAR(10) PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    sido_id    UUID NOT NULL,
-    gu_id      UUID NOT NULL,
-    dong_id    UUID NOT NULL,
+    sido_id    UUID                     NOT NULL,
+    gu_id      UUID                     NOT NULL,
+    dong_id    UUID                     NOT NULL,
 
     CONSTRAINT UK_SidoGuDong UNIQUE (sido_id, gu_id, dong_id)
 );
@@ -108,7 +110,7 @@ CREATE TABLE locations
 CREATE TABLE precipitations
 (
     id          UUID PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at  TIMESTAMP WITH TIME ZONE NOT NULL,
     type        VARCHAR(50),
     amount      DOUBLE PRECISION,
     probability DOUBLE PRECISION
@@ -116,20 +118,20 @@ CREATE TABLE precipitations
 
 CREATE TABLE humidities
 (
-    id         UUID PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    current    DOUBLE PRECISION,
+    id                     UUID PRIMARY KEY,
+    created_at             TIMESTAMP WITH TIME ZONE NOT NULL,
+    current                DOUBLE PRECISION,
     compared_to_day_before DOUBLE PRECISION
 );
 
 CREATE TABLE temperatures
 (
-    id         UUID PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    current    DOUBLE PRECISION,
+    id                     UUID PRIMARY KEY,
+    created_at             TIMESTAMP WITH TIME ZONE NOT NULL,
+    current                DOUBLE PRECISION,
     compared_to_day_before DOUBLE PRECISION,
-    min        DOUBLE PRECISION,
-    max        DOUBLE PRECISION
+    min                    DOUBLE PRECISION,
+    max                    DOUBLE PRECISION
 );
 
 CREATE TABLE wind_speeds
@@ -147,7 +149,7 @@ CREATE TABLE weathers
     forecasted_at    TIMESTAMP WITH TIME ZONE NOT NULL,
     forecast_at      TIMESTAMP WITH TIME ZONE NOT NULL,
     sky_status       VARCHAR(50)              NOT NULL,
-    location_id VARCHAR(10) NOT NULL,
+    location_id      VARCHAR(10)              NOT NULL,
     precipitation_id UUID                     NOT NULL,
     humidity_id      UUID                     NOT NULL,
     temperature_id   UUID                     NOT NULL,
@@ -157,13 +159,13 @@ CREATE TABLE weathers
 CREATE TABLE users
 (
     id                      UUID PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE,
-    email      VARCHAR(100)             NOT NULL UNIQUE,
-    name       VARCHAR(100)             NOT NULL,
-    password   TEXT                     NOT NULL,
-    role       VARCHAR(10)              NOT NULL,
-    locked     BOOLEAN                  NOT NULL,
+    created_at              TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at              TIMESTAMP WITH TIME ZONE,
+    email                   VARCHAR(100)             NOT NULL UNIQUE,
+    name                    VARCHAR(100)             NOT NULL,
+    password                TEXT                     NOT NULL,
+    role                    VARCHAR(10)              NOT NULL,
+    locked                  BOOLEAN                  NOT NULL,
     birth_date              DATE,
     temperature_sensitivity INTEGER,
     gender                  VARCHAR(10),
