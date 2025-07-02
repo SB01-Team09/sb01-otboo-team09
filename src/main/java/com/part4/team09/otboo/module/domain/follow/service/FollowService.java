@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.follow.service;
 
+import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
@@ -113,7 +114,7 @@ public class FollowService {
 
     // 팔로잉, 팔로워 목록 조회에서는 클라이언트가 정렬 조건과 순서를 지정하지 않기 때문에 개발단에서 지정한 걸로 명시해서 반환 (id 기준, DESCENDING)
     return new FollowListResponse(pagedFollowDtoList, nextCursor, nextIdAfter, hasNext, totalCount,
-      "createdAt, id", FollowListResponse.SortDirection.DESCENDING);
+      "createdAt, id", SortDirection.DESCENDING);
   }
 
 
@@ -173,7 +174,7 @@ public class FollowService {
     log.info("팔로워 목록 조회 끝");
 
     return new FollowListResponse(pagedFollowDtoList, nextCursor, nextIdAfter, hasNext, totalCount,
-      "createdAt, id", FollowListResponse.SortDirection.DESCENDING);
+      "createdAt, id", SortDirection.DESCENDING);
   }
 
   // cursor 인코딩 로직
