@@ -81,6 +81,90 @@ class SelectableValueServiceTest {
   }
 
   @Nested
+  @DisplayName("def id로 속성 값 찾기")
+  class FindAllByAttributeDefId {
+
+    @Test
+    @DisplayName("속성 값 def id로 찾기 성공")
+    void find_all_by_attribute_def_id_success() {
+
+      // given
+      UUID defId = UUID.randomUUID();
+      List<SelectableValue> selectableValues = Stream.of("S", "M", "L")
+          .map(value -> SelectableValue.create(defId, value))
+          .toList();
+
+      given(clothesAttributeDefRepository.existsById(defId)).willReturn(true);
+      given(selectableValueRepository.findAllByAttributeDefId(defId)).willReturn(selectableValues);
+
+      // when
+      List<SelectableValue> results = selectableValueService.findAllByAttributeDefId(defId);
+
+      // then
+      assertNotNull(results);
+      assertEquals(results, selectableValues);
+      then(clothesAttributeDefRepository).should().existsById(defId);
+      then(selectableValueRepository).should().findAllByAttributeDefId(defId);
+    }
+
+    @Test
+    @DisplayName("속성 값 def id로 찾기 실패 - def가 없음")
+    void find_all_by_attribute_def_id_not_found_def() {
+
+      // given
+      UUID defId = UUID.randomUUID();
+
+      given(clothesAttributeDefRepository.existsById(defId)).willReturn(false);
+
+      // when, then
+      assertThrows(ClothesAttributeDefNotFoundException.class, () -> selectableValueService.findAllByAttributeDefId(defId));
+      then(clothesAttributeDefRepository).should().existsById(defId);
+      then(selectableValueRepository).should(times(0)).findAllByAttributeDefId(defId);
+    }
+  }
+
+  @Nested
+  @DisplayName("def id 리스트로 속성 값 찾기")
+  class findAllByAttributeDefIdIn {
+
+    @Test
+    @DisplayName("찾기 성공")
+    void find_all_by_attribute_def_id_in_success() {
+
+      // given
+      List<UUID> defIds = List.of(UUID.randomUUID());
+      List<SelectableValue> selectableValues = List.of(SelectableValue.create(defIds.get(0), "S"));
+
+      given(selectableValueRepository.findAllByAttributeDefIdIn(defIds)).willReturn(selectableValues);
+
+      // when
+      List<SelectableValue> result = selectableValueService.findAllByAttributeDefIdIn(defIds);
+
+      // then
+      assertNotNull(result);
+      assertEquals(result, selectableValues);
+      then(selectableValueRepository).should().findAllByAttributeDefIdIn(defIds);
+    }
+
+    @Test
+    @DisplayName("def id 리스트가 없음")
+    void find_all_by_attribute_def_id_in_no_def_ids() {
+
+      // given
+      List<UUID> defIds = List.of();
+      List<SelectableValue> selectableValues = List.of();
+
+      // when
+      List<SelectableValue> result = selectableValueService.findAllByAttributeDefIdIn(defIds);
+
+      // then
+      assertNotNull(result);
+      assertEquals(result, selectableValues);
+      then(selectableValueRepository).should(times(0)).findAllByAttributeDefIdIn(defIds);
+    }
+  }
+
+  @Nested
   @DisplayName("속성 값 수정")
   class Update {
 
@@ -170,32 +254,6 @@ class SelectableValueServiceTest {
       // when, then
       assertThrows(ClothesAttributeDefNotFoundException.class,
           () -> selectableValueService.updateWhenNameChanged(defId, List.of()));
-    }
-  }
-
-  @Nested
-  @DisplayName("속성 값 def id로 찾기")
-  class findAllByAttributeDefId {
-
-    @Test
-    @DisplayName("속성 값 def id로 찾기 성공")
-    void find_all_by_attribute_def_id_success() {
-
-      // given
-      UUID defId = UUID.randomUUID();
-      List<SelectableValue> selectableValues = Stream.of("S", "M", "L")
-          .map(value -> SelectableValue.create(defId, value))
-          .toList();
-
-      given(selectableValueRepository.findAllByAttributeDefId(defId)).willReturn(selectableValues);
-
-      // when
-      List<SelectableValue> results = selectableValueService.findAllByAttributeDefId(defId);
-
-      // then
-      assertNotNull(results);
-      assertEquals(results, selectableValues);
-      then(selectableValueRepository).should().findAllByAttributeDefId(defId);
     }
   }
 

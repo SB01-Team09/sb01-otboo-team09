@@ -42,6 +42,24 @@ public class SelectableValueService {
     return selectableValueRepository.saveAll(selectableValues);
   }
 
+  // 속성 정의 명에 해당되는 속성 값들 반환
+  public List<SelectableValue> findAllByAttributeDefId(UUID defId) {
+
+    validateDefId(defId);
+
+    return selectableValueRepository.findAllByAttributeDefId(defId);
+  }
+
+  // 속성 정의 id 리스트로 찾기
+  public List<SelectableValue> findAllByAttributeDefIdIn(List<UUID> defIds) {
+
+    if (defIds == null || defIds.isEmpty()) {
+      return List.of();
+    }
+
+    return selectableValueRepository.findAllByAttributeDefIdIn(defIds);
+  }
+
   public List<SelectableValue> updateWhenNameSame(UUID defId, List<UUID> valueIdsForDelete,
       List<String> newValues) {
 
@@ -92,12 +110,6 @@ public class SelectableValueService {
             .map(SelectableValue::getItem)
             .toList());
     return selectableValueRepository.saveAll(selectableValues);
-  }
-
-  // 속성 정의 명에 해당되는 속성 값들 반환
-  public List<SelectableValue> findAllByAttributeDefId(UUID defId) {
-
-    return selectableValueRepository.findAllByAttributeDefId(defId);
   }
 
   // 속성 정의 명 리스트로 삭제
