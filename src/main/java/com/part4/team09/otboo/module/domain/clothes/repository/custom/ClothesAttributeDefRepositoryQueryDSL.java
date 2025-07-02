@@ -41,7 +41,7 @@ public class ClothesAttributeDefRepositoryQueryDSL {
         .fetch();
   }
 
-  public List<ClothesAttributeDef> findByCursor(Set<UUID> defIds
+  public List<ClothesAttributeDef> findByCursor(List<UUID> defIds
       , ClothesAttributeDefFindRequest request) {
 
     BooleanBuilder where = new BooleanBuilder();
