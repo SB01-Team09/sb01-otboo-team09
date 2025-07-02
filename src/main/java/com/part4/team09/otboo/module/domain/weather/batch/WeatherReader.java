@@ -34,10 +34,42 @@ public class WeatherReader implements ItemStreamReader<WeatherApiData> {
   private int x = 0;
   private int y = 0;
   private Location currentLocation;
+  private Dong dong;
 
   @Override
   public WeatherApiData read() throws Exception {
     while (true) {
+
+      // 1. 좌표 조회
+      if (currentLocation != null && hasRemainingChunk()) {
+
+        x = dong.getX();
+        y = dong.getY();
+
+        // 2. 캐시 조회
+        LocalDateTime dateTime = getDate();
+        Weather cachedWeather = weatherCache.getData(x, y, dateTime);
+        if (cachedWeather != null) {
+          // ✅ 캐시에 있으면 저장하고 스킵
+          Weather weather = Weather.create(
+            cachedWeather.getForecastAt(),
+            cachedWeather.getForecastedAt(),
+            cachedWeather.getSkyStatus(),
+            currentLocation.getId(),
+            cachedWeather.getPrecipitationId(),
+            cachedWeather.getHumidityId(),
+            cachedWeather.getTemperatureId(),
+            cachedWeather.getWindSpeedId()
+          );
+
+          weatherRepository.save(weather);
+          weatherRepository.flush();
+
+          currentIndex = Math.min(currentIndex + CHUNK_SIZE, currentApiDataBuffer.size());
+          continue;
+        }
+      }
+
       // 아직 처리하지 않은 데이터가 있으면 chunk 로 반환
       if (hasRemainingChunk()) {
         return getNextChunk(x, y);
@@ -48,38 +80,22 @@ public class WeatherReader implements ItemStreamReader<WeatherApiData> {
       if (currentLocation == null) {
         return null;
       }
+      currentIndex = 0;
 
-      // 1. 좌표 조회
       Optional<Dong> optionalDong = dongRepository.findById(currentLocation.getDongId());
       if (optionalDong.isEmpty()) {
         continue; // Dong 못 찾으면 스킵
       }
 
-      Dong dong = optionalDong.get();
+      dong = optionalDong.get();
       x = dong.getX();
       y = dong.getY();
 
-      // 2. 캐시 조회
-      Weather cachedWeather = weatherCache.getData(x, y, getDate());
-      if (cachedWeather != null) {
-        // ✅ 캐시에 있으면 저장하고 스킵
-        Weather weather = Weather.create(
-          cachedWeather.getForecastAt(),
-          cachedWeather.getForecastedAt(),
-          cachedWeather.getSkyStatus(),
-          currentLocation.getId(),
-          cachedWeather.getPrecipitationId(),
-          cachedWeather.getHumidityId(),
-          cachedWeather.getTemperatureId(),
-          cachedWeather.getWindSpeedId()
-        );
-
-        weatherRepository.save(weather);
+      if (!weatherCache.isExist(x, y)) {
+        currentApiDataBuffer = weatherApiClient.getWeatherApiResponse(dong.getX(), dong.getY());
+      } else {
         continue;
       }
-
-      currentApiDataBuffer = weatherApiClient.getWeatherApiResponse(dong.getX(), dong.getY());
-      currentIndex = 0;
 
       // 받아온 데이터가 비어있다면 다음 Location 으로 넘어감
       if (!currentApiDataBuffer.isEmpty()) {
