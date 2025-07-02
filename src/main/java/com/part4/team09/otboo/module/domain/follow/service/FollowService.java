@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -34,6 +35,7 @@ public class FollowService {
   private final FollowMapper followMapper;
 
   // 팔로우 등록
+  @Transactional
   public FollowDto create(UUID followeeId, UUID followerId) {
     // 예외처리 1. existsById시 유저가 존재 x    2. 자기자신은 팔로우 불가
     if (!userRepository.existsById(followeeId)) {
@@ -57,6 +59,7 @@ public class FollowService {
 
 
   // 팔로잉 목록 조회
+  @Transactional(readOnly = true)
   public FollowListResponse getFollowings(UUID followerId, UUID idAfter, int limit,
     String nameLike) {
 
@@ -119,6 +122,7 @@ public class FollowService {
 
 
   // 팔로워 목록 조회
+  @Transactional(readOnly = true)
   public FollowListResponse getFollowers(UUID followeeId, UUID idAfter, int limit,
     String nameLike) {
 
@@ -189,6 +193,7 @@ public class FollowService {
   }
 
   // 팔로우 삭제
+  @Transactional
   public void deleteFollow(UUID followId) {
     // 해당 팔로우가 애초에 존재하지 않아서 취소할 수 없음 예외
     if (!followRepository.existsById(followId)) {
