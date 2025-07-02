@@ -79,8 +79,11 @@ public class UserService {
     User user = findByIdOrThrow(id);
 
     // 위치 업데이트
+    WeatherAPILocation location;
     String locationId = findLocationOrThrow(request.location());
-    WeatherAPILocation location = locationService.getLocation(locationId);
+    if (!locationId.equals(user.getLocationId())) {
+      location = locationService.getLocation(locationId);
+    }
 
     // 이미지 업로드 동기 처리 -> 실패하면 이전 프로필로 유지
     String imageUrl = uploadProfileImage(image);
@@ -88,9 +91,11 @@ public class UserService {
     // 이름, 성별, 생일, 민감도, 위치, 프로필 업데이트
     //updateProfile -> null, 같은 값인지 검사
     // 구조 변경 고려 : 값이 같을 때 dirty checking 확인
+    user.updateProfile(user.getName(), user.getGender(), user.getBirthDate(),
+      user.getTemperatureSensitivity(), locationId, null);
 
     // 업데이트 후 userProfile 반환
-    return userMapper.toProfileDto(user, null);
+    return userMapper.toProfileDto(user, location);
   }
 
   // 권한 변경

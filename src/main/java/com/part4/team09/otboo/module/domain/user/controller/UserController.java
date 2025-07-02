@@ -47,8 +47,8 @@ public class UserController {
   @PatchMapping("/{userId}/profiles")
   public ResponseEntity<ProfileDto> updateProfile(
     @PathVariable UUID userId,
-    @Valid @RequestPart("request") ProfileUpdateRequest request,
-    @RequestPart("image") MultipartFile image
+    @Valid @RequestPart(name = "request") ProfileUpdateRequest request,
+    @RequestPart(name = "image", required = false) MultipartFile image
   ) {
     ProfileDto profileDto = userService.updateProfile(userId, request, image);
     return ResponseEntity.ok(profileDto);

@@ -13,6 +13,7 @@ public interface UserMapper {
 
   UserDto toDto(User user, List<String> linkedOAuthProviders);
 
+  @Mapping(target = "userId", source = "user.id")
   @Mapping(target = "location", source = "location")
   ProfileDto toProfileDto(User user, WeatherAPILocation location);
 }

@@ -20,7 +20,6 @@ import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import com.part4.team09.otboo.module.domain.user.exception.EmailAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -111,7 +110,7 @@ class UserServiceTest {
   @Test
   @Sql(scripts = "/location-update-data.sql")
   void user_profile_success() {
-    // given
+    // given : 변경할 위치 정보
     LocationUpdateRequest locationRequest = new LocationUpdateRequest(37.5000, 127.0364,
       60, 127, List.of("서울특별시", "강남구", "역삼동"));
     ProfileUpdateRequest updateRequest = new ProfileUpdateRequest(null, null, null,
@@ -120,14 +119,14 @@ class UserServiceTest {
     // when
     ProfileDto profileDto = userService.updateProfile(user.getId(), updateRequest, null);
 
-    // then
+    // then : 위치 정보 변경 확인
     User user = userRepository.findById(profileDto.userId())
       .orElseThrow(() -> new RuntimeException("User not found"));
+
     WeatherAPILocation location = profileDto.location();
 
+    assertThat(user.getLocationId()).isEqualTo("LOC001");
     assertThat(location.latitude()).isEqualTo(37.5000);
     assertThat(location.longitude()).isEqualTo(127.0364);
-    assertThat(user.getLocationId()).isEqualTo(
-      UUID.fromString("11111111-1111-1111-1111-111111111111"));
   }
 }
