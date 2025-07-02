@@ -6,6 +6,7 @@ import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.external.WeatherApiClient;
+import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,8 @@ public class WeatherBatch {
   private final WeatherWriter weatherWriter;
   private final WeatherApiClient weatherApiClient;
   private final DongRepository dongRepository;
+  private final WeatherRepository weatherRepository;
+  private final WeatherCache weatherCache;
 
   @Bean
   public Step weatherStep(JobRepository jobRepository,
@@ -47,7 +50,8 @@ public class WeatherBatch {
 
   @Bean
   public WeatherReader weatherReader() {
-    return new WeatherReader(locationReader(), weatherApiClient, dongRepository);
+    return new WeatherReader(locationReader(), weatherApiClient, dongRepository, weatherRepository,
+      weatherCache);
   }
 
   @Bean

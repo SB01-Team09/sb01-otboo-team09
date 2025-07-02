@@ -50,6 +50,9 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, WeatherDa
       setComparedValuesFromYesterday(context, data.locationId());
     }
 
+    context.x = data.x();
+    context.y = data.y();
+
     return context.toWeatherData(data.locationId());
   }
 
@@ -155,6 +158,9 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, WeatherDa
     LocalDateTime forecastedAt = null;
     SkyStatus skyStatus = null;
 
+    int x = 0;
+    int y = 0;
+
     WeatherData toWeatherData(String locationId) {
       return new WeatherData(
         Humidity.create(currentHumidity, comparedToDayBeforeHumidity),
@@ -165,7 +171,9 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, WeatherDa
         forecastedAt,
         forecastAt,
         skyStatus,
-        locationId
+        locationId,
+        x,
+        y
       );
     }
   }

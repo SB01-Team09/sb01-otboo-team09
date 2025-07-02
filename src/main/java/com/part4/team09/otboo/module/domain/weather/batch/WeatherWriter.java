@@ -26,6 +26,7 @@ public class WeatherWriter implements ItemWriter<WeatherData> {
   private final TemperatureRepository temperatureRepository;
   private final WindSpeedRepository windSpeedRepository;
   private final WeatherRepository weatherRepository;
+  private final WeatherCache weatherCache;
 
   @Override
   public void write(Chunk<? extends WeatherData> weatherDatas) throws Exception {
@@ -44,6 +45,9 @@ public class WeatherWriter implements ItemWriter<WeatherData> {
     updatePrecipitation(existingWeather.getPrecipitationId(), weatherData.precipitation());
     updateTemperature(existingWeather.getTemperatureId(), weatherData.temperature());
     updateWindSpeed(existingWeather.getWindSpeedId(), weatherData.windSpeed());
+
+    weatherCache
+      .putData(weatherData.x(), weatherData.y(), existingWeather.getForecastAt(), existingWeather);
   }
 
   private void updateHumidity(UUID humidityId, Humidity newHumidity) {
@@ -94,6 +98,9 @@ public class WeatherWriter implements ItemWriter<WeatherData> {
       weatherData.windSpeed().getId()
     );
 
-    weatherRepository.save(newWeather);
+    Weather savedWeather = weatherRepository.save(newWeather);
+
+    weatherCache
+      .putData(weatherData.x(), weatherData.y(), savedWeather.getForecastAt(), savedWeather);
   }
 }
