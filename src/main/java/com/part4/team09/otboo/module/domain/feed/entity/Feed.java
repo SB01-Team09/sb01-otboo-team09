@@ -18,6 +18,9 @@ public class Feed extends BaseUpdatableEntity {
   @Column(nullable = false)
   private UUID authorId;
 
+  @Column(nullable = false)
+  private UUID weatherId;
+
   @Column(nullable = false, columnDefinition = "TEXT")
   private String content;
 
@@ -27,12 +30,13 @@ public class Feed extends BaseUpdatableEntity {
   @Column(nullable = false)
   private int commentCount;
 
-  public static Feed create(UUID authorId, String content) {
-    return new Feed(authorId, content, 0, 0);
+  public static Feed create(UUID authorId, UUID weatherId, String content) {
+    return new Feed(authorId, weatherId, content, 0, 0);
   }
 
-  private Feed(UUID authorId, String content, int likeCount, int commentCount) {
+  private Feed(UUID authorId, UUID weatherId, String content, int likeCount, int commentCount) {
     this.authorId = authorId;
+    this.weatherId = weatherId;
     this.content = content;
     this.likeCount = likeCount;
     this.commentCount = commentCount;

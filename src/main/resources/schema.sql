@@ -4,6 +4,7 @@ CREATE TABLE feeds
     created_at    TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at    TIMESTAMP WITH TIME ZONE,
     author_id     UUID                     NOT NULL,
+    weather_id    UUID                     NOT NULL,
     content       TEXT                     NOT NULL,
     like_count    INTEGER                  NOT NULL,
     comment_count INTEGER                  NOT NULL
