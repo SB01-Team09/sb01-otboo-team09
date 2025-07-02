@@ -30,7 +30,7 @@ class ClothesAttributeDefRepositoryTest {
   class ExistsByName {
 
     @Test
-    @DisplayName("이름이 존재할 경우")
+    @DisplayName("이름이 존재할 경우 - true 반환")
     void existsByName_true() {
 
       // given
@@ -48,7 +48,7 @@ class ClothesAttributeDefRepositoryTest {
     }
 
     @Test
-    @DisplayName("이름이 존재하지 않을 경우")
+    @DisplayName("이름이 존재하지 않을 경우 - false 반환")
     void existsByName_false() {
 
       // given

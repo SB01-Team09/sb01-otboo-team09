@@ -1,6 +1,5 @@
 package com.part4.team09.otboo.module.domain.clothes.repository.custom;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.part4.team09.otboo.config.QueryDslConfig;
@@ -11,11 +10,9 @@ import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.SelectableValueRepository;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
@@ -28,8 +25,6 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class ClothesAttributeDefRepositoryQueryDSLTest {
 
-  private static final Logger log = LoggerFactory.getLogger(
-      ClothesAttributeDefRepositoryQueryDSLTest.class);
   @Autowired
   private ClothesAttributeDefRepositoryQueryDSL queryDSL;
 
@@ -40,6 +35,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
   private SelectableValueRepository valueRepository;
 
   @Test
+  @DisplayName("키워드를 포함하는 의상 속성 정의 명과 속성 값 찾기")
   void find_def_ids_by_keyword() {
     // given
     ClothesAttributeDef def1 = defRepository.save(ClothesAttributeDef.create("사이즈"));
@@ -57,13 +53,14 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
   }
 
   @Test
+  @DisplayName("커서 기반 페이지네이션")
   void find_by_cursor() {
     // given
     ClothesAttributeDef def1 = defRepository.save(ClothesAttributeDef.create("A"));
     ClothesAttributeDef def2 = defRepository.save(ClothesAttributeDef.create("B"));
     ClothesAttributeDef def3 = defRepository.save(ClothesAttributeDef.create("C"));
 
-    Set<UUID> ids = Set.of(def1.getId(), def2.getId(), def3.getId());
+    List<UUID> ids = List.of(def1.getId(), def2.getId(), def3.getId());
     ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
         def1.getName(), def1.getId(), 2, "name", SortDirection.ASCENDING, null
     );

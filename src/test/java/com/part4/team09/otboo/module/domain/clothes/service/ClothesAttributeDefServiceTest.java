@@ -16,10 +16,8 @@ import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDe
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.custom.ClothesAttributeDefRepositoryQueryDSL;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -67,7 +65,7 @@ class ClothesAttributeDefServiceTest {
     }
 
     @Test
-    @DisplayName("이름 중복")
+    @DisplayName("이름이 중복일 경우 예외 처리")
     void create_duplicate_name() {
 
       // given
@@ -82,11 +80,11 @@ class ClothesAttributeDefServiceTest {
   }
 
   @Nested
-  @DisplayName("의상 속성 정의 찾기")
+  @DisplayName("의상 속성 정의 조회")
   class FindById {
 
     @Test
-    @DisplayName("찾기 성공")
+    @DisplayName("조회 성공")
     void find_by_id_success() {
 
       // given
@@ -105,7 +103,7 @@ class ClothesAttributeDefServiceTest {
     }
 
     @Test
-    @DisplayName("찾기 실패 - 잘못된 id")
+    @DisplayName("defId가 존재하지 않을 경우 예외 처리")
     void find_by_id_not_found_id() {
 
       // given
@@ -120,11 +118,11 @@ class ClothesAttributeDefServiceTest {
   }
 
   @Nested
-  @DisplayName("키워드로 속성 정의 찾기")
+  @DisplayName("키워드로 속성 정의 및 속성 값의 def id 조회")
   class FindIdsByKeyword {
 
     @Test
-    @DisplayName("키워드로 찾기 성공")
+    @DisplayName("키워드가 있을 경우의 조회 성공")
     void find_ids_by_keyword_success() {
 
       // given
@@ -143,7 +141,7 @@ class ClothesAttributeDefServiceTest {
     }
 
     @Test
-    @DisplayName("키워드가 없음")
+    @DisplayName("키워드가 없는 경우의 조회 성공")
     void find_ids_by_keyword_no_keyword() {
 
       // given
@@ -167,11 +165,11 @@ class ClothesAttributeDefServiceTest {
   class FindByCursor {
 
     @Test
-    @DisplayName("찾기 성공")
+    @DisplayName("defIds가 있는 경우 조회 성공")
     void find_by_cursor_success() {
 
       // given
-      Set<UUID> defIds = new HashSet<>(List.of(UUID.randomUUID()));
+      List<UUID> defIds = List.of(UUID.randomUUID());
       ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
       ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(null, null, 10,
           "name", SortDirection.ASCENDING, "사이즈");
@@ -188,11 +186,11 @@ class ClothesAttributeDefServiceTest {
     }
 
     @Test
-    @DisplayName("defIds가 없음")
+    @DisplayName("defIds가 없는 경우 조회 성공")
     void find_by_cursor_no_def_ids() {
 
       // given
-      Set<UUID> defIds = Set.of();
+      List<UUID> defIds = List.of();
       ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(null, null, 10,
           "name", SortDirection.ASCENDING, "사이즈");
       List<ClothesAttributeDef> defs = List.of();
@@ -232,7 +230,7 @@ class ClothesAttributeDefServiceTest {
     }
 
     @Test
-    @DisplayName("속성 정의 id가 존재하지 않음")
+    @DisplayName("defId가 존재하지 않을 경우 예외 처리")
     void update_not_found_def_id() {
 
       // given
@@ -256,12 +254,32 @@ class ClothesAttributeDefServiceTest {
 
       // given
       UUID defId = UUID.randomUUID();
+      ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
+
+      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.of(def));
 
       // when
       clothesAttributeDefService.delete(defId);
 
       // then
+      then(clothesAttributeDefRepository).should().findById(defId);
       then(clothesAttributeDefRepository).should().deleteById(defId);
+    }
+
+    @Test
+    @DisplayName("defId가 존재하지 않을 경우 예외 처리")
+    void delete_fail_not_found_def() {
+
+      // given
+      UUID defId = UUID.randomUUID();
+
+      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.empty());
+
+      // when, then
+      assertThrows(ClothesAttributeDefNotFoundException.class, () -> clothesAttributeDefService.delete(defId));
+
+      then(clothesAttributeDefRepository).should().findById(defId);
+      then(clothesAttributeDefRepository).should(times(0)).deleteById(defId);
     }
   }
 }

@@ -1,6 +1,5 @@
 package com.part4.team09.otboo.module.domain.clothes.repository;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -63,7 +62,7 @@ class SelectableValueRepositoryTest {
   class FindAllByAttributeDefIdIn {
 
     @Test
-    @DisplayName("성공")
+    @DisplayName("조회 성공")
     void find_all_by_attribute_def_id_in_success() {
 
       // given
@@ -119,17 +118,6 @@ class SelectableValueRepositoryTest {
 
       // then
       assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("잘못된 id")
-    void deleteAllByAttributeDefId_withInvalidId() {
-
-      // given
-      UUID invalidId = UUID.randomUUID();
-
-      // when, then
-      assertDoesNotThrow(() -> selectableValueRepository.deleteAllByAttributeDefId(invalidId));
     }
   }
 

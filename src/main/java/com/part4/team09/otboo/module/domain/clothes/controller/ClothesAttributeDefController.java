@@ -54,12 +54,14 @@ public class ClothesAttributeDefController {
       @RequestParam(defaultValue = "ASCENDING") SortDirection sortDirection,
       @RequestParam(required = false) String keywordLike
   ) {
+    log.info("의상 속성 정의 조회 요청");
 
     ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
         cursor, idAfter, limit, sortBy, sortDirection, keywordLike);
 
     ClothesAttributeDefDtoCursorResponse response = clothesAttributeInfoService.findByCursor(request);
 
+    log.info("의상 속성 정의 조회 응답: {}", HttpStatus.OK.value());
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
