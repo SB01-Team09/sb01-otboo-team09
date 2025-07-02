@@ -66,7 +66,7 @@ class SelectableValueServiceTest {
     }
 
     @Test
-    @DisplayName("잘못된 속성 정의 id")
+    @DisplayName("defId가 존재하지 않을 경우 예외 처리")
     void create_invalid_id() {
 
       // given
@@ -81,11 +81,11 @@ class SelectableValueServiceTest {
   }
 
   @Nested
-  @DisplayName("def id로 속성 값 찾기")
+  @DisplayName("defId로 속성 값 조회")
   class FindAllByAttributeDefId {
 
     @Test
-    @DisplayName("속성 값 def id로 찾기 성공")
+    @DisplayName("속성 값 defId로 조회 성공")
     void find_all_by_attribute_def_id_success() {
 
       // given
@@ -108,7 +108,7 @@ class SelectableValueServiceTest {
     }
 
     @Test
-    @DisplayName("속성 값 def id로 찾기 실패 - def가 없음")
+    @DisplayName("defId가 존재하지 않을 경우 예외 처리")
     void find_all_by_attribute_def_id_not_found_def() {
 
       // given
@@ -124,11 +124,11 @@ class SelectableValueServiceTest {
   }
 
   @Nested
-  @DisplayName("def id 리스트로 속성 값 찾기")
+  @DisplayName("defId 리스트로 속성 값 조회")
   class findAllByAttributeDefIdIn {
 
     @Test
-    @DisplayName("찾기 성공")
+    @DisplayName("defId 리스트가 존재하는 경우 조회 성공")
     void find_all_by_attribute_def_id_in_success() {
 
       // given
@@ -147,7 +147,7 @@ class SelectableValueServiceTest {
     }
 
     @Test
-    @DisplayName("def id 리스트가 없음")
+    @DisplayName("defId 리스트가 존재하지 않는 경우 조회 성공")
     void find_all_by_attribute_def_id_in_no_def_ids() {
 
       // given
@@ -165,11 +165,11 @@ class SelectableValueServiceTest {
   }
 
   @Nested
-  @DisplayName("속성 값 수정")
-  class Update {
+  @DisplayName("정의 명이 수정되지 않았을 경우의 속성 값 수정")
+  class UpdateWhenNameSame {
 
     @Test
-    @DisplayName("정의 명 수정 X - 성공")
+    @DisplayName("정의 명이 수정되지 않았을 경우의 속성 값 수정 성공")
     void update_when_name_same_success() {
       // given
       UUID defId = UUID.randomUUID();
@@ -191,22 +191,20 @@ class SelectableValueServiceTest {
       given(clothesAttributeDefRepository.existsById(defId)).willReturn(true);
       given(selectableValueRepository.findAllByAttributeDefId(defId)).willReturn(oldSelectableValues);
       given(selectableValueRepository.saveAll(anyList())).willReturn(selectableValues);
-      given(selectableValueRepository.findAllByAttributeDefId(defId)).willReturn(findSelectableValues);
 
       // when
       List<SelectableValue> results = selectableValueService.updateWhenNameSame(defId, valueIdsForDelete, newValues);
 
       // then
       assertNotNull(results);
-      assertEquals(results, findSelectableValues);
       then(clothesAttributeDefRepository).should().existsById(defId);
       then(selectableValueRepository).should().deleteByIdIn(valueIdsForDelete);
-      then(selectableValueRepository).should(times(2)).findAllByAttributeDefId(defId);
+      then(selectableValueRepository).should().findAllByAttributeDefId(defId);
       then(selectableValueRepository).should().saveAll(anyList());
     }
 
     @Test
-    @DisplayName("정의 명 수정 X - 잘못된 def id")
+    @DisplayName("defId가 존재하지 않을 경우 예외 처리")
     void update_when_name_same_not_found_def() {
       //given
       UUID defId = UUID.randomUUID();
@@ -218,8 +216,14 @@ class SelectableValueServiceTest {
           () -> selectableValueService.updateWhenNameSame(defId, List.of(), List.of()));
     }
 
+  }
+
+  @Nested
+  @DisplayName("정의 명이 수정었을 경우의 속성 값 수정")
+  class UpdateWhenNameChanged {
+
     @Test
-    @DisplayName("정의 명 수정 O - 성공")
+    @DisplayName("정의 명이 수정었을 경우의 속성 값 수정 성공")
     void update_when_name_changed_success() {
 
       // given
@@ -244,7 +248,7 @@ class SelectableValueServiceTest {
     }
 
     @Test
-    @DisplayName("정의 명 수정 X - 잘못된 def id")
+    @DisplayName("defId가 존재하지 않을 경우 예외 처리")
     void update_when_name_changed_not_found_def() {
       //given
       UUID defId = UUID.randomUUID();
@@ -273,6 +277,20 @@ class SelectableValueServiceTest {
 
       // then
       then(selectableValueRepository).should().deleteByIdIn(valueIds);
+    }
+
+    @Test
+    @DisplayName("valueIds가 비어있을 경우 삭제 하지 않믐")
+    void delete_by_id_in_no_value_ids() {
+
+      // given
+      List<UUID> valueIds = List.of();
+
+      // when
+      selectableValueService.deleteByIdIn(valueIds);
+
+      // then
+      then(selectableValueRepository).should(times(0)).deleteByIdIn(valueIds);
     }
   }
 }

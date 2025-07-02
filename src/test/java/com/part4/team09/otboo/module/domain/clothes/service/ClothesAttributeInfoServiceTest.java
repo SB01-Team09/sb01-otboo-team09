@@ -2,18 +2,26 @@ package com.part4.team09.otboo.module.domain.clothes.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 import com.part4.team09.otboo.module.common.entity.BaseEntity;
+import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
+import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefFindRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
+import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesAttributeDefDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
+import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefMapper;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -42,6 +50,9 @@ class ClothesAttributeInfoServiceTest {
 
   @Mock
   private ClothesAttributeDefMapper clothesAttributeDefMapper;
+
+  @Mock
+  private ClothesAttributeDefDtoCursorResponseMapper clothesAttributeDefDtoCursorResponseMapper;
 
   @Nested
   @DisplayName("의상 속성 생성")
@@ -87,12 +98,6 @@ class ClothesAttributeInfoServiceTest {
           selectableValues.stream().map(SelectableValue::getItem)
               .toList());
     }
-  }
-
-  @Nested
-  @DisplayName("의상 속성 찾기")
-  class FindByCursor {
-
   }
 
   @Nested

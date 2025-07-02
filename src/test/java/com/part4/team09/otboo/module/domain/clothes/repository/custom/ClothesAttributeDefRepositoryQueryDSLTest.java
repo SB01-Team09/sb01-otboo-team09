@@ -13,6 +13,7 @@ import com.part4.team09.otboo.module.domain.clothes.repository.SelectableValueRe
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
   private SelectableValueRepository valueRepository;
 
   @Test
+  @DisplayName("키워드를 포함하는 의상 속성 정의 명과 속성 값 찾기")
   void find_def_ids_by_keyword() {
     // given
     ClothesAttributeDef def1 = defRepository.save(ClothesAttributeDef.create("사이즈"));
@@ -57,13 +59,14 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
   }
 
   @Test
+  @DisplayName("커서 기반 페이지네이션")
   void find_by_cursor() {
     // given
     ClothesAttributeDef def1 = defRepository.save(ClothesAttributeDef.create("A"));
     ClothesAttributeDef def2 = defRepository.save(ClothesAttributeDef.create("B"));
     ClothesAttributeDef def3 = defRepository.save(ClothesAttributeDef.create("C"));
 
-    Set<UUID> ids = Set.of(def1.getId(), def2.getId(), def3.getId());
+    List<UUID> ids = List.of(def1.getId(), def2.getId(), def3.getId());
     ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
         def1.getName(), def1.getId(), 2, "name", SortDirection.ASCENDING, null
     );

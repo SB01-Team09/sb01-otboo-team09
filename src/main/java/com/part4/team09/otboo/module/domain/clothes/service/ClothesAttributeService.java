@@ -17,8 +17,10 @@ public class ClothesAttributeService {
   private final ClothesAttributeRepository clothesAttributeRepository;
 
   public void deleteBySelectableValueIdIn(List<UUID> valueIds) {
-    log.debug("의상 속성 값 - 의상 연관 삭제: valueIds = {}", valueIds);
+    log.debug("의상 속성 값 - 의상 연관 삭제 시작: valueIdsSize = {}", valueIds.size());
 
     clothesAttributeRepository.deleteBySelectableValueIdIn(valueIds);
+
+    log.debug("의상 속성 값 - 의상 연관 삭제 완료");
   }
 }
