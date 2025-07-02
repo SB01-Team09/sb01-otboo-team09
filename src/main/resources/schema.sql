@@ -76,7 +76,9 @@ CREATE TABLE dongs
     latitude   DOUBLE PRECISION,
     longitude  DOUBLE PRECISION,
     x          INTEGER,
-    y          INTEGER
+    y          INTEGER,
+
+    CONSTRAINT uk_dongs_latitude_longitude UNIQUE (latitude, longitude);
 );
 
 CREATE TABLE gus

@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.user.controller;
 
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
+import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserRoleUpdateRequest;
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,9 +37,20 @@ public class UserController {
   }
 
   // 프로필 조회
-  @GetMapping("{userId}/profiles")
+  @GetMapping("/{userId}/profiles")
   public ResponseEntity<ProfileDto> getProfile(@PathVariable UUID userId) {
     ProfileDto profileDto = userService.getProfile(userId);
+    return ResponseEntity.ok(profileDto);
+  }
+
+  // 프로필 수정
+  @PatchMapping("/{userId}/profiles")
+  public ResponseEntity<ProfileDto> updateProfile(
+    @PathVariable UUID userId,
+    @Valid @RequestPart("request") ProfileUpdateRequest request,
+    @RequestPart("image") MultipartFile image
+  ) {
+    ProfileDto profileDto = userService.updateProfile(userId, request, image);
     return ResponseEntity.ok(profileDto);
   }
 

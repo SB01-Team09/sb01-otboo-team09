@@ -1,9 +1,15 @@
 package com.part4.team09.otboo.module.domain.user.service;
 
+import com.part4.team09.otboo.module.common.file.FileStorage;
 import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
+import com.part4.team09.otboo.module.domain.location.exception.LocationNotFoundException;
+import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
+import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
 import com.part4.team09.otboo.module.domain.location.service.LocationService;
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
+import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest.LocationUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserRoleUpdateRequest;
@@ -19,6 +25,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +35,9 @@ public class UserService {
   private final PasswordEncoder passwordEncoder;
   private final UserMapper userMapper;
   private final LocationService locationService;
+  private final FileStorage fileStorage;
+  private final DongRepository dongRepository;
+  private final LocationRepository locationRepository;
 
   @Transactional
   public UserDto createUser(UserCreateRequest request) {
@@ -60,6 +70,27 @@ public class UserService {
       location = locationService.getLocation(user.getLocationId());
     }
     return userMapper.toProfileDto(user, location);
+  }
+
+  // 프로필 업데이트
+  @Transactional
+  public ProfileDto updateProfile(UUID id, ProfileUpdateRequest request, MultipartFile image) {
+    // 유저 확인
+    User user = findByIdOrThrow(id);
+
+    // 위치 업데이트
+    String locationId = findLocationOrThrow(request.location());
+    WeatherAPILocation location = locationService.getLocation(locationId);
+
+    // 이미지 업로드 동기 처리 -> 실패하면 이전 프로필로 유지
+    String imageUrl = uploadProfileImage(image);
+
+    // 이름, 성별, 생일, 민감도, 위치, 프로필 업데이트
+    //updateProfile -> null, 같은 값인지 검사
+    // 구조 변경 고려 : 값이 같을 때 dirty checking 확인
+
+    // 업데이트 후 userProfile 반환
+    return userMapper.toProfileDto(user, null);
   }
 
   // 권한 변경
@@ -96,5 +127,24 @@ public class UserService {
 
   private User findByIdOrThrow(UUID id) {
     return userRepository.findById(id).orElseThrow(() -> UserNotFoundException.withId(id));
+  }
+
+  private String findLocationOrThrow(LocationUpdateRequest location) {
+    if (location == null) {
+      return null;
+    }
+    double latitude = location.latitude();
+    double longitude = location.longitude();
+    UUID dongId = dongRepository.findIdByLatitudeAndLongitude(latitude, longitude)
+      .orElseThrow(() -> LocationNotFoundException.withLatitudeAndLongitude(latitude, longitude));
+    return locationRepository.findIdByDongId(dongId)
+      .orElseThrow(() -> LocationNotFoundException.withNameAndId("dong", dongId));
+  }
+
+  private String uploadProfileImage(MultipartFile image) {
+    if (image != null && !image.isEmpty()) {
+      return null;
+    }
+    return fileStorage.upload(image);
   }
 }
