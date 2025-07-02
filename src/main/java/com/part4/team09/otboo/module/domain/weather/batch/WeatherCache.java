@@ -12,15 +12,17 @@ import org.springframework.stereotype.Component;
 public class WeatherCache {
 
   private final ConcurrentHashMap<String, ConcurrentHashMap<LocalDateTime, Weather>> weatherCache =
-    new ConcurrentHashMap<>();
+    new ConcurrentHashMap<>(new ConcurrentHashMap<>());
 
   private final MeterRegistry meterRegistry;
 
   public void putData(int x, int y, LocalDateTime forecastAt, Weather weather) {
     String coordinate = x + "_" + y;
-    ConcurrentHashMap<LocalDateTime, Weather> map = new ConcurrentHashMap<>();
-    map.put(forecastAt, weather);
-    weatherCache.put(coordinate, map);
+
+    if (weatherCache.get(coordinate) == null) {
+      weatherCache.put(coordinate, new ConcurrentHashMap<>());
+    }
+    weatherCache.get(coordinate).put(forecastAt, weather);
   }
 
   public Weather getData(int x, int y, LocalDateTime forecastAt) {
@@ -42,4 +44,8 @@ public class WeatherCache {
     return null;
   }
 
+  public boolean isExist(int x, int y) {
+    String coordinate = x + "_" + y;
+    return weatherCache.containsKey(coordinate);
+  }
 }
