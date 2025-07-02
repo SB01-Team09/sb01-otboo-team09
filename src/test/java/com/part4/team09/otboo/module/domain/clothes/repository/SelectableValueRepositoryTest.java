@@ -1,6 +1,5 @@
 package com.part4.team09.otboo.module.domain.clothes.repository;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

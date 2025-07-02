@@ -16,10 +16,8 @@ import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDe
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.custom.ClothesAttributeDefRepositoryQueryDSL;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

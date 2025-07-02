@@ -184,9 +184,6 @@ class SelectableValueServiceTest {
           .filter(value -> !oldValueSet.contains(value))
           .map(value -> SelectableValue.create(defId, value))
           .toList();
-      List<SelectableValue> findSelectableValues = newValues.stream()
-          .map(value -> SelectableValue.create(defId, value))
-          .toList();
 
       given(clothesAttributeDefRepository.existsById(defId)).willReturn(true);
       given(selectableValueRepository.findAllByAttributeDefId(defId)).willReturn(oldSelectableValues);

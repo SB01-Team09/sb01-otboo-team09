@@ -1,6 +1,5 @@
 package com.part4.team09.otboo.module.domain.clothes.repository.custom;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.part4.team09.otboo.config.QueryDslConfig;
@@ -11,7 +10,6 @@ import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.SelectableValueRepository;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,8 +27,6 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class ClothesAttributeDefRepositoryQueryDSLTest {
 
-  private static final Logger log = LoggerFactory.getLogger(
-      ClothesAttributeDefRepositoryQueryDSLTest.class);
   @Autowired
   private ClothesAttributeDefRepositoryQueryDSL queryDSL;
 
