@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.follow.service;
 
 import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
+import com.part4.team09.otboo.module.domain.follow.dto.FollowListRequest;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
 import com.part4.team09.otboo.module.domain.follow.exception.FollowNotFoundException;
@@ -56,7 +57,7 @@ class FollowServiceTest {
 
     @Test
     @DisplayName("팔로우 등록 성공")
-    void createFollow() {
+    void createFollowSuccess() {
         // given
         UUID followeeId = UUID.randomUUID();
         UUID followerId = UUID.randomUUID();
@@ -88,82 +89,85 @@ class FollowServiceTest {
 
     @Test
     @DisplayName("팔로잉 목록 조회 성공")
-    void searchFollowings() {
+    void getFollowingsSuccess() {
         // given
         UUID followeeId = UUID.randomUUID();
         UUID followerId = UUID.randomUUID();
 
-        UUID idAfter = UUID.randomUUID(); // 커서 기준 ID
-        LocalDateTime createdAtAfter = LocalDateTime.of(2025, 6, 30, 12, 0); // 커서 기준 시간
+        UUID idAfter = UUID.randomUUID();
+        LocalDateTime cursor = LocalDateTime.of(2025, 6, 30, 0, 30, 0);
         int limit = 1;
         String nameLike = "연경";
 
-        // follow2: 커서 기준이 되는 데이터
+        // follow2: 커서 기준 (더 최근)
         Follow follow2 = Follow.create(followeeId, followerId);
         ReflectionTestUtils.setField(follow2, "id", idAfter);
-        ReflectionTestUtils.setField(follow2, "createdAt", createdAtAfter);
+        ReflectionTestUtils.setField(follow2, "createdAt", cursor);
 
-        // follow1: 커서 이후 데이터
+        // follow1: 커서보다 더 과거
         Follow follow1 = Follow.create(followeeId, followerId);
-        ReflectionTestUtils.setField(follow1, "id", UUID.randomUUID());
-        ReflectionTestUtils.setField(follow1, "createdAt", createdAtAfter.minusSeconds(1)); // createdAt이 더 과거여야함
+        UUID id1 = UUID.randomUUID();
+        LocalDateTime time1 = cursor.minusSeconds(1);
+        ReflectionTestUtils.setField(follow1, "id", id1);
+        ReflectionTestUtils.setField(follow1, "createdAt", time1);
 
-        List<Follow> follows = List.of(follow1, follow2);
+        List<Follow> follows = List.of(follow1, follow2); // (limit + 1)개
 
         // Mock 설정
-        when(followRepository.findById(idAfter)).thenReturn(Optional.of(follow2));
         when(followRepositoryQueryDSL.countFollowings(followerId, nameLike)).thenReturn(2);
-        when(followRepositoryQueryDSL.getFollowings(eq(followerId), eq(idAfter), eq(createdAtAfter), eq(nameLike), any()))
-                .thenReturn(follows);
+        when(followRepositoryQueryDSL.getFollowings(any(FollowListRequest.class))).thenReturn(follows);
 
-        when(followMapper.toDto(any())).thenReturn(
+        when(followMapper.toDto(follow1)).thenReturn(
                 new FollowDto(
-                        follow1.getId(),
+                        id1,
                         new UserSummary(followeeId, "followee", null),
                         new UserSummary(followerId, "follower", null)
                 )
         );
 
         // when
-        FollowListResponse result = followService.getFollowings(followerId, idAfter, limit, nameLike);
+        String encodedCursor = cursor.toString(); // encodeCursor 방식과 동일
+        FollowListResponse result = followService.getFollowings(followerId, encodedCursor, idAfter, limit, nameLike);
 
         // then
-        assertThat(result.hasNext()).isTrue();
-        assertThat(result.data()).hasSize(1);
-        assertThat(result.nextIdAfter()).isEqualTo(follow1.getId());
+        assertThat(result.hasNext()).isTrue(); // limit + 1 이니까 true
+        assertThat(result.data()).hasSize(1); // limit 만큼만 응답
+        assertThat(result.nextIdAfter()).isEqualTo(id1); // follow1의 idAfter
+        assertThat(result.nextCursor()).isEqualTo(time1.toString()); // follow1의 createdAt
     }
+
 
     @Test
     @DisplayName("팔로워 목록 조회 성공")
-    void searchFollowers() {
+    void getFollowersSuccess() {
         // given
         UUID followeeId = UUID.randomUUID();
         UUID followerId = UUID.randomUUID();
 
-        UUID idAfter = UUID.randomUUID(); // 커서 기준 ID
-        LocalDateTime createdAtAfter = LocalDateTime.of(2025, 6, 30, 12, 0); // 커서 기준 시간
+        UUID idAfter = UUID.randomUUID();
+        LocalDateTime cursor = LocalDateTime.of(2025, 6, 30, 12, 0);
         int limit = 1;
         String nameLike = "연경";
 
-        // follow2: 커서 기준이 되는 데이터
+        // follow2: 커서 기준 (더 최근)
         Follow follow2 = Follow.create(followeeId, followerId);
         ReflectionTestUtils.setField(follow2, "id", idAfter);
-        ReflectionTestUtils.setField(follow2, "createdAt", createdAtAfter);
+        ReflectionTestUtils.setField(follow2, "createdAt", cursor);
 
-        // follow1: 커서 이후 데이터
+        // follow1: 커서보다 더 과거
         Follow follow1 = Follow.create(followeeId, followerId);
-        ReflectionTestUtils.setField(follow1, "id", UUID.randomUUID());
-        ReflectionTestUtils.setField(follow1, "createdAt", createdAtAfter.minusSeconds(1)); // createdAt이 더 과거여야함
+        UUID id1 = UUID.randomUUID();
+        LocalDateTime time1 = cursor.minusSeconds(1);
+        ReflectionTestUtils.setField(follow1, "id", id1);
+        ReflectionTestUtils.setField(follow1, "createdAt", time1);
 
-        List<Follow> follows = List.of(follow1, follow2);
+        List<Follow> follows = List.of(follow1, follow2); // (limit + 1)개
 
         // Mock 설정
-        when(followRepository.findById(idAfter)).thenReturn(Optional.of(follow2));
         when(followRepositoryQueryDSL.countFollowers(followeeId, nameLike)).thenReturn(2);
-        when(followRepositoryQueryDSL.getFollowers(eq(followeeId), eq(idAfter), eq(createdAtAfter), eq(nameLike), any()))
-                .thenReturn(follows);
+        when(followRepositoryQueryDSL.getFollowers(any(FollowListRequest.class))).thenReturn(follows);
 
-        when(followMapper.toDto(any())).thenReturn(
+        when(followMapper.toDto(follow1)).thenReturn(
                 new FollowDto(
                         follow1.getId(),
                         new UserSummary(followeeId, "followee", null),
@@ -172,23 +176,26 @@ class FollowServiceTest {
         );
 
         // when
-        FollowListResponse result = followService.getFollowers(followeeId, idAfter, limit, nameLike);
+        String encodedCursor = cursor.toString(); // encodeCursor 방식과 동일
+        FollowListResponse result = followService.getFollowers(followeeId, encodedCursor, idAfter, limit, nameLike);
 
         // then
-        assertThat(result.hasNext()).isTrue();
-        assertThat(result.data()).hasSize(1);
-        assertThat(result.nextIdAfter()).isEqualTo(follow1.getId());
+        assertThat(result.hasNext()).isTrue(); // limit + 1 이니까 true
+        assertThat(result.data()).hasSize(1); // limit 만큼만 응답
+        assertThat(result.nextIdAfter()).isEqualTo(follow1.getId()); // follow1의 idAfter
+        assertThat(result.nextCursor()).isEqualTo(time1.toString()); // follow1의 createdAt
     }
 
     @Test
     @DisplayName("팔로우 목록 조회 실패: limit 0 이하 예외처리")
-    void getAllFollowingsWithNegativeLimit() {
+    void getFollowingsFailWithNegativeLimit() {
         // given
         UUID followerId = UUID.randomUUID();
 
         // when, then: 예외 처리 반환되도록
-        assertThatThrownBy(() -> followService.getFollowings(followerId, null, 0, null))
-                .isInstanceOf(NegativeLimitNotAllowed.class);
+        assertThrows(NegativeLimitNotAllowed.class, () -> {
+            followService.getFollowings(followerId, null, null,0, null);
+        });
     }
 
     @Test
