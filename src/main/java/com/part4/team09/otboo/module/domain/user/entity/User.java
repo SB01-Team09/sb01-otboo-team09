@@ -72,13 +72,27 @@ public class User extends BaseUpdatableEntity {
     this.locked = false;
   }
 
-  public void updateProfile(String name, Gender gender, LocalDate birthDate,
-    int temperatureSensitivity, String locationId, String profileImageUrl) {
+  public void updateName(String name) {
     this.name = name;
+  }
+
+  public void updateGender(Gender gender) {
     this.gender = gender;
+  }
+
+  public void updateBirthDate(LocalDate birthDate) {
     this.birthDate = birthDate;
+  }
+
+  public void updateTemperatureSensitivity(int temperatureSensitivity) {
     this.temperatureSensitivity = temperatureSensitivity;
+  }
+
+  public void updateLocationId(String locationId) {
     this.locationId = locationId;
+  }
+
+  public void updateProfileImageUrl(String profileImageUrl) {
     this.profileImageUrl = profileImageUrl;
   }
 

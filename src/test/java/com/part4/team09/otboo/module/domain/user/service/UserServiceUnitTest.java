@@ -54,7 +54,7 @@ public class UserServiceUnitTest {
   void getProfile_success() {
     // given
     User user = User.createUser("test@test.com", "name", "password!");
-    user.updateProfile(user.getName(), null, null, 0, "123", null);
+    user.updateLocationId("123");
 
     WeatherAPILocation location = new WeatherAPILocation(1.0, 1.0, 1, 1,
       List.of("경기도", "수원시"));

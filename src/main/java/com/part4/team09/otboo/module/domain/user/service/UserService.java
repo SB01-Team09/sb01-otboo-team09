@@ -23,6 +23,7 @@ import com.part4.team09.otboo.module.domain.user.mapper.UserMapper;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,27 +80,54 @@ public class UserService {
   // 프로필 업데이트
   @Transactional
   public ProfileDto updateProfile(UUID id, ProfileUpdateRequest request, MultipartFile image) {
+
     // 유저 확인
     User user = findByIdOrThrow(id);
 
-    // 위치 업데이트
+    // 이미지
+    Optional.ofNullable(uploadProfileImage(image)).ifPresent(user::updateProfileImageUrl);
+
+    // 위치
+    Optional.ofNullable(request.location()).ifPresent(location -> {
+      String locationId = findLocationOrThrow(location);
+      if (locationId != null && !locationId.equals(user.getLocationId())) {
+        user.updateLocationId(locationId);
+      }
+    });
+
+    // 이름
+    Optional.ofNullable(request.name()).ifPresent(name -> {
+      if (!name.equals(user.getName())) {
+        user.updateName(name);
+      }
+    });
+
+    // 생일
+    Optional.ofNullable(request.birthDate()).ifPresent(birthDate -> {
+      if (!birthDate.equals(user.getBirthDate())) {
+        user.updateBirthDate(birthDate);
+      }
+    });
+
+    // 성별
+    Optional.ofNullable(request.gender()).ifPresent(gender -> {
+      if (!gender.equals(user.getGender())) {
+        user.updateGender(gender);
+      }
+    });
+
+    Optional.ofNullable(request.temperatureSensitivity()).ifPresent(sensitivity -> {
+      if (!sensitivity.equals(user.getTemperatureSensitivity())) {
+        user.updateTemperatureSensitivity(sensitivity);
+      }
+    });
+
+    // 위치 정보 가져오기
     WeatherAPILocation location = null;
-    String locationId = findLocationOrThrow(request.location());
-    if (locationId != null && !locationId.equals(user.getLocationId())) {
-      location = locationService.getLocation(locationId);
+    if (user.getLocationId() != null) {
+      location = locationService.getLocation(user.getLocationId());
     }
 
-    // 이미지 업로드 동기 처리 -> 실패하면 이전 프로필로 유지
-    // null이 아니면 업데이트
-    String imageUrl = uploadProfileImage(image);
-
-    // 이름, 성별, 생일, 민감도, 위치, 프로필 업데이트
-    //updateProfile -> null, 같은 값인지 검사
-    // 구조 변경 고려 : 값이 같을 때 dirty checking 확인
-    user.updateProfile(user.getName(), user.getGender(), user.getBirthDate(),
-      user.getTemperatureSensitivity(), locationId, imageUrl);
-
-    // 업데이트 후 userProfile 반환
     return userMapper.toProfileDto(user, location);
   }
 
@@ -151,19 +179,15 @@ public class UserService {
       .orElseThrow(() -> LocationNotFoundException.withNameAndId("dong", dongId));
   }
 
-  // 업로드 후 url 을 리턴하면 저장, null 인 경우(실패) 이전값 유지
+  // 업로드 후 url 을 리턴하면 저장, null 인 경우(실패) 이전 값 유지
   private String uploadProfileImage(MultipartFile image) {
     if (image == null || image.isEmpty()) {
-      log.info("파일 없음");
       return null;
     }
     try {
-      log.info("파일 업로드 시작-user");
       return fileStorage.upload(image, FileDomain.PROFILE);
     } catch (FileUploadFailedException e) {
-
-      // 프로필 업로드 실패 알림 전송
-      log.info("파일 업로드 실패-user");
+      // TODO: 프로필 업로드 실패 알림 전송
       log.warn("{} | {}", e.getMessage(), e.getDetails());
       return null;
     }
