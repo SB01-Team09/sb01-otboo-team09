@@ -44,7 +44,7 @@ public class FeedService {
 
     List<OotdDto> ootdDtos = ootdService.create(savedFeed.getId(), request.clothesIds());
 
-    return feedMapper.toDto(feed, author, weather, ootdDtos);
+    return feedMapper.toDto(savedFeed, author, weather, ootdDtos);
   }
 
   private User getUserOrThrow(UUID userId) {
