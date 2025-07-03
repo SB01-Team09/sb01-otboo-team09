@@ -7,7 +7,6 @@ import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowSummaryDto;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
 import com.part4.team09.otboo.module.domain.follow.exception.FollowNotFoundException;
-import com.part4.team09.otboo.module.domain.follow.exception.NegativeLimitNotAllowed;
 import com.part4.team09.otboo.module.domain.follow.mapper.FollowMapper;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepositoryQueryDSL;
@@ -63,11 +62,6 @@ public class FollowService {
 
         log.info("팔로잉 목록 조회 시작: followerId={}, idAfter={}, limit={}, nameLike={}", followerId, idAfter, limit, nameLike);
 
-        // limit은 0보다 커야 한다는 예외처리
-        if (limit <= 0) {
-            throw new NegativeLimitNotAllowed(limit);
-        }
-
         // cursor을 LocalDateTime으로 디코딩
         LocalDateTime decodedCursor = decodeCursor(cursor);
 
@@ -117,11 +111,6 @@ public class FollowService {
     public FollowListResponse getFollowers(UUID followeeId, String cursor, UUID idAfter, int limit, String nameLike) {
 
         log.info("팔로워 목록 조회 시작: followeeId={}, idAfter={}, limit={}, nameLike={}", followeeId, idAfter, limit, nameLike);
-
-        // limit은 0보다 커야 한다는 예외처리
-        if (limit <= 0) {
-            throw new NegativeLimitNotAllowed(limit);
-        }
 
         // cursor을 LocalDateTime으로 디코딩
         LocalDateTime decodedCursor = decodeCursor(cursor);

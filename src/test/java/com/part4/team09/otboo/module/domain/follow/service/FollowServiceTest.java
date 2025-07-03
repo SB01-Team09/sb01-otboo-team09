@@ -6,7 +6,6 @@ import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowSummaryDto;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
 import com.part4.team09.otboo.module.domain.follow.exception.FollowNotFoundException;
-import com.part4.team09.otboo.module.domain.follow.exception.NegativeLimitNotAllowed;
 import com.part4.team09.otboo.module.domain.follow.mapper.FollowMapper;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepositoryQueryDSL;
@@ -180,19 +179,6 @@ class FollowServiceTest {
         assertThat(result.nextIdAfter()).isEqualTo(follow1.getId()); // follow1의 idAfter
         assertThat(result.nextCursor()).isEqualTo(time1.toString()); // follow1의 createdAt
     }
-
-    @Test
-    @DisplayName("팔로우 목록 조회 실패: limit 0 이하 예외처리")
-    void getFollowingsFail_NegativeLimit() {
-        // given
-        UUID followerId = UUID.randomUUID();
-
-        // when, then: 예외 처리 반환되도록
-        assertThrows(NegativeLimitNotAllowed.class, () -> {
-            followService.getFollowings(followerId, null, null,0, null);
-        });
-    }
-
 
     @Test
     @DisplayName("팔로우 요약 정보 조회 성공")

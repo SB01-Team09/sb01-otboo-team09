@@ -5,15 +5,18 @@ import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowSummaryDto;
 import com.part4.team09.otboo.module.domain.follow.service.FollowService;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
 import java.util.UUID;
 
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/api/follows")
 @RequiredArgsConstructor
@@ -38,7 +41,7 @@ public class FollowController {
             @RequestParam UUID followerId,
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) UUID idAfter,
-            @RequestParam(defaultValue = "10") Integer limit,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit은 0보다 커야합니다.") Integer limit,
             @RequestParam(required = false) String nameLike
             ){
 
@@ -55,7 +58,7 @@ public class FollowController {
             @RequestParam UUID followeeId,
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) UUID idAfter,
-            @RequestParam(defaultValue = "10") Integer limit,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit은 0보다 커야합니다.") Integer limit,
             @RequestParam(required = false) String nameLike
     ){
 
