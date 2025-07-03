@@ -10,6 +10,9 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -19,7 +22,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @ConditionalOnProperty(name = "otboo.file.storage.type", havingValue = "local", matchIfMissing = true)
 public class LocalFileStorage implements FileStorage {
 
-  // 기본 경로
+  // url 에서 파일 접근 경로 (ex: files/)
+  @Value("${otboo.resource.path}")
+  private String resourcePath;
+
+  // 기본 경로 (ex: fileStorage)
   @Value("${otboo.file.storage.path}")
   private Path saveBasePath;
 
@@ -45,7 +52,12 @@ public class LocalFileStorage implements FileStorage {
     }
   }
 
-  // retry 처리: 실패 시 알림 처리
+  @Retryable(
+    value = FileUploadFailedException.class,
+    maxAttempts = 3,
+    backoff = @Backoff(delay = 1000, multiplier = 2),
+    recover = "uploadRecover"
+  )
   @Override
   public String upload(MultipartFile file, FileDomain domain) {
 
@@ -68,9 +80,7 @@ public class LocalFileStorage implements FileStorage {
 
     // 리소스 접근할 url 설정
     String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-      .path("/files/")
-      .path(domain.getFolderName() + "/")
-      .path(savedFileName)
+      .pathSegment(resourcePath, domain.getFolderName(), savedFileName)
       .toUriString();
 
     return fileUrl;
@@ -78,6 +88,35 @@ public class LocalFileStorage implements FileStorage {
 
   @Override
   public boolean remove(String path) {
+    Path filePath = toStoragePath(path);
+    try {
+      Files.deleteIfExists(filePath);
+      log.info("파일 삭제에 성공하였습니다.(path: {})", filePath);
+      return true;
+    } catch (IOException e) {
+      log.warn("파일이 존재하지 않습니다.(path: {})", filePath);
+    }
     return false;
+  }
+
+  @Recover
+  public String uploadRecover(FileUploadFailedException e, MultipartFile file, FileDomain domain) {
+    log.warn("파일 저장 최종 실패 ({})", String.valueOf(e.fillInStackTrace()));
+    throw e;
+  }
+
+  // 삭제를 위한 파일 경로 추출
+  Path toStoragePath(String fileUrl) {
+
+    String resourcePrefix = resourcePath + "/";
+    int index = fileUrl.indexOf(resourcePrefix);
+    if (index == -1) {
+      throw new IllegalArgumentException("잘못된 파일 URL : " + resourcePrefix + "/ 경로가 포함되어 있지 않습니다.");
+    }
+
+    String relativePath = fileUrl.substring(index + resourcePrefix.length());
+    log.debug("경로 추출 완료: {}", relativePath);
+
+    return saveBasePath.resolve(relativePath);
   }
 }

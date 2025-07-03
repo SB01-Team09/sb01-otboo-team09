@@ -30,6 +30,8 @@ otboo:
     storage:
       type: ${FILE_STORAGE_TYPE:local}
       path: ${FILE_STORAGE_PATH:${user.dir}/fileStorage}
+  resource:
+    path: files
 
 
 # ?? ?? ??
