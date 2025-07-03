@@ -106,7 +106,7 @@ public class LocalFileStorage implements FileStorage {
   }
 
   // 삭제를 위한 파일 경로 추출
-  private Path toStoragePath(String fileUrl) {
+  Path toStoragePath(String fileUrl) {
 
     String resourcePrefix = resourcePath + "/";
     int index = fileUrl.indexOf(resourcePrefix);
