@@ -7,6 +7,7 @@ import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILoca
 import com.part4.team09.otboo.module.domain.location.service.LocationService;
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
+import com.part4.team09.otboo.module.domain.user.dto.request.PasswordUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest.LocationUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
@@ -16,6 +17,7 @@ import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import com.part4.team09.otboo.module.domain.user.event.UserProfileUpdateEvent;
 import com.part4.team09.otboo.module.domain.user.exception.EmailAlreadyExistsException;
+import com.part4.team09.otboo.module.domain.user.exception.SameAsOldPasswordException;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.mapper.UserMapper;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
@@ -135,6 +137,20 @@ public class UserService {
     }
 
     return userMapper.toProfileDto(user, location);
+  }
+
+  // 비밀번호 변경
+  @Transactional
+  public void updatePassword(UUID id, PasswordUpdateRequest request) {
+    User user = findByIdOrThrow(id);
+    String rawPassword = request.password();
+
+    if (passwordEncoder.matches(rawPassword, user.getPassword())) {
+      throw SameAsOldPasswordException.withId(id);
+    }
+
+    String encodedPassword = passwordEncoder.encode(rawPassword);
+    user.changePassword(encodedPassword);
   }
 
   // 권한 변경
