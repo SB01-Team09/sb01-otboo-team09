@@ -16,6 +16,6 @@ public class UserEventListener {
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void removePreviousProfileFile(UserProfileUpdateEvent event) {
-    fileStorage.remove(event.beforeImageUrl());
+    fileStorage.remove(event.previousImageUrl());
   }
 }
