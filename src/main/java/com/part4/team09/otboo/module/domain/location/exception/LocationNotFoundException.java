@@ -12,12 +12,4 @@ public class LocationNotFoundException extends LocationException {
     exception.addDetail("id", id);
     return exception;
   }
-
-  public static LocationNotFoundException withLatitudeAndLongitude(double latitude,
-    double longitude) {
-    LocationNotFoundException exception = new LocationNotFoundException();
-    exception.addDetail("latitude", latitude);
-    exception.addDetail("longitude", longitude);
-    return exception;
-  }
 }
