@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -10,10 +11,12 @@ import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Comment;
+import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.CommentMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.CommentRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
+import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -82,6 +85,45 @@ class CommentServiceTest {
       // then
       assertThat(result).isEqualTo(commentDto);
       verify(commentRepository).save(any());
+    }
+
+    @Test
+    @DisplayName("댓글 생성 실패 - 존재하지 않는 피드 ID")
+    void create_comment_throwsFeedNotFoundException_whenFeedDoseNotExist() {
+      // given
+      UUID nonExistFeedId = UUID.randomUUID();
+
+      CommentCreateRequest request = new CommentCreateRequest(
+          nonExistFeedId,
+          UUID.randomUUID(),
+          "content"
+      );
+
+      given(feedRepository.existsById(nonExistFeedId)).willReturn(false);
+
+      // when & then
+      assertThrows(FeedNotFoundException.class,
+          () -> commentService.create(request));
+    }
+
+    @Test
+    @DisplayName("댓글 생성 실패 - 존재하지 않는 유저 ID")
+    void create_comment_throwsUserNotFoundException_whenUserDoseNotExist() {
+      // given
+      UUID nonExistUserId = UUID.randomUUID();
+
+      CommentCreateRequest request = new CommentCreateRequest(
+          UUID.randomUUID(),
+          nonExistUserId,
+          "content"
+      );
+
+      given(feedRepository.existsById(any())).willReturn(true);
+      given(userRepository.findById(nonExistUserId)).willReturn(Optional.empty());
+
+      // when & then
+      assertThrows(UserNotFoundException.class,
+          () -> commentService.create(request));
     }
   }
 }
