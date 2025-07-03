@@ -112,7 +112,7 @@ public class UserService {
 
     // 위치
     Optional.ofNullable(request.location()).ifPresent(location -> {
-      String locationId = findLocationOrThrow(location);
+      String locationId = getLocationIdByCoordinates(location);
       if (locationId != null && !locationId.equals(user.getLocationId())) {
         user.updateLocationId(locationId);
       }
@@ -176,7 +176,7 @@ public class UserService {
     return userRepository.findById(id).orElseThrow(() -> UserNotFoundException.withId(id));
   }
 
-  private String findLocationOrThrow(LocationUpdateRequest location) {
+  private String getLocationIdByCoordinates(LocationUpdateRequest location) {
     if (location == null) {
       return null;
     }

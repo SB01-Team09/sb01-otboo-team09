@@ -118,8 +118,10 @@ public class UserServiceUnitTest {
       locationRequest, null);
 
     when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-    when(dongRepository.findIdByLatitudeAndLongitude(anyDouble(), anyDouble()))
-      .thenReturn(Optional.empty());
+    when(locationService.getLocationCodeByCoordinates(anyDouble(), anyDouble()))
+      .thenReturn("44729387");
+    when(locationService.getLocation("44729387"))
+      .thenThrow(LocationNotFoundException.withNameAndId("location", "44729387"));
 
     // when & then
     assertThrows(LocationNotFoundException.class,
