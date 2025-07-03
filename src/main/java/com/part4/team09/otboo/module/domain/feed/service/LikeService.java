@@ -8,6 +8,9 @@ import com.part4.team09.otboo.module.domain.feed.repository.LikeRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import com.part4.team09.otboo.module.domain.weather.entity.Weather;
+import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +26,14 @@ public class LikeService {
 
   private final FeedRepository feedRepository;
   private final UserRepository userRepository;
+  private final WeatherRepository weatherRepository;
 
   public FeedDto create(UUID userId, UUID feedID) {
     Feed feed = getFeedOrThrow(feedID);
     User user = getUserOrThrow(userId);
+    Weather weather = getWeatherOrThrow(feed.getWeatherId());
 
-    return feedMapper.toDto(feed, user, null, List.of());
+    return feedMapper.toDto(feed, user, weather, List.of());
   }
 
   private User getUserOrThrow(UUID userId) {
@@ -42,4 +47,9 @@ public class LikeService {
         .orElseThrow(() -> new IllegalArgumentException());
   }
 
+  // TODO: 날씨 커스텀 예외로 변경
+  private Weather getWeatherOrThrow(UUID weatherId) {
+    return weatherRepository.findById(weatherId)
+        .orElseThrow(() -> new EntityNotFoundException("Weather not found with id: " + weatherId));
+  }
 }
