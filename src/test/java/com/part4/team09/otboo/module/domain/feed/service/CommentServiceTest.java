@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentCreateRequest;
@@ -52,6 +53,7 @@ class CommentServiceTest {
     void create_comment_success() {
       // given
       UUID feedId = UUID.randomUUID();
+      Comment mockComment = mock(Comment.class);
       User mockUser = mock(User.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
 
@@ -70,6 +72,8 @@ class CommentServiceTest {
       );
 
       given(userRepository.findById(any())).willReturn(Optional.of(mockUser));
+      given(feedRepository.existsById(any())).willReturn(true);
+      given(commentRepository.save(any(Comment.class))).willReturn(mockComment);
       given(commentMapper.toDto(any(Comment.class), any(User.class))).willReturn(commentDto);
 
       // when
@@ -77,6 +81,7 @@ class CommentServiceTest {
 
       // then
       assertThat(result).isEqualTo(commentDto);
+      verify(commentRepository).save(any());
     }
   }
 }
