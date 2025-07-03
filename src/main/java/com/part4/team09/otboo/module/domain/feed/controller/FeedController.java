@@ -26,7 +26,7 @@ public class FeedController {
   private final CommentService commentService;
 
   @PostMapping
-  public ResponseEntity<FeedDto> create(@RequestBody @Valid FeedCreateRequest request) {
+  public ResponseEntity<FeedDto> createFeed(@RequestBody @Valid FeedCreateRequest request) {
     FeedDto feedDto = feedService.create(request);
 
     return ResponseEntity
@@ -35,7 +35,7 @@ public class FeedController {
   }
 
   @PostMapping("/{feedId}/comments")
-  public ResponseEntity<CommentDto> create(
+  public ResponseEntity<CommentDto> createComment(
       @PathVariable UUID feedId,
       @RequestBody @Valid CommentCreateRequest request
   ) {
