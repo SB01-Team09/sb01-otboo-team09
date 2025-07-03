@@ -80,7 +80,7 @@ class CommentServiceTest {
       given(commentMapper.toDto(any(Comment.class), any(User.class))).willReturn(commentDto);
 
       // when
-      CommentDto result = commentService.create(request);
+      CommentDto result = commentService.create(feedId, request);
 
       // then
       assertThat(result).isEqualTo(commentDto);
@@ -103,17 +103,18 @@ class CommentServiceTest {
 
       // when & then
       assertThrows(FeedNotFoundException.class,
-          () -> commentService.create(request));
+          () -> commentService.create(nonExistFeedId, request));
     }
 
     @Test
     @DisplayName("댓글 생성 실패 - 존재하지 않는 유저 ID")
     void create_comment_throwsUserNotFoundException_whenUserDoseNotExist() {
       // given
+      UUID feedId = UUID.randomUUID();
       UUID nonExistUserId = UUID.randomUUID();
 
       CommentCreateRequest request = new CommentCreateRequest(
-          UUID.randomUUID(),
+          feedId,
           nonExistUserId,
           "content"
       );
@@ -123,7 +124,7 @@ class CommentServiceTest {
 
       // when & then
       assertThrows(UserNotFoundException.class,
-          () -> commentService.create(request));
+          () -> commentService.create(feedId, request));
     }
   }
 }

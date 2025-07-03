@@ -26,11 +26,11 @@ public class CommentService {
   private final UserRepository userRepository;
 
   @Transactional
-  public CommentDto create(CommentCreateRequest request) {
-    validateFeedExists(request.feedId());
+  public CommentDto create(UUID feedId, CommentCreateRequest request) {
+    validateFeedExists(feedId);
     User author = getUserOrThrow(request.authorId());
 
-    Comment comment = Comment.create(request.feedId(), request.authorId(), request.content());
+    Comment comment = Comment.create(feedId, request.authorId(), request.content());
     Comment savedComment = commentRepository.save(comment);
 
     return commentMapper.toDto(savedComment, author);
