@@ -14,6 +14,7 @@ import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateReque
 import com.part4.team09.otboo.module.domain.user.dto.request.UserRoleUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
+import com.part4.team09.otboo.module.domain.user.event.UserProfileUpdateEvent;
 import com.part4.team09.otboo.module.domain.user.exception.EmailAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.mapper.UserMapper;
@@ -23,6 +24,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,7 @@ public class UserService {
   private final UserMapper userMapper;
   private final LocationService locationService;
   private final FileStorage fileStorage;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public UserDto createUser(UserCreateRequest request) {
@@ -79,17 +82,6 @@ public class UserService {
     // 유저 확인
     User user = findByIdOrThrow(id);
 
-    // 이미지
-    Optional.ofNullable(uploadProfileImage(image)).ifPresent(user::updateProfileImageUrl);
-
-    // 위치
-    Optional.ofNullable(request.location()).ifPresent(location -> {
-      String locationId = findLocationOrThrow(location);
-      if (locationId != null && !locationId.equals(user.getLocationId())) {
-        user.updateLocationId(locationId);
-      }
-    });
-
     // 이름
     Optional.ofNullable(request.name()).ifPresent(name -> {
       if (!name.equals(user.getName())) {
@@ -111,9 +103,18 @@ public class UserService {
       }
     });
 
+    // 날씨 민감도
     Optional.ofNullable(request.temperatureSensitivity()).ifPresent(sensitivity -> {
       if (!sensitivity.equals(user.getTemperatureSensitivity())) {
         user.updateTemperatureSensitivity(sensitivity);
+      }
+    });
+
+    // 위치
+    Optional.ofNullable(request.location()).ifPresent(location -> {
+      String locationId = findLocationOrThrow(location);
+      if (locationId != null && !locationId.equals(user.getLocationId())) {
+        user.updateLocationId(locationId);
       }
     });
 
@@ -121,6 +122,16 @@ public class UserService {
     WeatherAPILocation location = null;
     if (user.getLocationId() != null) {
       location = locationService.getLocation(user.getLocationId());
+    }
+
+    // 이미지
+    String previousImageUrl = user.getProfileImageUrl();
+    Optional.ofNullable(uploadProfileImage(image)).ifPresent(user::updateProfileImageUrl);
+
+    // 프로필 이미지가 변경된 경우, 이전 프로필 이미지 삭제
+    if (image != null && previousImageUrl != null) {
+      log.debug("프로필 변경 이벤트 발행: {}", previousImageUrl);
+      eventPublisher.publishEvent(new UserProfileUpdateEvent(previousImageUrl));
     }
 
     return userMapper.toProfileDto(user, location);
@@ -152,6 +163,9 @@ public class UserService {
     return userMapper.toDto(user, null);
   }
 
+  /**
+   * 이하 내부 유틸 / 검증 메서드
+   */
   private void checkDuplicateEmail(String email) {
     if (userRepository.existsByEmail(email)) {
       throw EmailAlreadyExistsException.withEmail(email);
