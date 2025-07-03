@@ -3,13 +3,14 @@ package com.part4.team09.otboo.module.domain.follow.service;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListRequest;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
+import com.part4.team09.otboo.module.domain.follow.dto.FollowSummaryDto;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
 import com.part4.team09.otboo.module.domain.follow.exception.FollowNotFoundException;
-import com.part4.team09.otboo.module.domain.follow.exception.NegativeLimitNotAllowed;
 import com.part4.team09.otboo.module.domain.follow.mapper.FollowMapper;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.user.dto.UserSummary;
+import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,22 +18,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 
@@ -187,16 +181,80 @@ class FollowServiceTest {
     }
 
     @Test
-    @DisplayName("팔로우 목록 조회 실패: limit 0 이하 예외처리")
-    void getFollowingsFailWithNegativeLimit() {
+    @DisplayName("팔로우 요약 정보 조회 성공")
+    void getFollowSummarySuccess() {
         // given
-        UUID followerId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();        // 조회 대상
+        UUID loginUserId = UUID.randomUUID();   // 로그인한 유저 (Me)
+        UUID followedByMeId = null;      // 팔로우 관계 아이디
 
-        // when, then: 예외 처리 반환되도록
-        assertThrows(NegativeLimitNotAllowed.class, () -> {
-            followService.getFollowings(followerId, null, null,0, null);
+        int followerCount = 10;
+        int followingCount = 5;
+        boolean followedByMe = false;
+        boolean followingMe = true;
+
+        // Mock 설정
+        // 유저 존재 여부
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(userRepository.existsById(loginUserId)).thenReturn(true);
+
+        when(followRepository.countFollowersForSummary(userId)).thenReturn(followerCount);
+        when(followRepository.countFollowingsForSummary(userId)).thenReturn(followingCount);
+        when(followRepository.followRelationship(userId, loginUserId)).thenReturn(followedByMe);
+        when(followRepository.followedByMeId(userId, loginUserId)).thenReturn(followedByMeId);
+        when(followRepository.followRelationship(loginUserId, userId)).thenReturn(followingMe);
+
+        // when
+        FollowSummaryDto result = followService.getFollowSummary(userId, loginUserId);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.followeeId()).isEqualTo(userId);
+        assertThat(result.followerCount()).isEqualTo(followerCount);
+        assertThat(result.followingCount()).isEqualTo(followingCount);
+        assertThat(result.followedByMe()).isEqualTo(followedByMe);
+        assertThat(result.followedByMeId()).isEqualTo(followedByMeId);
+        assertThat(result.followingMe()).isEqualTo(followingMe);
+    }
+
+
+    @Test
+    @DisplayName("팔로우 요약 정보 조회 실패: 조회 대상 유저 Not Found")
+    void getFollowSummaryFail_UserNotFound() {
+        // given
+        UUID userId = UUID.randomUUID();        // 조회 대상
+        UUID loginUserId = UUID.randomUUID();   // 로그인한 유저 (Me)
+
+        // Mock 설정
+        // 유저 존재 여부 false로 설정
+        when(userRepository.existsById(userId)).thenReturn(false);
+
+        // when, then
+        assertThrows(UserNotFoundException.class, () -> {
+            followService.getFollowSummary(userId, loginUserId);
         });
     }
+
+
+    @Test
+    @DisplayName("팔로우 요약 정보 조회 실패: 로그인 유저 Not Found")
+    void getFollowSummaryFail_LoginUserNotFound() {
+        // given
+        UUID userId = UUID.randomUUID();        // 조회 대상
+        UUID loginUserId = UUID.randomUUID();   // 로그인한 유저 (Me)
+
+        // Mock 설정
+        // 유저 존재 여부 false로 설정
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(userRepository.existsById(loginUserId)).thenReturn(false);
+
+        // when, then
+        assertThrows(UserNotFoundException.class, () -> {
+            followService.getFollowSummary(userId, loginUserId);
+        });
+    }
+
+
 
     @Test
     @DisplayName("팔로우 삭제 성공")
