@@ -74,6 +74,38 @@ public class UserServiceUnitTest {
     verify(userMapper).toProfileDto(user, location);
   }
 
+  @DisplayName("카카오 api 에서 지역행정코드 조회 성공 시 위치 정보 업데이트를 성공한다.")
+  @Test
+  void user_profile_success() {
+    // given
+    User user = User.createUser("test@test.com", "name", "password!");
+    user.updateLocationId("44729387");
+
+    // 요청
+    LocationUpdateRequest locationRequest = new LocationUpdateRequest(35.97664845766847,
+      126.99597295767953, 59, 125, List.of("전북특별자치도", "익산시", "삼성동"));
+    ProfileUpdateRequest updateRequest = new ProfileUpdateRequest(null, null, null,
+      locationRequest, null);
+
+    // 응답
+    WeatherAPILocation location = new WeatherAPILocation(locationRequest.latitude(),
+      locationRequest.longitude(), 59, 125, List.of("전북특별자치도", "익산시", "삼성동"));
+    ProfileDto profileDto = new ProfileDto(user.getId(), user.getName(), Gender.MALE,
+      LocalDate.now(), location, 1, null);
+
+    when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+    when(locationService.getLocationCodeByCoordinates(anyDouble(), anyDouble()))
+      .thenReturn("44729387");
+    when(locationService.getLocation(any())).thenReturn(location);
+    when(userMapper.toProfileDto(user, location)).thenReturn(profileDto);
+
+    // when
+    ProfileDto result = userService.updateProfile(user.getId(), updateRequest, null);
+
+    // then
+    assertThat(user.getLocationId()).isEqualTo("44729387");
+  }
+
   @DisplayName("프로필 위치 정보 업데이트 시 유효하지 않은(데이터에 없는) 위치 정보일 경우 예외를 던진다.")
   @Test
   void updateProfile_shouldThrowException_ifLocationIsInvalid() {

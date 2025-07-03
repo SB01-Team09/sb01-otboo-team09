@@ -4,7 +4,6 @@ import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
 import com.part4.team09.otboo.module.domain.file.service.FileStorage;
 import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
-import com.part4.team09.otboo.module.domain.location.exception.LocationNotFoundException;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
 import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
 import com.part4.team09.otboo.module.domain.location.service.LocationService;
@@ -21,7 +20,6 @@ import com.part4.team09.otboo.module.domain.user.exception.EmailAlreadyExistsExc
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.mapper.UserMapper;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
@@ -66,7 +65,7 @@ public class UserService {
   }
 
   // 프로필 조회
-  @Transactional
+  @Transactional(readOnly = true)
   public ProfileDto getProfile(UUID id) {
     User user = findByIdOrThrow(id);
 
@@ -173,10 +172,11 @@ public class UserService {
     }
     double latitude = location.latitude();
     double longitude = location.longitude();
-    UUID dongId = dongRepository.findIdByLatitudeAndLongitude(latitude, longitude)
-      .orElseThrow(() -> LocationNotFoundException.withLatitudeAndLongitude(latitude, longitude));
-    return locationRepository.findIdByDongId(dongId)
-      .orElseThrow(() -> LocationNotFoundException.withNameAndId("dong", dongId));
+    return locationService.getLocationCodeByCoordinates(longitude, latitude);
+//    UUID dongId = dongRepository.findIdByLatitudeAndLongitude(latitude, longitude)
+//      .orElseThrow(() -> LocationNotFoundException.withLatitudeAndLongitude(latitude, longitude));
+//    return locationRepository.findIdByDongId(dongId)
+//      .orElseThrow(() -> LocationNotFoundException.withNameAndId("dong", dongId));
   }
 
   // 업로드 후 url 을 리턴하면 저장, null 인 경우(실패) 이전 값 유지
