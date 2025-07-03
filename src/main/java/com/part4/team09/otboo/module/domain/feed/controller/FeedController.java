@@ -10,7 +10,6 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,5 +32,17 @@ public class FeedController {
     return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(feedDto);
+  }
+
+  @PostMapping("/{feedId}/comments")
+  public ResponseEntity<CommentDto> create(
+      @PathVariable UUID feedId,
+      @RequestBody @Valid CommentCreateRequest request
+  ) {
+    CommentDto commentDto = commentService.create(feedId, request);
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(commentDto);
   }
 }

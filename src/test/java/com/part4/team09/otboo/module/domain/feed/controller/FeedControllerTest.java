@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.feed.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -10,10 +11,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
+import com.part4.team09.otboo.module.domain.feed.dto.CommentCreateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
+import com.part4.team09.otboo.module.domain.feed.service.CommentService;
 import com.part4.team09.otboo.module.domain.feed.service.FeedService;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
@@ -42,6 +46,9 @@ class FeedControllerTest {
 
   @MockitoBean
   private FeedService feedService;
+
+  @MockitoBean
+  private CommentService commentService;
 
   @Nested
   @DisplayName("피드 생성")
@@ -85,6 +92,43 @@ class FeedControllerTest {
               .with(csrf()))
           .andExpect(status().isCreated())
           .andExpect(jsonPath("$.id").value(feedId.toString()))
+          .andExpect(jsonPath("$.content").value("content"));
+    }
+  }
+
+  @Nested
+  @DisplayName("댓글 생성")
+  public class CreateCommentTest {
+
+    @Test
+    @DisplayName("댓글 생성 성공")
+    void create_comment_success() throws Exception {
+      // given
+      UUID feedId = UUID.randomUUID();
+      AuthorDto mockAuthorDto = mock(AuthorDto.class);
+
+      CommentCreateRequest request = new CommentCreateRequest(
+          feedId,
+          UUID.randomUUID(),
+          "content"
+      );
+
+      CommentDto commentDto = new CommentDto(
+          UUID.randomUUID(),
+          LocalDateTime.now(),
+          feedId,
+          mockAuthorDto,
+          "content"
+      );
+
+      given(commentService.create(feedId, request)).willReturn(commentDto);
+
+      // when & then
+      mockMvc.perform(post("/api/feeds/{feedId}/comments", feedId)
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(request))
+              .with(csrf()))
+          .andExpect(status().isCreated())
           .andExpect(jsonPath("$.content").value("content"));
     }
   }
