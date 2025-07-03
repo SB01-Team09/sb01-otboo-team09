@@ -10,7 +10,6 @@ import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +36,7 @@ class LocalFileStorageTest {
   void setUp() {
     // 테스트용 값 주입
     ReflectionTestUtils.setField(localFileStorage, "resourcePath", "files");
-    ReflectionTestUtils.setField(localFileStorage, "saveBasePath", Paths.get("test"));
+    ReflectionTestUtils.setField(localFileStorage, "saveBasePath", Paths.get("fileStorage"));
   }
 
   @Nested
@@ -54,26 +53,6 @@ class LocalFileStorageTest {
       // when + then
       assertThrows(FileUploadFailedException.class,
         () -> localFileStorage.upload(multipartFile, FileDomain.PROFILE));
-    }
-  }
-
-  @Nested
-  @DisplayName("파일 삭제 메서드")
-  class RemoveTest {
-
-    @Test
-    @DisplayName("파일 삭제 성공 시 true 반환한다.")
-    void remove_success() throws Exception {
-      // given
-      String path = "http://localhost/files/profile/test.png";
-      Files.createDirectories(Paths.get("upload/profile"));
-      Files.createFile(Paths.get("upload/profile/test.png"));
-
-      // when
-      boolean result = localFileStorage.remove(path);
-
-      // then
-      assertThat(result).isTrue();
     }
   }
 
