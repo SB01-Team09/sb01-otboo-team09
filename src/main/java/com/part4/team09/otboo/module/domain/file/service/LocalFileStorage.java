@@ -10,6 +10,9 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -45,7 +48,12 @@ public class LocalFileStorage implements FileStorage {
     }
   }
 
-  // retry 처리: 실패 시 알림 처리
+  @Retryable(
+    value = FileUploadFailedException.class,
+    maxAttempts = 3,
+    backoff = @Backoff(delay = 1000, multiplier = 2),
+    recover = "uploadRecover"
+  )
   @Override
   public String upload(MultipartFile file, FileDomain domain) {
 
@@ -79,5 +87,11 @@ public class LocalFileStorage implements FileStorage {
   @Override
   public boolean remove(String path) {
     return false;
+  }
+
+  @Recover
+  public String uploadRecover(FileUploadFailedException e, MultipartFile file, FileDomain domain) {
+    log.warn("파일 저장 최종 실패 ({})", String.valueOf(e.fillInStackTrace()));
+    throw e;
   }
 }
