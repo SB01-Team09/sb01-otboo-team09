@@ -3,6 +3,7 @@ package com.part4.team09.otboo.module.domain.feed.service;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Comment;
+import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.CommentMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.CommentRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
@@ -42,8 +43,7 @@ public class CommentService {
 
   private void validateFeedExists(UUID feedId) {
     if (!feedRepository.existsById(feedId)) {
-      // TODO: 피드 커스텀 예외로 변경
-      throw new IllegalArgumentException();
+      throw FeedNotFoundException.withId(feedId);
     }
   }
 }
