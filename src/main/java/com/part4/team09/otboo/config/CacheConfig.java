@@ -23,12 +23,10 @@ public class CacheConfig {
 
     // Caffeine 로컬 캐시 + Redis 분산 캐시 관리
     @Bean
-    public CacheManager compositeCacheManager(RedisConnectionFactory factory) {
+    public CacheManager compositeCacheManager(RedisConnectionFactory factory, ObjectMapper objectMapper) {
         // RedisCacheManager 설정 > 분산 캐시 > 여러 애플리케이션 서버 공유
         RedisCacheManager redisManager = RedisCacheManager.builder(factory)
-                .cacheDefaults(RedisCacheConfiguration.defaultCacheConfig()
-                        // 로컬 캐시보다 TTL을 길게 설정하여 계층적 만료 구현
-                        .entryTtl(Duration.ofMinutes(10)))
+                .cacheDefaults(redisCacheConfiguration(objectMapper))
                 .build();
 
         // CaffeineCacheManager 설정
@@ -67,8 +65,8 @@ public class CacheConfig {
                                 new GenericJackson2JsonRedisSerializer(redisObjectMapper)
                         )
                 )
-                .prefixCacheNameWith("discodeit:")
-                .entryTtl(Duration.ofSeconds(600))
-                .disableCachingNullValues();
+                .prefixCacheNameWith("otboo:")
+                .entryTtl(Duration.ofMinutes(10)) // 로컬 캐시보다 TTL을 길게 설정하여 계층적 만료 구현
+                .disableCachingNullValues(); // 결과값이 null인 경우 cache에 추가하지 않음
     }
 }
