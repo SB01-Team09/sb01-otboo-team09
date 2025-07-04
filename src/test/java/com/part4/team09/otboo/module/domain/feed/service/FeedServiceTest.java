@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.dto.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
@@ -97,6 +98,44 @@ class FeedServiceTest {
       // then
       assertThat(result).isEqualTo(feedDto);
       verify(feedRepository).save(any());
+    }
+  }
+
+  @Nested
+  @DisplayName("피드 수정")
+  public class UpdateFeedTest {
+
+    @Test
+    @DisplayName("피드 수정 성공")
+    void update_feed_success() {
+      // given
+      UUID userId = UUID.randomUUID();
+      UUID feedId = UUID.randomUUID();
+      User mockUser = mock(User.class);
+      Weather mockWeather = mock(Weather.class);
+      Feed mockFeed = mock(Feed.class);
+      AuthorDto mockAuthorDto = mock(AuthorDto.class);
+
+      FeedUpdateRequest request = new FeedUpdateRequest("newContent");
+
+      FeedDto feedDto = new FeedDto(
+          feedId,
+          LocalDateTime.now(),
+          LocalDateTime.now(),
+          mockAuthorDto,
+          mockWeather,
+          List.of(),
+          "newContent",
+          0,
+          0,
+          true
+      );
+
+      // when
+      FeedDto result = feedService.update(feedId, request);
+
+      // then
+      assertThat(result).isEqualTo(feedDto);
     }
   }
 }
