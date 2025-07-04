@@ -109,7 +109,6 @@ class FeedServiceTest {
     @DisplayName("피드 수정 성공")
     void update_feed_success() {
       // given
-      UUID userId = UUID.randomUUID();
       UUID feedId = UUID.randomUUID();
       User mockUser = mock(User.class);
       Weather mockWeather = mock(Weather.class);
@@ -128,8 +127,13 @@ class FeedServiceTest {
           "newContent",
           0,
           0,
-          true
+          false
       );
+
+      given(userRepository.findById(any())).willReturn(Optional.of(mockUser));
+      given(feedRepository.findById(any())).willReturn(Optional.of(mockFeed));
+      given(weatherRepository.findById(any())).willReturn(Optional.of(mockWeather));
+      given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class), any(), eq(false))).willReturn(feedDto);
 
       // when
       FeedDto result = feedService.update(feedId, request);
