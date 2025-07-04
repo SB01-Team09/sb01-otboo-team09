@@ -31,56 +31,73 @@ public class WeatherReader implements ItemStreamReader<WeatherApiData> {
     while (true) {
       currentLocation = locationReader.read();
       if (currentLocation == null) {
-        return null; // 모든 location 끝
+        return null;
       }
 
-      dongRepository.findById(currentLocation.getDongId())
-        .ifPresent(dong -> {
-          x = dong.getX();
-          y = dong.getY();
-        });
+      setCoordinates(currentLocation);
 
-      List<Weather> cachedWeathers = weatherCache.getData(x, y);
-      if (cachedWeathers != null && !cachedWeathers.isEmpty()) {
-        cachedWeathers.forEach(cachedWeather -> {
-          weatherRepository.findByLocationIdAndForecastAt(currentLocation.getId(),
-              cachedWeather.getForecastAt())
-            .ifPresentOrElse(
-              existing -> {
-                existing.updateForecastedAt(cachedWeather.getForecastedAt());
-                existing.updateForecastAt(cachedWeather.getForecastAt());
-                existing.updateSkyStatus(cachedWeather.getSkyStatus());
-                existing.updateLocationId(currentLocation.getId());
-                existing.updatePrecipitationId(cachedWeather.getPrecipitationId());
-                existing.updateHumidityId(cachedWeather.getHumidityId());
-                existing.updateTemperatureId(cachedWeather.getTemperatureId());
-                existing.updateWindSpeedId(cachedWeather.getWindSpeedId());
-                weatherRepository.save(existing);
-              },
-              () -> {
-                Weather newWeather = Weather.create(
-                  cachedWeather.getForecastedAt(),
-                  cachedWeather.getForecastAt(),
-                  cachedWeather.getSkyStatus(),
-                  currentLocation.getId(),
-                  cachedWeather.getPrecipitationId(),
-                  cachedWeather.getHumidityId(),
-                  cachedWeather.getTemperatureId(),
-                  cachedWeather.getWindSpeedId()
-                );
-                weatherRepository.save(newWeather);
-              }
-            );
-        });
-
-        // 다음 Location 처리 위해 루프 계속
-        continue;
+      if (processCachedDataIfExist()) {
+        continue; // 다음 Location 으로
       }
 
-      // 캐시에 없으면 외부 API 호출해서 반환
-      List<Item> items = weatherApiClient.getWeatherApiResponse(x, y);
+      List<Item> items = fetchFromApi(x, y);
       return new WeatherApiData(currentLocation.getId(), items, x, y);
     }
+  }
+
+  private void setCoordinates(Location location) {
+    dongRepository.findById(location.getDongId())
+      .ifPresent(dong -> {
+        x = dong.getX();
+        y = dong.getY();
+      });
+  }
+
+  private boolean processCachedDataIfExist() {
+    List<Weather> cachedWeathers = weatherCache.getData(x, y);
+    if (cachedWeathers == null || cachedWeathers.isEmpty()) {
+      return false;
+    }
+
+    cachedWeathers.forEach(cached -> {
+      weatherRepository.findByLocationIdAndForecastAt(currentLocation.getId(),
+          cached.getForecastAt())
+        .ifPresentOrElse(
+          existing -> updateWeather(existing, cached),
+          () -> saveNewWeather(cached)
+        );
+    });
+    return true;
+  }
+
+  private void updateWeather(Weather existing, Weather cached) {
+    existing.updateForecastedAt(cached.getForecastedAt());
+    existing.updateForecastAt(cached.getForecastAt());
+    existing.updateSkyStatus(cached.getSkyStatus());
+    existing.updateLocationId(currentLocation.getId());
+    existing.updatePrecipitationId(cached.getPrecipitationId());
+    existing.updateHumidityId(cached.getHumidityId());
+    existing.updateTemperatureId(cached.getTemperatureId());
+    existing.updateWindSpeedId(cached.getWindSpeedId());
+    weatherRepository.save(existing);
+  }
+
+  private void saveNewWeather(Weather cached) {
+    Weather newWeather = Weather.create(
+      cached.getForecastedAt(),
+      cached.getForecastAt(),
+      cached.getSkyStatus(),
+      currentLocation.getId(),
+      cached.getPrecipitationId(),
+      cached.getHumidityId(),
+      cached.getTemperatureId(),
+      cached.getWindSpeedId()
+    );
+    weatherRepository.save(newWeather);
+  }
+
+  private List<Item> fetchFromApi(int x, int y) {
+    return weatherApiClient.getWeatherApiResponse(x, y);
   }
 
   @Override
