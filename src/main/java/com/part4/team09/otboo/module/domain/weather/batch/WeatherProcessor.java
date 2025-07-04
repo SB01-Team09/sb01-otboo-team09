@@ -10,12 +10,10 @@ import com.part4.team09.otboo.module.domain.weather.entity.Temperature;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather.SkyStatus;
 import com.part4.team09.otboo.module.domain.weather.entity.WindSpeed;
 import com.part4.team09.otboo.module.domain.weather.entity.WindSpeed.AsWord;
-import com.part4.team09.otboo.module.domain.weather.repository.HumidityRepository;
-import com.part4.team09.otboo.module.domain.weather.repository.TemperatureRepository;
-import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -24,40 +22,58 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class WeatherProcessor implements ItemProcessor<WeatherApiData, WeatherData> {
+public class WeatherProcessor implements ItemProcessor<WeatherApiData, List<WeatherData>> {
 
   private static final String TIME_MORNING = "0600";
   private static final String TIME_AFTERNOON = "1500";
   private static final String TIME_NOON = "1200";
-
-  private final TemperatureRepository temperatureRepository;
-  private final HumidityRepository humidityRepository;
-  private final WeatherRepository weatherRepository;
-
-  private boolean isYesterday = false;
+  private static final int CHUNK_SIZE = 290;
 
   @Override
-  public WeatherData process(WeatherApiData data) {
-    updateLocationContext();
+  public List<WeatherData> process(WeatherApiData data) {
+    List<Item> items = data.items();
 
-    WeatherExtractionContext context = new WeatherExtractionContext();
+    int currentIndex = 0;
+    int endIndex = CHUNK_SIZE;
 
-    for (Item item : data.items()) {
-      extractForecastData(item, context);
+    List<WeatherData> weatherDatas = new ArrayList<>();
+    while (currentIndex < items.size()) {
+      WeatherExtractionContext context = new WeatherExtractionContext();
+      for (int i = currentIndex; i < endIndex; i++) {
+        extractForecastData(items.get(i), context);
+
+        context.x = data.x();
+        context.y = data.y();
+      }
+      weatherDatas.add(context.toWeatherData(data.locationId()));
+      currentIndex = endIndex;
+      endIndex = Math.min(currentIndex + CHUNK_SIZE, items.size());
     }
 
-    if (!isYesterday) {
-      setComparedValuesFromYesterday(context, data.locationId());
+    for (int i = 0; i < weatherDatas.size(); i++) {
+      if (i == 0) {
+        continue;
+      }
+
+      Humidity currentHumidity = weatherDatas.get(i).humidity();
+      Humidity beforeHumidity = weatherDatas.get(i - 1).humidity();
+
+      double currentHumidityValue = currentHumidity.getCurrent();
+      double beforeHumidityValue = beforeHumidity.getCurrent();
+
+      currentHumidity.updateComparedToDayBefore(currentHumidityValue - beforeHumidityValue);
+
+      Temperature currentTemperature = weatherDatas.get(i).temperature();
+      Temperature beforeTemperature = weatherDatas.get(i - 1).temperature();
+
+      double currentTemperatureValue = currentTemperature.getCurrent();
+      double beforeTemperatureValue = beforeTemperature.getCurrent();
+
+      currentTemperature.updateComparedToDayBefore(
+        currentTemperatureValue - beforeTemperatureValue);
     }
 
-    context.x = data.x();
-    context.y = data.y();
-
-    return context.toWeatherData(data.locationId());
-  }
-
-  private void updateLocationContext() {
-    isYesterday = false;
+    return weatherDatas;
   }
 
   private void extractForecastData(Item item, WeatherExtractionContext ctx) {
@@ -67,9 +83,6 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, WeatherDa
 
     if (fcstTime.equals(TIME_MORNING) && category.equals("TMN")) {
       ctx.minTemperature = Double.parseDouble(value);
-      if (item.fcstDate().equals(getYesterdayDate())) {
-        isYesterday = true;
-      }
       return;
     }
 
@@ -113,28 +126,6 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, WeatherDa
         ctx.forecastAt = LocalDateTime.parse(fcstAt, formatter);
       }
     }
-  }
-
-  private void setComparedValuesFromYesterday(WeatherExtractionContext ctx, String locationId) {
-    LocalDateTime forecastAt = ctx.forecastAt.minusDays(1);
-
-    weatherRepository.findByLocationIdAndForecastAt(locationId, forecastAt)
-      .ifPresent(weather -> {
-        Temperature t = temperatureRepository.findById(weather.getTemperatureId()).orElse(null);
-        Humidity h = humidityRepository.findById(weather.getHumidityId()).orElse(null);
-        if (t != null) {
-          ctx.comparedToDayBeforeTemperature = ctx.currentTemperature - t.getCurrent();
-        }
-        if (h != null) {
-          ctx.comparedToDayBeforeHumidity = ctx.currentHumidity - h.getCurrent();
-        }
-      });
-  }
-
-  private String getYesterdayDate() {
-    return LocalDate.now()
-      .minusDays(1)
-      .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
   }
 
   private static class WeatherExtractionContext {

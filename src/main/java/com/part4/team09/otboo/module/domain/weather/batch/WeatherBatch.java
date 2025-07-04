@@ -9,6 +9,7 @@ import com.part4.team09.otboo.module.domain.weather.external.WeatherApiClient;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.EntityManagerFactory;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -36,7 +37,7 @@ public class WeatherBatch {
   public Step weatherStep(JobRepository jobRepository,
     PlatformTransactionManager transactionManager) {
     return new StepBuilder("weatherStep", jobRepository)
-      .<WeatherApiData, WeatherData>chunk(1, transactionManager)
+      .<WeatherApiData, List<WeatherData>>chunk(1, transactionManager)
       .reader(weatherReader())
       .processor(weatherProcessor)
       .writer(weatherWriter)

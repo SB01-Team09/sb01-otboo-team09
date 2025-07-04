@@ -2,7 +2,7 @@ package com.part4.team09.otboo.module.domain.weather.batch;
 
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import io.micrometer.core.instrument.MeterRegistry;
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -11,37 +11,30 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class WeatherCache {
 
-  private final ConcurrentHashMap<String, ConcurrentHashMap<LocalDateTime, Weather>> weatherCache =
-    new ConcurrentHashMap<>(new ConcurrentHashMap<>());
+  private final ConcurrentHashMap<String, List<Weather>> weatherCache = new ConcurrentHashMap<>();
 
   private final MeterRegistry meterRegistry;
 
-  public void putData(int x, int y, LocalDateTime forecastAt, Weather weather) {
+  public void putData(int x, int y, List<Weather> weather) {
     String coordinate = x + "_" + y;
-
-    if (weatherCache.get(coordinate) == null) {
-      weatherCache.put(coordinate, new ConcurrentHashMap<>());
-    }
-    weatherCache.get(coordinate).put(forecastAt, weather);
+    weatherCache.putIfAbsent(coordinate, weather);
   }
 
-  public Weather getData(int x, int y, LocalDateTime forecastAt) {
+  public List<Weather> getData(int x, int y) {
     meterRegistry
       .counter("method_calls", "method", "weatherCache.getData")
       .increment();
 
     String coordinate = x + "_" + y;
-    ConcurrentHashMap<LocalDateTime, Weather> map = weatherCache.get(coordinate);
+    List<Weather> weathers = weatherCache.get(coordinate);
 
-    if (map != null) {
+    if (weathers != null) {
       meterRegistry
         .counter("cache_hit", "cache", "weatherCache.getData")
         .increment();
-
-      return map.get(forecastAt);
     }
 
-    return null;
+    return weathers;
   }
 
   public boolean isExist(int x, int y) {

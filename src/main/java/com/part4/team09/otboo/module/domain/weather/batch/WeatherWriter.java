@@ -11,6 +11,8 @@ import com.part4.team09.otboo.module.domain.weather.repository.PrecipitationRepo
 import com.part4.team09.otboo.module.domain.weather.repository.TemperatureRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.WindSpeedRepository;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.Chunk;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class WeatherWriter implements ItemWriter<WeatherData> {
+public class WeatherWriter implements ItemWriter<List<WeatherData>> {
 
   private final HumidityRepository humidityRepository;
   private final PrecipitationRepository precipitationRepository;
@@ -29,25 +31,35 @@ public class WeatherWriter implements ItemWriter<WeatherData> {
   private final WeatherCache weatherCache;
 
   @Override
-  public void write(Chunk<? extends WeatherData> weatherDatas) throws Exception {
-    for (WeatherData weatherData : weatherDatas) {
-      weatherRepository
-        .findByLocationIdAndForecastAt(weatherData.locationId(), weatherData.forecastAt())
-        .ifPresentOrElse(
-          existingWeather -> updateExistingWeather(existingWeather, weatherData),
-          () -> saveNewWeather(weatherData)
+  public void write(Chunk<? extends List<WeatherData>> chunk) throws Exception {
+    chunk.forEach(
+      weatherDatas -> {
+        List<Weather> weathers = new ArrayList<>();
+        weatherDatas.forEach(
+          weatherData -> {
+            Weather savedWeather = weatherRepository
+              .findByLocationIdAndForecastAt(weatherData.locationId(), weatherData.forecastAt())
+              .map(
+                weather -> updateExistingWeather(weather, weatherData)
+              )
+              .orElseGet(() -> saveNewWeather(weatherData));
+
+            weathers.add(savedWeather);
+          }
         );
-    }
+
+        weatherCache.putData(weatherDatas.get(0).x(), weatherDatas.get(0).y(), weathers);
+      }
+    );
   }
 
-  private void updateExistingWeather(Weather existingWeather, WeatherData weatherData) {
+  private Weather updateExistingWeather(Weather existingWeather, WeatherData weatherData) {
     updateHumidity(existingWeather.getHumidityId(), weatherData.humidity());
     updatePrecipitation(existingWeather.getPrecipitationId(), weatherData.precipitation());
     updateTemperature(existingWeather.getTemperatureId(), weatherData.temperature());
     updateWindSpeed(existingWeather.getWindSpeedId(), weatherData.windSpeed());
 
-    weatherCache
-      .putData(weatherData.x(), weatherData.y(), existingWeather.getForecastAt(), existingWeather);
+    return existingWeather;
   }
 
   private void updateHumidity(UUID humidityId, Humidity newHumidity) {
@@ -81,7 +93,7 @@ public class WeatherWriter implements ItemWriter<WeatherData> {
     });
   }
 
-  private void saveNewWeather(WeatherData weatherData) {
+  private Weather saveNewWeather(WeatherData weatherData) {
     humidityRepository.save(weatherData.humidity());
     precipitationRepository.save(weatherData.precipitation());
     temperatureRepository.save(weatherData.temperature());
@@ -98,9 +110,6 @@ public class WeatherWriter implements ItemWriter<WeatherData> {
       weatherData.windSpeed().getId()
     );
 
-    Weather savedWeather = weatherRepository.save(newWeather);
-
-    weatherCache
-      .putData(weatherData.x(), weatherData.y(), savedWeather.getForecastAt(), savedWeather);
+    return weatherRepository.save(newWeather);
   }
 }
