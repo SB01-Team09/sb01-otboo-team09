@@ -47,6 +47,7 @@ public class ClothesAttributeDefService {
   }
 
   // 의상 속성 정의 명 찾기
+  @Transactional(readOnly = true)
   public ClothesAttributeDef findById(UUID defId) {
     log.debug("의상 속성 정의 명 조회 시작: defId = {}", defId);
 
@@ -61,6 +62,7 @@ public class ClothesAttributeDefService {
   }
 
   // 키워드로 id 찾기
+  @Transactional(readOnly = true)
   public List<UUID> findIdsByKeyword(String keyword) {
 
     log.debug("의상 속성 키워드로 조회 시작: keyword = {}", keyword);
@@ -83,6 +85,7 @@ public class ClothesAttributeDefService {
   }
 
   // 커서 기반 페이지네이션
+  @Transactional(readOnly = true)
   public List<ClothesAttributeDef> findByCursor(List<UUID> defIds,
       ClothesAttributeDefFindRequest request) {
 
@@ -106,6 +109,22 @@ public class ClothesAttributeDefService {
     List<ClothesAttributeDef> defs = clothesAttributeDefRepositoryQueryDSL.findByCursor(defIds, request);
     log.debug("의상 속성 페이지네이션 완료: defsSize = {}", defs.size());
     return defs;
+  }
+
+  // defIds로 조회
+  @Transactional(readOnly = true)
+  public List<ClothesAttributeDef> findAllByIds(List<UUID> defIds) {
+
+    if (defIds == null || defIds.isEmpty()) {
+      log.debug("defIds가 비어있습니다. return = {}", List.of());
+      return List.of();
+    }
+
+    log.debug("defIds로 def 리스트 조회 시작: defIdsSize = {}", defIds.size());
+    List<ClothesAttributeDef> clothesAttributeDefs = clothesAttributeDefRepository.findAllById(defIds);
+
+    log.debug("defIds로 def 리스트 조회 완료: clothesAttributeDefsSize = {}", clothesAttributeDefs.size());
+    return clothesAttributeDefs;
   }
 
   // 의상 속성 정의 명 수정
