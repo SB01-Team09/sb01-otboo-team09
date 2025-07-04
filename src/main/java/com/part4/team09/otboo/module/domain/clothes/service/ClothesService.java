@@ -4,9 +4,12 @@ import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDto
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeWithDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesCreateRequest;
+import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesUpdateRequest;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
+import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
+import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.exception.SelectableValue.SelectableValueNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithDefMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesMapper;
@@ -14,10 +17,12 @@ import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
 import com.part4.team09.otboo.module.domain.file.service.FileStorage;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -47,8 +52,7 @@ public class ClothesService {
 
     log.debug("의상 생성 시작: ownerId = {}, name = {}", request.ownerId(), request.name());
 
-    userRepository.findById(request.ownerId())
-        .orElseThrow(() -> UserNotFoundException.withId(request.ownerId()));
+    validateUserId(request.ownerId());
 
     // 1. 이미지 업로드
     String url = uploadClothesImage(image);
@@ -60,7 +64,7 @@ public class ClothesService {
     // 3. 선택한 속성 값이 있으면 clothesAttribute 생성
     List<ClothesAttributeWithDefDto> attributes = request.attributes().isEmpty()
         ? List.of()
-        : createClothesAttributes(request, savedClothes.getId());
+        : createClothesAttributes(request.attributes(), savedClothes.getId());
 
     ClothesDto response = clothesMapper.toDto(savedClothes.getId(), savedClothes.getOwnerId(),
         savedClothes.getName(), savedClothes.getImageUrl(), savedClothes.getType(), attributes);
@@ -71,11 +75,49 @@ public class ClothesService {
     return response;
   }
 
+  public ClothesDto update(UUID clothesId, ClothesUpdateRequest request, MultipartFile image) {
+
+    Clothes clothes = clothesRepository.findById(clothesId)
+        .orElseThrow(() -> {
+          log.warn("의상이 존재하지 않습니다. id = {}", clothesId);
+          return ClothesNotFoundException.withId(clothesId);
+        });
+
+    validateUserId(clothes.getOwnerId());
+
+    // 1. 이미지 삭제
+    if (clothes.getImageUrl() != null) {
+      fileStorage.remove(clothes.getImageUrl());
+    }
+
+    // 2. 이미지 업로드
+    String newUrl = uploadClothesImage(image);
+
+    // 3. clothes 엔티티 수정
+    clothes.update(request.name(), request.type(), newUrl);
+
+    // 4. clothesAttribute 삭제
+    clothesAttributeService.deleteAllByClothesId(clothes.getId());
+
+    // 5. 선택한 속성 값이 있으면 clothesAttribute 생성
+    List<ClothesAttributeWithDefDto> attributes = request.attributes().isEmpty()
+        ? List.of()
+        : createClothesAttributes(request.attributes(), clothes.getId());
+
+    ClothesDto response = clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(),
+        clothes.getName(), clothes.getImageUrl(), clothes.getType(), attributes);
+
+    log.debug("의상 생성 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
+        clothes.getId(), clothes.getOwnerId(), clothes.getName(), clothes.getImageUrl(),
+        clothes.getType(), attributes.size());
+    return response;
+  }
+
   private List<ClothesAttributeWithDefDto> createClothesAttributes(
-      ClothesCreateRequest request, UUID savedClothesId) {
+      List<ClothesAttributeDto> attributes, UUID savedClothesId) {
 
     // 1. defIds 및 def 조회
-    List<UUID> defIds = request.attributes().stream()
+    List<UUID> defIds = attributes.stream()
         .map(ClothesAttributeDto::definitionId)
         .toList();
 
@@ -89,7 +131,7 @@ public class ClothesService {
         .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
 
     // 4. attribute 등록을 위해 selectableValue의 id 찾기
-    List<UUID> selectedValueIds = request.attributes().stream()
+    List<UUID> selectedValueIds = attributes.stream()
         .map(attribute -> {
           UUID defId = attribute.definitionId();
           String valueItem = attribute.value();
@@ -106,7 +148,7 @@ public class ClothesService {
         .toList();
 
     // 5. 의상 속성 찾기
-    List<ClothesAttributeWithDefDto> attributes = request.attributes().stream()
+    List<ClothesAttributeWithDefDto> responseAttributes = attributes.stream()
         .map(attribute -> {
           UUID defId = attribute.definitionId();
           String defName = defMap.get(defId);
@@ -132,7 +174,7 @@ public class ClothesService {
 
     // 6. clothesAttribute 생성
     clothesAttributeService.create(savedClothesId, selectedValueIds);
-    return attributes;
+    return responseAttributes;
   }
 
   // 이미지 업로드
@@ -155,5 +197,13 @@ public class ClothesService {
       log.warn("message = {}, details = {}", e.getMessage(), e.getDetails());
       return null;
     }
+  }
+
+  private void validateUserId(UUID request) {
+    userRepository.findById(request)
+        .orElseThrow(() -> {
+          log.warn("사용자가 존재하지 않습니다. id = {}", request);
+          return UserNotFoundException.withId(request);
+        });
   }
 }
