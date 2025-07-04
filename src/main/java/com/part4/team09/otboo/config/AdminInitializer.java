@@ -32,7 +32,7 @@ public class AdminInitializer implements ApplicationRunner {
 
   @Override
   public void run(ApplicationArguments args) throws Exception {
-    initializeAdmin();
+//    initializeAdmin();
   }
 
   private void initializeAdmin() {
