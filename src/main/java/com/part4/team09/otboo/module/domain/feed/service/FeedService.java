@@ -34,6 +34,7 @@ public class FeedService {
 
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
+  private final LikeService likeService;
 
   // TODO: 로그인 한 사용자와 같은지 확인
   @Transactional
@@ -44,9 +45,9 @@ public class FeedService {
     Feed feed = Feed.create(request.authorId(), request.weatherId(), request.content());
     Feed savedFeed = feedRepository.save(feed);
 
-    List<OotdDto> ootdDtos = ootdService.create(savedFeed.getId(), request.clothesIds());
+    List<OotdDto> ootds = ootdService.create(savedFeed.getId(), request.clothesIds());
 
-    return feedMapper.toDto(savedFeed, author, weather, ootdDtos, false);
+    return feedMapper.toDto(savedFeed, author, weather, ootds, false);
   }
 
   @Transactional
@@ -54,8 +55,12 @@ public class FeedService {
     Feed feed = getFeedOrThrow(feedId);
     User author = getUserOrThrow(feed.getAuthorId());
     Weather weather = getWeatherOrThrow(feed.getWeatherId());
+    List<OotdDto> ootds = ootdService.getOotds(feedId);
+    boolean likedByMe = likeService.isLikedByMe(author.getId(), feedId);
 
-    return feedMapper.toDto(feed, author, weather, null, false);
+    feed.update(request.content());
+
+    return feedMapper.toDto(feed, author, weather, ootds, likedByMe);
   }
 
   private Feed getFeedOrThrow(UUID feedId) {

@@ -10,6 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,35 @@ public class OotdService {
     return selectedClothes.stream()
         .map(ootdMapper::toDto)
         .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<OotdDto> getOotds(UUID feedID) {
+    List<UUID> clothesIds = ootdRepository.findClothesIdsByFeedId(feedID);
+    List<Clothes> selectedClothes = getAllByClothesIdsOrThrow(clothesIds);
+
+    return selectedClothes.stream()
+        .map(ootdMapper::toDto)
+        .toList();
+  }
+
+  private List<Clothes> getAllByClothesIdsOrThrow(List<UUID> clothesIds) {
+    List<Clothes> foundClothes = clothesRepository.findAllById(clothesIds);
+
+    List<UUID> foundIds = foundClothes.stream()
+        .map(Clothes::getId)
+        .toList();
+
+    List<UUID> missingIds = clothesIds.stream()
+        .filter(id -> !foundIds.contains(id))
+        .toList();
+
+    // TODO: 의상 커스텀 예외로 변경
+    if (!missingIds.isEmpty()) {
+      throw new EntityNotFoundException();
+    }
+
+    return foundClothes;
   }
 
   // TODO: 의상 커스텀 예외로 변경

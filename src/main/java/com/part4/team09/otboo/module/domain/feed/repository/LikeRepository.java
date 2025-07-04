@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LikeRepository extends JpaRepository<Like, UUID> {
 
+  boolean existsByUserIdAndFeedId(UUID userId, UUID feedId);
 }

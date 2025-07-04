@@ -44,6 +44,9 @@ class FeedServiceTest {
   private OotdService ootdService;
 
   @Mock
+  private LikeService likeService;
+
+  @Mock
   private UserRepository userRepository;
 
   @Mock
@@ -133,6 +136,8 @@ class FeedServiceTest {
       given(userRepository.findById(any())).willReturn(Optional.of(mockUser));
       given(feedRepository.findById(any())).willReturn(Optional.of(mockFeed));
       given(weatherRepository.findById(any())).willReturn(Optional.of(mockWeather));
+      given(ootdService.getOotds(any())).willReturn(List.of());
+      given(likeService.isLikedByMe(any(), any())).willReturn(false);
       given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class), any(), eq(false))).willReturn(feedDto);
 
       // when
