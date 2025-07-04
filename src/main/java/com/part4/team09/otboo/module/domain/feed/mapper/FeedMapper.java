@@ -15,7 +15,7 @@ public class FeedMapper {
 
   private final AuthorMapper authorMapper;
 
-  public FeedDto toDto(Feed feed, User author, Weather weather, List<OotdDto> ootdDtos) {
+  public FeedDto toDto(Feed feed, User author, Weather weather, List<OotdDto> ootdDtos, boolean likedByMe) {
     return  new FeedDto(
         feed.getId(),
         feed.getCreatedAt(),
@@ -27,8 +27,7 @@ public class FeedMapper {
         feed.getContent(),
         feed.getLikeCount(),
         feed.getCommentCount(),
-        // TODO: 좋아요 기능 구현 후 수정
-        false
+        likedByMe
     );
   }
 }
