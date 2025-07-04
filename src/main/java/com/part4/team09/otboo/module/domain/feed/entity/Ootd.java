@@ -37,5 +37,4 @@ public class Ootd extends BaseEntity {
     this.feedId = feedId;
     this.clothesId = clothesId;
   }
-
 }

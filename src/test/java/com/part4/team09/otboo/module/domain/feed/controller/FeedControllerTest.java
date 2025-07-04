@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -15,6 +16,7 @@ import com.part4.team09.otboo.module.domain.feed.dto.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.dto.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.service.CommentService;
@@ -174,6 +176,47 @@ class FeedControllerTest {
           .andExpect(status().isCreated())
           .andExpect(jsonPath("$.id").value(feedId.toString()))
           .andExpect(jsonPath("$.content").value("content"));
+    }
+  }
+
+  @Nested
+  @DisplayName("피드 수정")
+  public class UpdateFeedTest {
+
+    @Test
+    @DisplayName("피드 수정 성공")
+    void update_feed_success() throws Exception {
+      // given
+      UUID feedId = UUID.randomUUID();
+      Weather mockWeather = mock(Weather.class);
+      AuthorDto mockAuthorDto = mock(AuthorDto.class);
+      List<OotdDto> ootdDtos = List.of();
+
+      FeedUpdateRequest request = new FeedUpdateRequest("newContent");
+
+      FeedDto feedDto = new FeedDto(
+          feedId,
+          LocalDateTime.now(),
+          LocalDateTime.now(),
+          mockAuthorDto,
+          mockWeather,
+          ootdDtos,
+          "newContent",
+          0,
+          0,
+          false
+      );
+
+      given(feedService.update(feedId, request)).willReturn(feedDto);
+
+      // when & then
+      mockMvc.perform(patch("/api/feeds/{feedId}", feedId)
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(request))
+              .with(csrf()))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.id").value(feedId.toString()))
+          .andExpect(jsonPath("$.content").value("newContent"));
     }
   }
 }
