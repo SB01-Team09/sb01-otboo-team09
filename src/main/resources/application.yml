@@ -26,6 +26,13 @@ otboo:
     name: ${ADMIN_NAME:admin}
     email: ${ADMIN_EMAIL:admin@admin.com}
     password: ${ADMIN_PASSWORD:admin1234}
+  file:
+    storage:
+      type: ${FILE_STORAGE_TYPE:local}
+      path: ${FILE_STORAGE_PATH:${user.dir}/fileStorage}
+  resource:
+    path: files
+
 
 # ?? ?? ??
 logging:

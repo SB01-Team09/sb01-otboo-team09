@@ -4,12 +4,19 @@ import com.part4.team09.otboo.module.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "dongs")
+@Table(name = "dongs",
+  uniqueConstraints = {
+    @UniqueConstraint(
+      name = "uk_dongs_latitude_longitude",
+      columnNames = {"latitude", "longitude"})
+  }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Dong extends BaseEntity {

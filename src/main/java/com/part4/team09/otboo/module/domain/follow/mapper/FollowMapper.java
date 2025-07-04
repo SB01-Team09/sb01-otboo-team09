@@ -13,18 +13,19 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class FollowMapper {
 
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-    public FollowDto toDto(Follow follow) {
+  public FollowDto toDto(Follow follow) {
 
-        User followee = userRepository.findById(follow.getFolloweeId())
-                .orElseThrow(() -> new UserNotFoundException(follow.getFolloweeId()));
-        User follower = userRepository.findById(follow.getFollowerId())
-                .orElseThrow(() -> new UserNotFoundException(follow.getFollowerId()));
+    User followee = userRepository.findById(follow.getFolloweeId())
+      .orElseThrow(() -> UserNotFoundException.withId(follow.getFolloweeId()));
+    User follower = userRepository.findById(follow.getFollowerId())
+      .orElseThrow(() -> UserNotFoundException.withId(follow.getFollowerId()));
 
-        return new FollowDto(
-                follow.getId(),
-                new UserSummary(followee.getId(), followee.getName(), followee.getProfileImageUrl()),
-                new UserSummary(follower.getId(), follower.getName(), follower.getProfileImageUrl())
-        );
-    }}
+    return new FollowDto(
+      follow.getId(),
+      new UserSummary(followee.getId(), followee.getName(), followee.getProfileImageUrl()),
+      new UserSummary(follower.getId(), follower.getName(), follower.getProfileImageUrl())
+    );
+  }
+}

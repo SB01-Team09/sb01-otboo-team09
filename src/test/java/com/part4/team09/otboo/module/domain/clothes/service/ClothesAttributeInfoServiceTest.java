@@ -11,6 +11,7 @@ import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttribute
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefUpdateRequest;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
+import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefMapper;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +43,9 @@ class ClothesAttributeInfoServiceTest {
 
   @Mock
   private ClothesAttributeDefMapper clothesAttributeDefMapper;
+
+  @Mock
+  private ClothesAttributeDefDtoCursorResponseMapper clothesAttributeDefDtoCursorResponseMapper;
 
   @Nested
   @DisplayName("의상 속성 생성")

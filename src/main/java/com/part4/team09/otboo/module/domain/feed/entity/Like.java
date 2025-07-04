@@ -12,29 +12,29 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(
-    name = "likes",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "UniqueNumberAndStatus",
-            columnNames = {"feedId", "userId"})
-    }
+  name = "likes",
+  uniqueConstraints = {
+    @UniqueConstraint(
+      name = "unique_likes_feed_user",
+      columnNames = {"feedId", "userId"})
+  }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Like extends BaseEntity {
 
-    @Column(nullable = false)
-    private UUID feedId;
+  @Column(nullable = false)
+  private UUID feedId;
 
-    @Column(nullable = false)
-    private UUID userId;
+  @Column(nullable = false)
+  private UUID userId;
 
-    public static Like create(UUID feedId, UUID userId) {
-        return new Like(feedId, userId);
-    }
+  public static Like create(UUID feedId, UUID userId) {
+    return new Like(feedId, userId);
+  }
 
-    private Like(UUID feedId, UUID userId) {
-        this.feedId = feedId;
-        this.userId = userId;
-    }
+  private Like(UUID feedId, UUID userId) {
+    this.feedId = feedId;
+    this.userId = userId;
+  }
 }
