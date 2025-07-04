@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.feed.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -88,7 +89,7 @@ class FeedServiceTest {
       given(weatherRepository.findById(any())).willReturn(Optional.of(mockWeather));
       given(feedRepository.save(any(Feed.class))).willReturn(mockFeed);
       given(ootdService.create(any(), any())).willReturn(ootdDtos);
-      given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class), any())).willReturn(feedDto);
+      given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class), any(), eq(false))).willReturn(feedDto);
 
       // when
       FeedDto result = feedService.create(request);
