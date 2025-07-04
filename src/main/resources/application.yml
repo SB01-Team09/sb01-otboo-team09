@@ -25,10 +25,11 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
   cache:
+    type: redis
     cache-names:
       - followSummary
     redis:
-      enable-statistics: true          # redis, caffeine의 size, TTL은 cacheConfig에서 지정
+      enable-statistics: true          # size, TTL은 cacheConfig에서 지정
 
 otboo:
   admin:
