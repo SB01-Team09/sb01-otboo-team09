@@ -15,7 +15,9 @@ public record WeatherData(
   LocalDateTime forecastedAt,
   LocalDateTime forecastAt,
   SkyStatus skyStatus,
-  String locationId
+  String locationId,
+  int x,
+  int y
 ) {
 
 }
