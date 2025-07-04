@@ -17,7 +17,6 @@ import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefMapper;
-import jakarta.validation.constraints.AssertFalse;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -117,7 +116,6 @@ class ClothesAttributeInfoServiceTest {
 
       // selectableValue 생성
       SelectableValue value1 = SelectableValue.create(defId1, "S");
-      SelectableValue value2 = SelectableValue.create(defId2, "Red");
 
       ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
           null, null, 2, "name", SortDirection.ASCENDING, "사이즈");
