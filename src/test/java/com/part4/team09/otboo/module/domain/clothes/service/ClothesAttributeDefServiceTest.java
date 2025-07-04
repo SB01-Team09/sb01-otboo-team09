@@ -12,6 +12,7 @@ import com.part4.team09.otboo.module.common.entity.BaseEntity;
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefFindRequest;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
+import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.BadRequestException;
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class ClothesAttributeDefServiceTest {
@@ -76,6 +78,7 @@ class ClothesAttributeDefServiceTest {
       // when, then
       assertThrows(ClothesAttributeDefAlreadyExistsException.class,
           () -> clothesAttributeDefService.create(name));
+      then(clothesAttributeDefRepository).should(times(0)).save(any(ClothesAttributeDef.class));
     }
   }
 
@@ -88,18 +91,19 @@ class ClothesAttributeDefServiceTest {
     void find_by_id_success() {
 
       // given
-      UUID id = UUID.randomUUID();
+      UUID defId = UUID.randomUUID();
       ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
+      ReflectionTestUtils.setField(def, "id", defId);
 
-      given(clothesAttributeDefRepository.findById(id)).willReturn(Optional.of(def));
+      given(clothesAttributeDefRepository.findById(def.getId())).willReturn(Optional.of(def));
 
       // when
-      ClothesAttributeDef result = clothesAttributeDefService.findById(id);
+      ClothesAttributeDef result = clothesAttributeDefService.findById(def.getId());
 
       // then
       assertNotNull(result);
       assertEquals(def, result);
-      then(clothesAttributeDefRepository).should().findById(id);
+      then(clothesAttributeDefRepository).should().findById(def.getId());
     }
 
     @Test
@@ -107,13 +111,13 @@ class ClothesAttributeDefServiceTest {
     void find_by_id_not_found_id() {
 
       // given
-      UUID id = UUID.randomUUID();
+      UUID defId = UUID.randomUUID();
 
-      given(clothesAttributeDefRepository.findById(id)).willReturn(Optional.empty());
+      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.empty());
 
       // when, then
       assertThrows(ClothesAttributeDefNotFoundException.class,
-          () -> clothesAttributeDefService.findById(id));
+          () -> clothesAttributeDefService.findById(defId));
     }
   }
 
@@ -202,6 +206,75 @@ class ClothesAttributeDefServiceTest {
       assertEquals(result, defs);
       then(clothesAttributeDefRepositoryQueryDSL).should(times(0)).findByCursor(defIds, request);
 
+    }
+
+    @Test
+    @DisplayName("limit가 0 이하일 경우 예외처리")
+    void find_by_cursor_invalid_limit() {
+
+      // given
+      List<UUID> defIds = List.of();
+      ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(null, null, 0,
+          "name", SortDirection.ASCENDING, "사이즈");
+
+      // when, then
+      assertThrows(BadRequestException.class, () -> clothesAttributeDefService.findByCursor(defIds, request));
+      then(clothesAttributeDefRepositoryQueryDSL).should(times(0)).findByCursor(defIds, request);
+
+    }
+
+    @Test
+    @DisplayName("잘못된 sortBy 값일 경우 예외처리")
+    void find_by_cursor_invalid_sort_by() {
+
+      // given
+      List<UUID> defIds = List.of();
+      ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(null, null, 10,
+          "invalidSortBy", SortDirection.ASCENDING, "사이즈");
+
+      // when, then
+      assertThrows(BadRequestException.class, () -> clothesAttributeDefService.findByCursor(defIds, request));
+      then(clothesAttributeDefRepositoryQueryDSL).should(times(0)).findByCursor(defIds, request);
+    }
+  }
+
+  @Nested
+  @DisplayName("의상 속성 정의 id 리스트로 속성 정의 리스트 조회")
+  class FindAllByIds {
+
+    @Test
+    @DisplayName("조회 성공")
+    void find_all_by_ids_success() {
+
+      // given
+      List<UUID> defIds = List.of(UUID.randomUUID(), UUID.randomUUID());
+      List<ClothesAttributeDef> defs = List.of(ClothesAttributeDef.create("사이즈"), ClothesAttributeDef.create("색상"));
+
+      given(clothesAttributeDefRepository.findAllById(defIds)).willReturn(defs);
+
+      // when
+      List<ClothesAttributeDef> result = clothesAttributeDefService.findAllByIds(defIds);
+
+      // then
+      assertNotNull(result);
+      assertEquals(result, defs);
+      then(clothesAttributeDefRepository).should().findAllById(defIds);
+    }
+
+    @Test
+    @DisplayName("defIds가 비어있을 경우 빈 리스트 반환")
+    void find_all_by_no_def_ids() {
+
+      // given
+      List<UUID> defIds = List.of();
+
+      // when
+      List<ClothesAttributeDef> result = clothesAttributeDefService.findAllByIds(defIds);
+
+      // then
+      assertNotNull(result);
+      assertEquals(result, List.of());
+      then(clothesAttributeDefRepository).should(times(0)).findAllById(defIds);
     }
   }
 

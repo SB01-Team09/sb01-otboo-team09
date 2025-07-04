@@ -57,6 +57,7 @@ public class ClothesAttributeInfoService {
   }
 
   // 커서 기반 의상 속성 정의 탐색
+  @Transactional(readOnly = true)
   public ClothesAttributeDefDtoCursorResponse findByCursor(ClothesAttributeDefFindRequest request) {
 
     log.debug("의상 속성 정의 찾기 시작: cursor = {}, idAfter = {}, limit = {}, sortBy = {}, "
