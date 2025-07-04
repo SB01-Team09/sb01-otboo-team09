@@ -7,7 +7,8 @@ public enum WeatherErrorCode implements ErrorCode {
   HUMIDITY_NOF_FOUND(HttpStatus.NOT_FOUND, "습도 정보를 찾을 수 없습니다."),
   PRECIPITATION_NOF_FOUND(HttpStatus.NOT_FOUND, "강수량 정보를 찾을 수 없습니다."),
   TEMPERATURE_NOF_FOUND(HttpStatus.NOT_FOUND, "온도 정보를 찾을 수 없습니다."),
-  WINDSPEED_NOF_FOUND(HttpStatus.NOT_FOUND, "풍속 정보를 찾을 수 없습니다.");
+  WINDSPEED_NOF_FOUND(HttpStatus.NOT_FOUND, "풍속 정보를 찾을 수 없습니다."),
+  WEATHER_NOF_FOUND(HttpStatus.NOT_FOUND, "날씨 정보를 찾을 수 없습니다.");
 
   private final HttpStatus status;
   private final String message;
