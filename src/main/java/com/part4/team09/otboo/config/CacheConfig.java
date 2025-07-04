@@ -29,6 +29,7 @@ public class CacheConfig {
                 .cacheDefaults(redisCacheConfiguration(objectMapper))
                 .build();
 
+
         // CaffeineCacheManager 설정
         CaffeineCacheManager localManager = new CaffeineCacheManager("followSummary"); // TODO: 조회 기능 추가 후 캐시 이름 파라미터에 추가 예정
         localManager.setCaffeine(Caffeine.newBuilder()

@@ -6,6 +6,8 @@ import com.part4.team09.otboo.module.domain.follow.dto.FollowListRequest;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowSummaryDto;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
+import com.part4.team09.otboo.module.domain.follow.event.FollowCreatedEvent;
+import com.part4.team09.otboo.module.domain.follow.event.FollowDeletedEvent;
 import com.part4.team09.otboo.module.domain.follow.exception.FollowNotFoundException;
 import com.part4.team09.otboo.module.domain.follow.mapper.FollowMapper;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +34,7 @@ public class FollowService {
     private final UserRepository userRepository;
     private final FollowRepositoryQueryDSL followRepositoryQueryDSL;
     private final FollowMapper followMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 팔로우 등록
     @Transactional
@@ -50,7 +54,8 @@ public class FollowService {
 
         log.info("팔로우 저장 완료: id={}", savedFollow.getId());
 
-        // TODO: 팔로우 당한 사람(팔로이)한테 알림 발송
+        // 캐시 무효화 이벤트 pub TODO: 팔로우 당한 사람(팔로이)한테 알림 발송 리스너 추가
+        eventPublisher.publishEvent(new FollowCreatedEvent(followeeId, followerId));
 
         return followMapper.toDto(savedFollow);
     }
@@ -169,6 +174,7 @@ public class FollowService {
 
     // 팔로우 요약 정보 조회 TODO: loginUserId 파라미터 수정
     @Transactional(readOnly = true)
+    @Cacheable(value = "followSummary", key = "#userId")
     public FollowSummaryDto getFollowSummary(UUID userId, UUID loginUserId){
         // 두 유저가 존재하지 않을 경우 각각 예외 처리
         if (!userRepository.existsById(userId)) {
@@ -193,10 +199,22 @@ public class FollowService {
     // 팔로우 삭제
     @Transactional
     public void deleteFollow(UUID followId) {
+        // 이따 이벤트 발행을 위한 파라미터 준비
+        Follow follow = followRepository.findById(followId).orElseThrow();
+        UUID followeeId = follow.getFolloweeId();
+        UUID followerId = follow.getFollowerId();
+
+        log.info("팔로우 삭제 시작");
+
         // 해당 팔로우가 애초에 존재하지 않아서 취소할 수 없음 예외
         if (!followRepository.existsById(followId)) {
             throw new FollowNotFoundException(followId);
         }
         followRepository.deleteById(followId);
+
+        log.info("캐시 무효화 시작");
+
+        // 캐시 무효화 이벤트 pub
+        eventPublisher.publishEvent(new FollowDeletedEvent(followeeId, followerId));
     }
 }
