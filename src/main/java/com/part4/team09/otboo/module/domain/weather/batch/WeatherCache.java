@@ -36,9 +36,4 @@ public class WeatherCache {
 
     return weathers;
   }
-
-  public boolean isExist(int x, int y) {
-    String coordinate = x + "_" + y;
-    return weatherCache.containsKey(coordinate);
-  }
 }

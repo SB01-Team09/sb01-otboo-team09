@@ -73,29 +73,15 @@ public class WeatherReader implements ItemStreamReader<WeatherApiData> {
             );
         });
 
-        // 👉 다음 Location 처리 위해 루프 계속
+        // 다음 Location 처리 위해 루프 계속
         continue;
       }
 
-      // ❌ 캐시에 없으면 외부 API 호출해서 반환
+      // 캐시에 없으면 외부 API 호출해서 반환
       List<Item> items = weatherApiClient.getWeatherApiResponse(x, y);
       return new WeatherApiData(currentLocation.getId(), items, x, y);
     }
   }
-
-//  @PostConstruct
-//  private void initForecastAts() {
-//    List<LocalDateTime> localDateTimes = new ArrayList<>();
-//
-//    for (int i = 0; i < 3; i++) {
-//      if (i == 1) {
-//        localDateTimes.add(LocalDate.now().minusDays(i).atTime(12, 0));
-//      }
-//      localDateTimes.add(LocalDate.now().plusDays(i).atTime(12, 0));
-//    }
-//
-//    forecastAts = List.copyOf(localDateTimes);
-//  }
 
   @Override
   public void open(ExecutionContext executionContext) throws ItemStreamException {
