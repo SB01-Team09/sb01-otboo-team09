@@ -77,9 +77,9 @@ CREATE TABLE dongs
     latitude   DOUBLE PRECISION,
     longitude  DOUBLE PRECISION,
     x          INTEGER,
-    y          INTEGER,
+    y INTEGER
 
-    CONSTRAINT uk_dongs_latitude_longitude UNIQUE (latitude, longitude)
+--     CONSTRAINT uk_dongs_latitude_longitude UNIQUE (latitude, longitude)
 );
 
 CREATE TABLE gus
@@ -213,4 +213,12 @@ CREATE TABLE selectable_values
     created_at       TIMESTAMP WITH TIME ZONE NOT NULL,
     attribute_def_id UUID                     NOT NULL,
     item             VARCHAR(50)              NOT NULL
+);
+
+CREATE TABLE failed_locations
+(
+    id                 UUID PRIMARY KEY,
+    created_at         TIMESTAMP WITH TIME ZONE NOT NULL,
+    failed_location_id VARCHAR(10)              NOT NULL,
+    retry_count        INTEGER                  NOT NULL
 );
