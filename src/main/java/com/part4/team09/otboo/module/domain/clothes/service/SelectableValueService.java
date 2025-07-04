@@ -42,6 +42,7 @@ public class SelectableValueService {
   }
 
   // 속성 정의 명에 해당되는 속성 값들 반환
+  @Transactional(readOnly = true)
   public List<SelectableValue> findAllByAttributeDefId(UUID defId) {
 
     log.debug("의상 속성 정의 id로 속성 값 조회 시작: defId = {}", defId);
@@ -54,7 +55,8 @@ public class SelectableValueService {
     return response;
   }
 
-  // 속성 정의 id 리스트로 찾기
+  // 속성 정의 id 리스트로 조회
+  @Transactional(readOnly = true)
   public List<SelectableValue> findAllByAttributeDefIdIn(List<UUID> defIds) {
 
     log.debug("의상 속성 정의 id 리스트로 속성 값 조회 시작: defIdsSize = {}", defIds.size());
@@ -140,4 +142,5 @@ public class SelectableValueService {
       throw ClothesAttributeDefNotFoundException.withId(defId);
     }
   }
+
 }
