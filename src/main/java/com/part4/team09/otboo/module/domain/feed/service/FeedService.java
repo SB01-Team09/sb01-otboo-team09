@@ -50,6 +50,7 @@ public class FeedService {
     return feedMapper.toDto(savedFeed, author, weather, ootds, false);
   }
 
+  // TODO: 로그인 한 사용자와 같은지 확인
   @Transactional
   public FeedDto update(UUID feedId, FeedUpdateRequest request) {
     Feed feed = getFeedOrThrow(feedId);
