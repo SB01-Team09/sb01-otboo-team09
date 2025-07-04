@@ -12,12 +12,12 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(
-    name = "ootds",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "UniqueNumberAndStatus",
-            columnNames = {"feedId", "clothesId"})
-    }
+  name = "ootds",
+  uniqueConstraints = {
+    @UniqueConstraint(
+      name = "unique_ootds_feed_clothes",
+      columnNames = {"feedId", "clothesId"})
+  }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

@@ -17,11 +17,15 @@ public class ClothesAttributeDef extends BaseUpdatableEntity {
   @Column(nullable = false)
   private String name;
 
+  private ClothesAttributeDef(String name) {
+    this.name = name;
+  }
+
   public static ClothesAttributeDef create(String name) {
     return new ClothesAttributeDef(name);
   }
 
-  private ClothesAttributeDef(String name) {
-    this.name = name;
+  public void update(String newName) {
+    this.name = newName;
   }
 }

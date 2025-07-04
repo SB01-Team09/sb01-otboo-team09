@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 .logs/
 spy.log
+fileStorage/
 
 ### STS ###
 .apt_generated
@@ -44,3 +45,6 @@ out/
 
 ### 환경변수 파일 ###
 .env
+
+### grafana volume ###
+/grafana-data

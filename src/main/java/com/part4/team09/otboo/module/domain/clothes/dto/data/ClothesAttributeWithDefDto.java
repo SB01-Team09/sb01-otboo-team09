@@ -5,17 +5,17 @@ import java.util.UUID;
 
 public record ClothesAttributeWithDefDto(
 
-    // 속성 정의 id
-    UUID definitionId,
+  // 속성 정의 id
+  UUID definitionId,
 
-    // 속성 정의 이름
-    String definitionName,
+  // 속성 정의 이름
+  String definitionName,
 
-    // 선택 가능한 값 목록
-    List<String> selectableValues,
+  // 선택 가능한 값 목록
+  List<String> selectableValues,
 
-    // 선택한 속성 값
-    String value
+  // 선택한 속성 값
+  String value
 ) {
 
 }
