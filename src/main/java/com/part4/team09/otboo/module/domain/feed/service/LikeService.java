@@ -46,7 +46,7 @@ public class LikeService {
   public boolean isLikedByMe(UUID userId, UUID feedId) {
     return likeRepository.existsByUserIdAndFeedId(userId, feedId);
   }
-
+  
   private User getUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
         .orElseThrow(() -> UserNotFoundException.withId(userId));
