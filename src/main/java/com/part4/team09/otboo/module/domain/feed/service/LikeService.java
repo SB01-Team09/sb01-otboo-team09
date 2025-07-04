@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +31,7 @@ public class LikeService {
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
 
+  @Transactional
   public FeedDto create(UUID userId, UUID feedId) {
     Feed feed = getFeedOrThrow(feedId);
     User user = getUserOrThrow(userId);
