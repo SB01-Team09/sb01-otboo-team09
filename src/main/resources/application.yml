@@ -20,6 +20,16 @@ spring:
   batch:
     job:
       enabled: false
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+  cache:
+    type: redis
+    cache-names:
+      - followSummary
+    redis:
+      enable-statistics: true          # size, TTL은 cacheConfig에서 지정
 
 otboo:
   admin:

@@ -5,6 +5,9 @@ import com.part4.team09.otboo.module.domain.follow.dto.FollowListRequest;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowSummaryDto;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
+import com.part4.team09.otboo.module.domain.follow.event.FollowCacheEvictListener;
+import com.part4.team09.otboo.module.domain.follow.event.FollowCreatedEvent;
+import com.part4.team09.otboo.module.domain.follow.event.FollowDeletedEvent;
 import com.part4.team09.otboo.module.domain.follow.exception.FollowNotFoundException;
 import com.part4.team09.otboo.module.domain.follow.mapper.FollowMapper;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
@@ -18,10 +21,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.Cache;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,6 +55,18 @@ class FollowServiceTest {
     @Mock
     private FollowRepositoryQueryDSL followRepositoryQueryDSL;
 
+    @Mock
+    private CacheManager cacheManager;
+
+    @Mock
+    private Cache cache;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @InjectMocks
+    private FollowCacheEvictListener followCacheEvictListener;
+
 
     @Test
     @DisplayName("팔로우 등록 성공")
@@ -69,6 +88,7 @@ class FollowServiceTest {
         when(userRepository.existsById(any(UUID.class))).thenReturn(true); // 유저가 정상적으로 존재할 때를 가정해줌
         when(followRepository.save(any(Follow.class))).thenReturn(follow);
         when(followMapper.toDto(any(Follow.class))).thenReturn(dto);
+        doNothing().when(eventPublisher).publishEvent(any(FollowCreatedEvent.class));
 
         // when
         FollowDto result = followService.create(followeeId, followerId);
@@ -261,29 +281,44 @@ class FollowServiceTest {
     void unfollowSuccess() {
         // given
         UUID followId = UUID.randomUUID();
+        UUID followeeId = UUID.randomUUID();
+        UUID followerId = UUID.randomUUID();
+
+        Follow follow = Follow.create(followeeId, followerId);
+        ReflectionTestUtils.setField(follow, "id", followId);
 
         // existsById가 true를 반환하도록 설정
         when(followRepository.existsById(followId)).thenReturn(true);
-
-        // doNothing: void 메서드 mocking
+        when(followRepository.findById(followId)).thenReturn(Optional.of(follow));
         doNothing().when(followRepository).deleteById(followId);
+        doNothing().when(eventPublisher).publishEvent(any(FollowDeletedEvent.class));
 
         // when
         followService.deleteFollow(followId);
+
+        // 이벤트 수동 호출
+        followCacheEvictListener.handle(new FollowDeletedEvent(followeeId, followerId));
 
         // then
         verify(followRepository).existsById(followId);
         verify(followRepository).deleteById(followId);
     }
 
+
     @Test
     @DisplayName("팔로우 삭제 실패 - 존재하지 않는 팔로우 ID")
     void unfollowFail_NotFound() {
         // given
         UUID followId = UUID.randomUUID();
+        UUID followeeId = UUID.randomUUID();
+        UUID followerId = UUID.randomUUID();
+
+        Follow follow = Follow.create(followeeId, followerId);
+        ReflectionTestUtils.setField(follow, "id", followId);
 
         // existsById가 false를 반환 → 예외 발생 조건
         when(followRepository.existsById(followId)).thenReturn(false);
+        when(followRepository.findById(followId)).thenReturn(Optional.of(follow));
 
         // when, then
         assertThrows(FollowNotFoundException.class, () -> {
