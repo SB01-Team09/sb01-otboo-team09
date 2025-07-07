@@ -52,6 +52,7 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-batch'
 
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+  implementation 'com.github.ben-manes.caffeine:caffeine' // dev 프로필용 caffeine 의존성 추가
 
   implementation 'com.nimbusds:nimbus-jose-jwt:10.3'
 

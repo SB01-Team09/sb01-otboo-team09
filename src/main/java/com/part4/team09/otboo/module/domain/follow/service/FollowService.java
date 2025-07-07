@@ -22,9 +22,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Profile("dev")
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -174,7 +176,7 @@ public class FollowService {
 
     // 팔로우 요약 정보 조회 TODO: loginUserId 파라미터 수정
     @Transactional(readOnly = true)
-    @Cacheable(value = "followSummary", key = "#userId")
+    @Cacheable(value = "followSummary", key = "#userId.toString() + ':' + #loginUserId.toString()")
     public FollowSummaryDto getFollowSummary(UUID userId, UUID loginUserId){
         // 두 유저가 존재하지 않을 경우 각각 예외 처리
         if (!userRepository.existsById(userId)) {
