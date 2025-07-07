@@ -214,3 +214,13 @@ CREATE TABLE selectable_values
     attribute_def_id UUID                     NOT NULL,
     item             VARCHAR(50)              NOT NULL
 );
+
+create table refresh_tokens
+(
+    id            UUID PRIMARY KEY,
+    user_id       UUID UNIQUE,
+    refresh_token VARCHAR(512),
+    issued_at     TIMESTAMP WITH TIME ZONE NOT NULL,
+    expired_at    TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at    TIMESTAMP WITH TIME ZONE NOT NULL
+);

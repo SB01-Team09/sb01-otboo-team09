@@ -20,3 +20,4 @@ management:
 logging:
   level:
     p6spy: debug
+    com.nimbusds.jwt: debug

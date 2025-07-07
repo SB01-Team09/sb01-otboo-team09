@@ -2,7 +2,9 @@ package com.part4.team09.otboo.module.domain.auth.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;
-import com.part4.team09.otboo.module.domain.user.dto.UserDto;
+import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
+import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
+import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +23,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JsonLoginSuccessHandler implements AuthenticationSuccessHandler {
 
+  private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+
   private final ObjectMapper objectMapper;
+  private final JwtTokenProvider jwtTokenProvider;
 
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -29,20 +34,21 @@ public class JsonLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     // 인증 정보
     CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
-    UserDto userDto = principal.getUserDto();
+    AuthUserDto authUserDto = principal.getUserDto();
 
     // 토큰 발급
+    GeneratedToken generatedToken = jwtTokenProvider.generateToken(authUserDto);
 
     // 쿠키 생성 (refresh token)
-    Cookie tempCookie = new Cookie("email", userDto.email());
+    Cookie tempCookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, generatedToken.refreshToken());
     tempCookie.setHttpOnly(true);
 
-    // 응답
+    // 응답 설정
     response.addCookie(tempCookie);
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     response.setStatus(HttpServletResponse.SC_OK);
 
     // 액세스 토큰 응답
-
+    objectMapper.writeValue(response.getWriter(), generatedToken.accessToken());
   }
 }

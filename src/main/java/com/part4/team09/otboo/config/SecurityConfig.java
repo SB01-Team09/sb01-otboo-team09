@@ -2,10 +2,19 @@ package com.part4.team09.otboo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.common.security.Filter.JsonLoginAuthenticationFilter;
+import com.part4.team09.otboo.module.common.security.Filter.JwtAuthenticationFilter;
+import com.part4.team09.otboo.module.common.security.jwt.JwtProperty;
+import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
+import com.part4.team09.otboo.module.domain.auth.handler.CustomAccessDeniedHandler;
+import com.part4.team09.otboo.module.domain.auth.handler.CustomAuthenticationEntryPoint;
 import com.part4.team09.otboo.module.domain.auth.handler.JsonLoginFailureHandler;
 import com.part4.team09.otboo.module.domain.auth.handler.JsonLoginSuccessHandler;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -17,25 +26,45 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
+@Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@Configuration
+@RequiredArgsConstructor
+@EnableConfigurationProperties(JwtProperty.class)
 public class SecurityConfig {
+
+  private final JwtTokenProvider jwtTokenProvider;
+  private final CustomAccessDeniedHandler customAccessDeniedHandler;
+  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
   @Bean
   public SecurityFilterChain filterChain(
     HttpSecurity http,
     JsonLoginAuthenticationFilter jsonLoginAuthenticationFilter
   ) throws Exception {
-    http
-      .csrf(AbstractHttpConfigurer::disable) // disable
-      .authorizeHttpRequests(this::configureAuthorization) // 인가 정책
+    return http
 
-      // 필터 등록
+      .cors(AbstractHttpConfigurer::disable)
+      .csrf(csrf -> {
+        csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+      })
+
+      // 인가 설정
+      .authorizeHttpRequests(this::configureAuthorization)
+
+      // 예외 핸들러
+      .exceptionHandling(ex -> ex
+        .accessDeniedHandler(customAccessDeniedHandler)
+        .authenticationEntryPoint(customAuthenticationEntryPoint)
+      )
+
+      // 필터 추가
+      .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
       .addFilterAt(jsonLoginAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-    ;
-    return http.build();
+
+      .build();
   }
 
   // 인가 설정
@@ -43,6 +72,12 @@ public class SecurityConfig {
     AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth
   ) {
     auth
+      .requestMatchers("/api/auth/**").permitAll()
+      .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+      .requestMatchers("file/**").permitAll()
+
+      .requestMatchers("/api/**").hasRole("USER")
+
       .anyRequest().permitAll();
   }
 
@@ -52,7 +87,7 @@ public class SecurityConfig {
     return new BCryptPasswordEncoder();
   }
 
-  // 인증 매니저 (UserDetailsService 와 PasswordEncoder 가 자동설정)
+  // 인증 매니저 (UserDetailsService 와 PasswordEncoder 가 자동 설정됨)
   @Bean
   public AuthenticationManager authenticationManager(
     AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -73,5 +108,18 @@ public class SecurityConfig {
     filter.setAuthenticationFailureHandler(failureHandler);
 
     return filter;
+  }
+
+  // jwt 필터 등록
+  @Bean
+  public JwtAuthenticationFilter jwtAuthenticationFilter() {
+    return new JwtAuthenticationFilter(jwtTokenProvider, customAuthenticationEntryPoint);
+  }
+
+  @Bean
+  public RoleHierarchy roleHierarchy() {
+    return RoleHierarchyImpl.fromHierarchy("""
+      ROLE_ADMIN > ROLE_USER
+      """);
   }
 }
