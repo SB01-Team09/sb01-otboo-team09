@@ -12,7 +12,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,8 +35,8 @@ public class UserRepositoryQueryDSL {
                         equalLocked(request.locked()),
                         cursorCondition(request.cursor(), request.idAfter())
                 )
-                .orderBy(getSortOrder(user, request.sortBy(), request.sortDirection()))
-                .limit(request.limit()+1)
+                .orderBy(getSortOrder(request.sortBy(), request.sortDirection()))
+                .limit(request.limit() + 1)
                 .fetch();
     }
 
@@ -60,7 +59,7 @@ public class UserRepositoryQueryDSL {
         return emailLike != null ? QUser.user.email.likeIgnoreCase("%" + emailLike + "%") : null;
     }
 
-    private BooleanExpression equalRole(UserListRequest.RoleType role) {
+    private BooleanExpression equalRole(User.Role role) {
         return role != null ? QUser.user.role.eq(User.Role.valueOf(role.name())) : null;
     }
 
@@ -68,23 +67,22 @@ public class UserRepositoryQueryDSL {
         return locked != null ? QUser.user.locked.eq(locked) : null;
     }
 
-    private BooleanExpression cursorCondition(String cursorStr, UUID idAfter) {
-        if (cursorStr == null) return null;
+    private BooleanExpression cursorCondition(String cursor, UUID idAfter) {
+        if (cursor == null) return null;
 
-        LocalDateTime cursor = LocalDateTime.parse(cursorStr);
-        BooleanExpression condition = QUser.user.createdAt.lt(cursor);
+        BooleanExpression condition = QUser.user.email.gt(cursor);
 
         if (idAfter != null) {
             condition = condition.or(
-                    QUser.user.createdAt.eq(cursor).and(QUser.user.id.lt(idAfter))
+                    QUser.user.email.eq(cursor).and(QUser.user.id.gt(idAfter))
             );
         }
         return condition;
     }
 
-    private OrderSpecifier<?> getSortOrder(QUser user, String sortBy, SortDirection direction) {
+    private OrderSpecifier<?> getSortOrder(String sortBy, SortDirection direction) {
         if (sortBy == null || direction == null) {
-            throw new IllegalArgumentException("sortBy and sortDirection are required");
+            throw new IllegalArgumentException("sortBy와 sortDirection은 필수입니다.");
         }
 
         PathBuilder<User> entityPath = new PathBuilder<>(User.class, "user");

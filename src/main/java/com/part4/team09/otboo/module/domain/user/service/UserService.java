@@ -177,9 +177,12 @@ public class UserService {
     // 다음 커서 생성
     String nextCursor = null;
     UUID nextIdAfter = null;
+
     if (hasNext && !pagedUserList.isEmpty()) {
-      nextCursor = pagedUserList.get(request.limit() - 1).getEmail();
-      nextIdAfter = pagedUserList.get(request.limit() - 1).getId();
+      User lastUser = pagedUserList.get(request.limit() - 1);
+
+      nextCursor = extractCursorValue(lastUser, request.sortBy());
+      nextIdAfter = lastUser.getId();
     }
 
     return new UserDtoCursorResponse(pagedUserDtoList, nextCursor, nextIdAfter, hasNext, totalCount, request.sortBy(), request.sortDirection());
@@ -245,6 +248,17 @@ public class UserService {
       // TODO: 프로필 업로드 실패 알림 전송
       log.warn("{} | {}", e.getMessage(), e.getDetails());
       return null;
+    }
+  }
+
+  private String extractCursorValue(User user, String sortBy) {
+    switch (sortBy) {
+      case "email":
+        return user.getEmail();
+      case "createdAt":
+        return user.getCreatedAt().toString();
+      default:
+        throw new IllegalArgumentException("지원하지 않는 sortBy: " + sortBy);
     }
   }
 }

@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.user.dto.request;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 
 import java.util.UUID;
 
@@ -11,10 +12,7 @@ public record UserListRequest(
         String sortBy,
         SortDirection sortDirection,
         String emailLike,
-        RoleType roleEqual,
+        User.Role roleEqual,
         Boolean locked
 ) {
-    public enum RoleType{
-        USER, ADMIN
-    }
 }
