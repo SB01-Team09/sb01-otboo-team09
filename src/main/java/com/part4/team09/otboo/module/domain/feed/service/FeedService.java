@@ -70,6 +70,8 @@ public class FeedService {
     Feed feed = getFeedOrThrow(feedId);
 
     // TODO: 좋아요 취소 로직 구현 후 삭제하는 로직 추가
+
+    feedRepository.deleteById(feedId);
   }
 
 

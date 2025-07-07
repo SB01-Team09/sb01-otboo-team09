@@ -157,6 +157,9 @@ class FeedServiceTest {
     void delete_feed_success() {
       // given
       UUID feedId = UUID.randomUUID();
+      Feed mockFeed = mock(Feed.class);
+
+      given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
 
       // when
       feedService.delete(feedId);
