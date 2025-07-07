@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,7 +27,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -42,14 +42,11 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain filterChain(
     HttpSecurity http,
-    JsonLoginAuthenticationFilter jsonLoginAuthenticationFilter
-  ) throws Exception {
+    JsonLoginAuthenticationFilter jsonLoginAuthenticationFilter) throws Exception {
     return http
 
       .cors(AbstractHttpConfigurer::disable)
-      .csrf(csrf -> {
-        csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-      })
+      .csrf(AbstractHttpConfigurer::disable)
 
       // 인가 설정
       .authorizeHttpRequests(this::configureAuthorization)
@@ -72,9 +69,10 @@ public class SecurityConfig {
     AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth
   ) {
     auth
+      .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
       .requestMatchers("/api/auth/**").permitAll()
       .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-      .requestMatchers("file/**").permitAll()
+      .requestMatchers("/file/**").permitAll()
 
       .requestMatchers("/api/**").hasRole("USER")
 

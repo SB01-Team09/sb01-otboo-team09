@@ -13,7 +13,6 @@ import org.springframework.util.StringUtils;
  */
 public class IpUtils {
 
-  // 인스턴스화 금지
   private IpUtils() {
   }
 

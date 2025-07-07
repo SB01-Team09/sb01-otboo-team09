@@ -3,6 +3,7 @@ package com.part4.team09.otboo.module.common.security.Filter;
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
+import com.part4.team09.otboo.module.domain.auth.exception.InvalidJwtFormatException;
 import com.part4.team09.otboo.module.domain.auth.handler.CustomAuthenticationEntryPoint;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,7 +13,6 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -66,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     if (authorizationHeader == null || !authorizationHeader.startsWith(authPrefix)) {
       log.info("Jwt 토큰 추출 실패: Header 가 없거나 형식이 틀립니다. ({})", authorizationHeader);
-      throw new BadCredentialsException("JWT 토큰 형식이 올바르지 않습니다");
+      throw new InvalidJwtFormatException("JWT 토큰 형식이 올바르지 않습니다");
     }
     return authorizationHeader.substring(authPrefix.length());
   }
@@ -75,7 +75,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getRequestURI();
+    String method = request.getMethod();
     return !path.startsWith("/api/")
+      || ("/api/users".equals(path) && "POST".equalsIgnoreCase(method))
       || path.startsWith("/api/auth/")
       || path.startsWith("/swagger-ui")
       || path.startsWith("/v3/api-docs");
