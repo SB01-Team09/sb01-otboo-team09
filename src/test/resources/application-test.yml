@@ -16,12 +16,6 @@ spring:
   sql:
     init:
       mode: never
-  cache:
-    type: caffeine
-    cache-names:
-      - followSummary
-    caffeine:
-      spec: "maximumSize=100,expireAfterAccess=60s"
 
 logging:
   level:
