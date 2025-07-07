@@ -47,6 +47,9 @@ class FeedServiceTest {
   private LikeService likeService;
 
   @Mock
+  private CommentService commentService;
+
+  @Mock
   private UserRepository userRepository;
 
   @Mock
@@ -145,6 +148,28 @@ class FeedServiceTest {
 
       // then
       assertThat(result).isEqualTo(feedDto);
+    }
+  }
+
+  @Nested
+  @DisplayName("피드 삭제")
+  public class DeleteFeedTest {
+
+    @Test
+    @DisplayName("피드 삭제 성공")
+    void delete_feed_success() {
+      // given
+      UUID feedId = UUID.randomUUID();
+
+      given(feedRepository.existsById(feedId)).willReturn(true);
+
+      // when
+      feedService.delete(feedId);
+
+      // then
+      verify(ootdService).deleteAllByFeedId(feedId);
+      verify(commentService).deleteAllByFeedId(feedId);
+      verify(feedRepository).deleteById(feedId);
     }
   }
 }

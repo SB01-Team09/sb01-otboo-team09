@@ -48,6 +48,11 @@ public class OotdService {
         .toList();
   }
 
+  @Transactional
+  public void deleteAllByFeedId(UUID feedId) {
+    ootdRepository.deleteAllByFeedId(feedId);
+  }
+
   private List<Clothes> getAllByClothesIdsOrThrow(List<UUID> clothesIds) {
     List<Clothes> foundClothes = clothesRepository.findAllById(clothesIds);
 
