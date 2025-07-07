@@ -47,6 +47,9 @@ class FeedServiceTest {
   private LikeService likeService;
 
   @Mock
+  private CommentService commentService;
+
+  @Mock
   private UserRepository userRepository;
 
   @Mock
@@ -157,14 +160,15 @@ class FeedServiceTest {
     void delete_feed_success() {
       // given
       UUID feedId = UUID.randomUUID();
-      Feed mockFeed = mock(Feed.class);
 
-      given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
+      given(feedRepository.existsById(feedId)).willReturn(true);
 
       // when
       feedService.delete(feedId);
 
       // then
+      verify(ootdService).deleteAllByFeedId(feedId);
+      verify(commentService).deleteAllByFeedId(feedId);
       verify(feedRepository).deleteById(feedId);
     }
   }

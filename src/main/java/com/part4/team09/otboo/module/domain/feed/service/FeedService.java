@@ -5,7 +5,6 @@ import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
-import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
 import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
@@ -31,6 +30,7 @@ public class FeedService {
   private final FeedMapper feedMapper;
 
   private final OotdService ootdService;
+  private final CommentService commentService;
 
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
@@ -67,17 +67,24 @@ public class FeedService {
   // TODO: 로그인 한 사용자와 같은지 확인
   @Transactional
   public void delete(UUID feedId) {
-    Feed feed = getFeedOrThrow(feedId);
+    validateFeedExists(feedId);
 
-    // TODO: 좋아요 취소 로직 구현 후 삭제하는 로직 추가
+    // TODO: 좋아요 취소 로직 구현 후 삭제 전파 로직 추가
+    ootdService.deleteAllByFeedId(feedId);
+    commentService.deleteAllByFeedId(feedId);
 
     feedRepository.deleteById(feedId);
   }
 
-
   private Feed getFeedOrThrow(UUID feedId) {
     return feedRepository.findById(feedId)
         .orElseThrow(() -> FeedNotFoundException.withId(feedId));
+  }
+
+  private void validateFeedExists(UUID feedId) {
+    if (!feedRepository.existsById(feedId)) {
+      throw FeedNotFoundException.withId(feedId);
+    }
   }
 
   private User getUserOrThrow(UUID userId) {
