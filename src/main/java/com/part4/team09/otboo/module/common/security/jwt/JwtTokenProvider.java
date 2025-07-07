@@ -20,8 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.UUID;
 import javax.crypto.SecretKey;
@@ -41,21 +39,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class JwtTokenProvider {
 
-  private static final ZoneId KST = ZoneId.of("Asia/Seoul");
-
-  private final RefreshTokenRepository refreshTokenRepository;
+  private final AuthTokenRepository authTokenRepository;
   private final JwtProperty jwtProperty;
   private final Clock clock;
 
   @Autowired
-  public JwtTokenProvider(JwtProperty jwtProperty, RefreshTokenRepository refreshTokenRepository) {
-    this(refreshTokenRepository, jwtProperty, Clock.systemUTC());
+  public JwtTokenProvider(JwtProperty jwtProperty, AuthTokenRepository authTokenRepository) {
+    this(authTokenRepository, jwtProperty, Clock.systemUTC());
   }
 
   // for test
-  public JwtTokenProvider(RefreshTokenRepository refreshTokenRepository, JwtProperty jwtProperty,
+  public JwtTokenProvider(AuthTokenRepository authTokenRepository, JwtProperty jwtProperty,
     Clock clock) {
-    this.refreshTokenRepository = refreshTokenRepository;
+    this.authTokenRepository = authTokenRepository;
     this.jwtProperty = jwtProperty;
     this.clock = clock;
 
@@ -68,6 +64,8 @@ public class JwtTokenProvider {
 
     String accessToken = generateAccessToken(authUserDto);
     String refreshToken = generateRefreshToken(authUserDto);
+
+    saveOrUpdateAuthToken(authUserDto.userId(), accessToken, refreshToken);
 
     return new GeneratedToken(accessToken, refreshToken);
   }
@@ -108,13 +106,7 @@ public class JwtTokenProvider {
       .claim("type", "refresh")
       .build();
 
-    // 서명한 토큰
-    String refreshToken = createSignedToken(jwtClaimsSet);
-
-    // refresh token 저장
-    saveOrUpdateRefreshToken(authUserDto.userId(), refreshToken, now, expiry);
-
-    return refreshToken;
+    return createSignedToken(jwtClaimsSet);
   }
 
   // 토큰 유효성 검증
@@ -160,19 +152,16 @@ public class JwtTokenProvider {
   }
 
   // refreshToken 저장 및 업데이트
-  private void saveOrUpdateRefreshToken(UUID userId, String refreshToken, Instant now,
-    Instant expiry) {
-    LocalDateTime issuedAt = LocalDateTime.ofInstant(now, KST);
-    LocalDateTime expiryAt = LocalDateTime.ofInstant(expiry, KST);
+  private void saveOrUpdateAuthToken(UUID userId, String accessToken, String refreshToken) {
 
-    RefreshToken tokenEntity = refreshTokenRepository.findByUserId(userId)
+    AuthToken tokenEntity = authTokenRepository.findByUserId(userId)
       .map(token -> {
-        token.replaceRefreshToken(refreshToken, issuedAt, expiryAt);
+        token.replaceToken(accessToken, refreshToken);
         return token;
       })
-      .orElseGet(() -> RefreshToken.create(userId, refreshToken, issuedAt, expiryAt));
+      .orElseGet(() -> AuthToken.create(userId, accessToken, refreshToken));
 
-    refreshTokenRepository.save(tokenEntity);
+    authTokenRepository.save(tokenEntity);
   }
 
   // 클레임 추출

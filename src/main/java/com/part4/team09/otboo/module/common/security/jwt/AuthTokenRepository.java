@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
+public interface AuthTokenRepository extends JpaRepository<AuthToken, UUID> {
 
-  Optional<RefreshToken> findByUserId(UUID userId);
+  Optional<AuthToken> findByUserId(UUID userId);
 }
