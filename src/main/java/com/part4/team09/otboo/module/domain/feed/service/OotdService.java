@@ -7,10 +7,8 @@ import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
 import com.part4.team09.otboo.module.domain.feed.mapper.OotdMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +40,11 @@ public class OotdService {
     return selectedClothes.stream()
         .map(ootdMapper::toDto)
         .toList();
+  }
+
+  @Transactional
+  public void deleteAllByFeedId(UUID feedId) {
+    ootdRepository.deleteAllByFeedId(feedId);
   }
 
   private void validateAllClothesExist(List<UUID> clothesIds) {

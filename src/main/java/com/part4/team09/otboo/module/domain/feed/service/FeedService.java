@@ -3,22 +3,15 @@ package com.part4.team09.otboo.module.domain.feed.service;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedUpdateRequest;
-import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
-import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
 import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
-import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
-import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherErrorCode;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundException;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
-import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +27,7 @@ public class FeedService {
   private final FeedDtoAssembler feedDtoAssembler;
 
   private final OotdService ootdService;
+  private final CommentService commentService;
 
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
@@ -61,9 +55,27 @@ public class FeedService {
     return feedDtoAssembler.assemble(feed, userId);
   }
 
+  // TODO: 로그인 한 사용자와 같은지 확인
+  @Transactional
+  public void delete(UUID feedId) {
+    validateFeedExists(feedId);
+
+    // TODO: 좋아요 취소 로직 구현 후 삭제 전파 로직 추가
+    ootdService.deleteAllByFeedId(feedId);
+    commentService.deleteAllByFeedId(feedId);
+
+    feedRepository.deleteById(feedId);
+  }
+
   private Feed getFeedOrThrow(UUID feedId) {
     return feedRepository.findById(feedId)
         .orElseThrow(() -> FeedNotFoundException.withId(feedId));
+  }
+
+  private void validateFeedExists(UUID feedId) {
+    if (!feedRepository.existsById(feedId)) {
+      throw FeedNotFoundException.withId(feedId);
+    }
   }
 
   private void validateUserExists(UUID userId) {
