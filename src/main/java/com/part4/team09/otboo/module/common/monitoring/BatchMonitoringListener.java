@@ -27,4 +27,3 @@ public class BatchMonitoringListener implements JobExecutionListener {
       .record(duration, TimeUnit.MILLISECONDS);
   }
 }
-
