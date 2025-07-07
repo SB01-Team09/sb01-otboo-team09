@@ -11,6 +11,8 @@ import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
+import com.part4.team09.otboo.module.domain.weather.exception.WeatherErrorCode;
+import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundException;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -31,6 +33,7 @@ public class LikeService {
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
 
+  // TODO: 이미 존재하는 좋아요인지 확인
   @Transactional
   public FeedDto create(UUID userId, UUID feedId) {
     Feed feed = getFeedOrThrow(feedId);
@@ -57,9 +60,8 @@ public class LikeService {
         .orElseThrow(() -> FeedNotFoundException.withId(feedId));
   }
 
-  // TODO: 날씨 커스텀 예외로 변경
   private Weather getWeatherOrThrow(UUID weatherId) {
     return weatherRepository.findById(weatherId)
-        .orElseThrow(() -> new EntityNotFoundException("Weather not found with id: " + weatherId));
+        .orElseThrow(() -> WeatherNotFoundException.withId(WeatherErrorCode.WEATHER_NOF_FOUND, weatherId));
   }
 }

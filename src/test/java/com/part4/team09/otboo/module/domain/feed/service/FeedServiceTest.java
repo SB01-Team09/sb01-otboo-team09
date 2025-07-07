@@ -13,6 +13,7 @@ import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
+import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
@@ -38,7 +39,7 @@ class FeedServiceTest {
   private FeedRepository feedRepository;
 
   @Mock
-  private FeedMapper feedMapper;
+  private FeedDtoAssembler feedDtoAssembler;
 
   @Mock
   private OotdService ootdService;
@@ -63,14 +64,14 @@ class FeedServiceTest {
     @DisplayName("피드 생성 성공")
     void create_feed_success() {
       // given
-      User mockUser = mock(User.class);
+      UUID userId = UUID.randomUUID();
       Weather mockWeather = mock(Weather.class);
       Feed mockFeed = mock(Feed.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
 
       FeedCreateRequest request = new FeedCreateRequest(
-          UUID.randomUUID(),
+          userId,
           UUID.randomUUID(),
           List.of(),
           "content"
@@ -89,14 +90,13 @@ class FeedServiceTest {
           false
       );
 
-      given(userRepository.findById(any())).willReturn(Optional.of(mockUser));
-      given(weatherRepository.findById(any())).willReturn(Optional.of(mockWeather));
+      given(userRepository.existsById(any())).willReturn(true);
+      given(weatherRepository.existsById(any())).willReturn(true);
       given(feedRepository.save(any(Feed.class))).willReturn(mockFeed);
-      given(ootdService.create(any(), any())).willReturn(ootdDtos);
-      given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class), any(), eq(false))).willReturn(feedDto);
+      given(feedDtoAssembler.assemble(any(Feed.class), eq(userId))).willReturn(feedDto);
 
       // when
-      FeedDto result = feedService.create(request);
+      FeedDto result = feedService.create(userId, request);
 
       // then
       assertThat(result).isEqualTo(feedDto);
@@ -113,7 +113,7 @@ class FeedServiceTest {
     void update_feed_success() {
       // given
       UUID feedId = UUID.randomUUID();
-      User mockUser = mock(User.class);
+      UUID userId = UUID.randomUUID();
       Weather mockWeather = mock(Weather.class);
       Feed mockFeed = mock(Feed.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
@@ -133,15 +133,11 @@ class FeedServiceTest {
           false
       );
 
-      given(userRepository.findById(any())).willReturn(Optional.of(mockUser));
       given(feedRepository.findById(any())).willReturn(Optional.of(mockFeed));
-      given(weatherRepository.findById(any())).willReturn(Optional.of(mockWeather));
-      given(ootdService.getOotds(any())).willReturn(List.of());
-      given(likeService.isLikedByMe(any(), any())).willReturn(false);
-      given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class), any(), eq(false))).willReturn(feedDto);
+      given(feedDtoAssembler.assemble(any(Feed.class), eq(userId))).willReturn(feedDto);
 
       // when
-      FeedDto result = feedService.update(feedId, request);
+      FeedDto result = feedService.update(feedId, userId, request);
 
       // then
       assertThat(result).isEqualTo(feedDto);

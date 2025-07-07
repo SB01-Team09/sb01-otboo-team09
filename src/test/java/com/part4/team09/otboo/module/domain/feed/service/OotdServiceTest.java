@@ -1,6 +1,5 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -13,7 +12,6 @@ import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.mapper.OotdMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -48,29 +46,14 @@ class OotdServiceTest {
       // given
       UUID feedId = UUID.randomUUID();
       UUID clothedId = UUID.randomUUID();
-
-      OotdDto ootdDto = new OotdDto(
-          clothedId,
-          "name",
-          "imageUrl",
-          ClothesType.BAG,
-          List.of()
-      );
-
       List<UUID> clothesIds = List.of(clothedId);
-      List<OotdDto> ootdDtos = List.of(ootdDto);
-      Clothes mockClothes = mock(Clothes.class);
-      List<Clothes> mockSelectedClothes = List.of(mockClothes);
 
-      given(mockClothes.getId()).willReturn(clothedId);
-      given(clothesRepository.findAllById(clothesIds)).willReturn(mockSelectedClothes);
-      given(ootdMapper.toDto(any(Clothes.class))).willReturn(ootdDto);
+      given(clothesRepository.countByIdIn(clothesIds)).willReturn(1);
 
       // when
-      List<OotdDto> result = ootdService.create(feedId, clothesIds);
+      ootdService.create(feedId, clothesIds);
 
       // then
-      assertThat(result).isEqualTo(ootdDtos);
       verify(ootdRepository).saveAll(any());
     }
   }

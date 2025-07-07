@@ -65,12 +65,13 @@ class FeedControllerTest {
     void create_feed_success() throws Exception {
       // given
       UUID feedId = UUID.randomUUID();
+      UUID userId = UUID.randomUUID();
       Weather mockWeather = mock(Weather.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
 
       FeedCreateRequest request = new FeedCreateRequest(
-          UUID.randomUUID(),
+          userId,
           UUID.randomUUID(),
           List.of(UUID.randomUUID()),
           "content"
@@ -89,11 +90,12 @@ class FeedControllerTest {
           false
       );
 
-      given(feedService.create(any(FeedCreateRequest.class))).willReturn(feedDto);
+      given(feedService.create(eq(userId), any(FeedCreateRequest.class))).willReturn(feedDto);
 
       // when & then
       mockMvc.perform(post("/api/feeds")
               .contentType(MediaType.APPLICATION_JSON)
+              .param("userId", userId.toString())
               .content(objectMapper.writeValueAsString(request))
               .with(csrf()))
           .andExpect(status().isCreated())
@@ -188,6 +190,7 @@ class FeedControllerTest {
     void update_feed_success() throws Exception {
       // given
       UUID feedId = UUID.randomUUID();
+      UUID userId = UUID.randomUUID();
       Weather mockWeather = mock(Weather.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
@@ -207,11 +210,12 @@ class FeedControllerTest {
           false
       );
 
-      given(feedService.update(feedId, request)).willReturn(feedDto);
+      given(feedService.update(feedId, userId, request)).willReturn(feedDto);
 
       // when & then
       mockMvc.perform(patch("/api/feeds/{feedId}", feedId)
               .contentType(MediaType.APPLICATION_JSON)
+              .param("userId", userId.toString())
               .content(objectMapper.writeValueAsString(request))
               .with(csrf()))
           .andExpect(status().isOk())
