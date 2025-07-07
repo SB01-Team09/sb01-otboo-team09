@@ -144,7 +144,10 @@ public class ClothesService {
         })
         .toList();
 
-    // 5. 의상 속성 찾기
+    // 5. clothesAttribute 생성
+    clothesAttributeService.create(savedClothesId, selectedValueIds);
+
+    // 6. 의상 속성 찾기
     List<ClothesAttributeWithDefDto> responseAttributes = attributes.stream()
         .map(attribute -> {
           UUID defId = attribute.definitionId();
@@ -169,8 +172,7 @@ public class ClothesService {
         })
         .toList();
 
-    // 6. clothesAttribute 생성
-    clothesAttributeService.create(savedClothesId, selectedValueIds);
+
     return responseAttributes;
   }
 
