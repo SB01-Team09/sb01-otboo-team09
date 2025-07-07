@@ -10,6 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,16 +26,10 @@ public class OotdService {
 
   @Transactional
   public List<OotdDto> create(UUID feedId, List<UUID> clothesIds) {
-    List<Ootd> ootds = new ArrayList<>();
-    List<Clothes> selectedClothes = new ArrayList<>();
-
-    for (UUID clothesId : clothesIds) {
-      Clothes clothes = getClothesOrThrow(clothesId);
-      selectedClothes.add(clothes);
-
-      Ootd ootd = Ootd.create(feedId, clothesId);
-      ootds.add(ootd);
-    }
+    List<Clothes> selectedClothes = getAllByClothesIdsOrThrow(clothesIds);
+    List<Ootd> ootds = clothesIds.stream()
+        .map(clothesId -> Ootd.create(feedId, clothesId))
+        .toList();
 
     ootdRepository.saveAll(ootds);
 
@@ -43,9 +38,32 @@ public class OotdService {
         .toList();
   }
 
-  // TODO: 의상 커스텀 예외로 변경
-  private Clothes getClothesOrThrow(UUID clothesId) {
-    return clothesRepository.findById(clothesId)
-        .orElseThrow(() -> new EntityNotFoundException());
+  @Transactional(readOnly = true)
+  public List<OotdDto> getOotds(UUID feedID) {
+    List<UUID> clothesIds = ootdRepository.findClothesIdsByFeedId(feedID);
+    List<Clothes> selectedClothes = getAllByClothesIdsOrThrow(clothesIds);
+
+    return selectedClothes.stream()
+        .map(ootdMapper::toDto)
+        .toList();
+  }
+
+  private List<Clothes> getAllByClothesIdsOrThrow(List<UUID> clothesIds) {
+    List<Clothes> foundClothes = clothesRepository.findAllById(clothesIds);
+
+    List<UUID> foundIds = foundClothes.stream()
+        .map(Clothes::getId)
+        .toList();
+
+    List<UUID> missingIds = clothesIds.stream()
+        .filter(id -> !foundIds.contains(id))
+        .toList();
+
+    // TODO: 의상 커스텀 예외로 변경
+    if (!missingIds.isEmpty()) {
+      throw new EntityNotFoundException();
+    }
+
+    return foundClothes;
   }
 }

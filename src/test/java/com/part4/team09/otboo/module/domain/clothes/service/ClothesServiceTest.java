@@ -300,7 +300,7 @@ class ClothesServiceTest {
       given(clothesAttributeDefService.findAllByIds(defIds)).willReturn(defs);
       given(selectableValueService.findAllByAttributeDefIdIn(defIds)).willReturn(selectableValues);
 
-      // when,  then
+      // when,  the
       assertThrows(SelectableValueNotFoundException.class,
           () -> clothesService.create(request, image));
       then(userRepository).should().findById(ownerId);

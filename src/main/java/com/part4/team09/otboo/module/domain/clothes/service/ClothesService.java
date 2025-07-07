@@ -172,7 +172,6 @@ public class ClothesService {
         })
         .toList();
 
-
     return responseAttributes;
   }
 

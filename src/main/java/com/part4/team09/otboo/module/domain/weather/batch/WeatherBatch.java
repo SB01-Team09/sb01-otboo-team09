@@ -1,11 +1,15 @@
 package com.part4.team09.otboo.module.domain.weather.batch;
 
+import com.part4.team09.otboo.module.common.monitoring.BatchMonitoringListener;
 import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.external.WeatherApiClient;
+import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.EntityManagerFactory;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -26,21 +30,29 @@ public class WeatherBatch {
   private final WeatherWriter weatherWriter;
   private final WeatherApiClient weatherApiClient;
   private final DongRepository dongRepository;
+  private final WeatherRepository weatherRepository;
+  private final WeatherCache weatherCache;
 
   @Bean
   public Step weatherStep(JobRepository jobRepository,
     PlatformTransactionManager transactionManager) {
     return new StepBuilder("weatherStep", jobRepository)
-      .<WeatherApiData, WeatherData>chunk(1, transactionManager)
+      .<WeatherApiData, List<WeatherData>>chunk(1, transactionManager)
       .reader(weatherReader())
       .processor(weatherProcessor)
       .writer(weatherWriter)
+      .faultTolerant()
+      .retryLimit(3) // 최대 3번 재시도
+      .retry(Exception.class)
+      .skip(Exception.class)
+      .skipLimit(50) // 유연한 실패 허용
       .build();
   }
 
   @Bean
   public WeatherReader weatherReader() {
-    return new WeatherReader(locationReader(), weatherApiClient, dongRepository);
+    return new WeatherReader(locationReader(), weatherApiClient, dongRepository, weatherRepository,
+      weatherCache);
   }
 
   @Bean
@@ -53,8 +65,10 @@ public class WeatherBatch {
   }
 
   @Bean("weatherJob")
-  public Job weatherJob(JobRepository jobRepository, Step weatherStep) {
+  public Job weatherJob(JobRepository jobRepository, Step weatherStep,
+    MeterRegistry meterRegistry) {
     return new JobBuilder("weatherJob", jobRepository)
+      .listener(new BatchMonitoringListener(meterRegistry))
       .start(weatherStep)
       .build();
   }

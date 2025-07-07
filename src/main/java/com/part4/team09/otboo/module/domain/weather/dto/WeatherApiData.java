@@ -5,7 +5,9 @@ import java.util.List;
 
 public record WeatherApiData(
   String locationId,
-  List<Item> items
+  List<Item> items,
+  int x,
+  int y
 ) {
 
 }
