@@ -27,6 +27,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -46,7 +47,8 @@ public class SecurityConfig {
     return http
 
       .cors(AbstractHttpConfigurer::disable)
-      .csrf(AbstractHttpConfigurer::disable)
+      .csrf(csrf -> csrf
+        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
 
       // 인가 설정
       .authorizeHttpRequests(this::configureAuthorization)
