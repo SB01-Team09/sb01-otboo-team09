@@ -147,4 +147,22 @@ class FeedServiceTest {
       assertThat(result).isEqualTo(feedDto);
     }
   }
+
+  @Nested
+  @DisplayName("피드 삭제")
+  public class DeleteFeedTest {
+
+    @Test
+    @DisplayName("피드 삭제 성공")
+    void delete_feed_success() {
+      // given
+      UUID feedId = UUID.randomUUID();
+
+      // when
+      feedService.delete(feedId);
+
+      // then
+      verify(feedRepository).deleteById(feedId);
+    }
+  }
 }

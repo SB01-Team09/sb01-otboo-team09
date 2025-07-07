@@ -64,6 +64,15 @@ public class FeedService {
     return feedMapper.toDto(feed, author, weather, ootds, likedByMe);
   }
 
+  // TODO: 로그인 한 사용자와 같은지 확인
+  @Transactional
+  public void delete(UUID feedId) {
+    Feed feed = getFeedOrThrow(feedId);
+
+    // TODO: 좋아요 취소 로직 구현 후 삭제하는 로직 추가
+  }
+
+
   private Feed getFeedOrThrow(UUID feedId) {
     return feedRepository.findById(feedId)
         .orElseThrow(() -> FeedNotFoundException.withId(feedId));
