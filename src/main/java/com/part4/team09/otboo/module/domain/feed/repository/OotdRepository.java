@@ -16,6 +16,5 @@ public interface OotdRepository extends JpaRepository<Ootd, UUID> {
 
   @Modifying
   @Transactional
-  @Query("DELETE FROM Ootd o WHERE o.feedId = :feedId")
   void deleteAllByFeedId(@Param("feedId") UUID feedId);
 }

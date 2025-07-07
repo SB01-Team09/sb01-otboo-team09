@@ -12,6 +12,5 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
 
   @Modifying
   @Transactional
-  @Query("DELETE FROM Comment c WHERE c.feedId = :feedId")
   void deleteAllByFeedId(@Param("feedId") UUID feedId);
 }
