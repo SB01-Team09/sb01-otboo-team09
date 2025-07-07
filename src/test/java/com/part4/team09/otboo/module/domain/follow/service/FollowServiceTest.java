@@ -275,7 +275,6 @@ class FollowServiceTest {
     }
 
 
-
     @Test
     @DisplayName("팔로우 삭제 성공")
     void unfollowSuccess() {
