@@ -43,6 +43,13 @@ otboo:
   resource:
     path: files
 
+jwt:
+  issuer: otboo
+  access-token:
+    validity-seconds: 900 # 15분
+  refresh-token:
+    validity-seconds: 2592000 # 30일
+  secret: ${JWT_SECRET:dev-jwt-secret-key-must-be-at-least-32-characters-long}
 
 # ?? ?? ??
 logging:

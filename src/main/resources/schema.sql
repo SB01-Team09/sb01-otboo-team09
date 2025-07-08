@@ -212,3 +212,13 @@ CREATE TABLE selectable_values
     attribute_def_id UUID                     NOT NULL,
     item             VARCHAR(50)              NOT NULL
 );
+
+create table auth_tokens
+(
+    id            UUID PRIMARY KEY,
+    user_id       UUID UNIQUE              NOT NULL,
+    access_token  TEXT,
+    refresh_token TEXT,
+    created_at    TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at    TIMESTAMP WITH TIME ZONE
+);
