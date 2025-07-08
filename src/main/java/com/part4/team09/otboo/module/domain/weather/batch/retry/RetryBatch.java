@@ -1,15 +1,17 @@
-package com.part4.team09.otboo.module.domain.weather.batch;
+package com.part4.team09.otboo.module.domain.weather.batch.retry;
 
 import com.part4.team09.otboo.module.common.monitoring.BatchMonitoringListener;
-import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
+import com.part4.team09.otboo.module.domain.weather.batch.WeatherCache;
+import com.part4.team09.otboo.module.domain.weather.batch.WeatherProcessor;
+import com.part4.team09.otboo.module.domain.weather.batch.WeatherReader;
+import com.part4.team09.otboo.module.domain.weather.batch.WeatherWriter;
 import com.part4.team09.otboo.module.domain.weather.batch.listener.RetryJobListener;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherReadException;
 import com.part4.team09.otboo.module.domain.weather.external.WeatherApiClient;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
-import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -17,60 +19,50 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
 @RequiredArgsConstructor
-public class WeatherBatch {
+public class RetryBatch {
 
-  private final EntityManagerFactory entityManagerFactory;
   private final WeatherProcessor weatherProcessor;
   private final WeatherWriter weatherWriter;
   private final WeatherApiClient weatherApiClient;
   private final DongRepository dongRepository;
   private final WeatherRepository weatherRepository;
   private final WeatherCache weatherCache;
+  private final FailedLocationReader failedLocationReader;
   private final BatchMonitoringListener batchMonitoringListener;
   private final RetryJobListener retryJobListener;
 
   @Bean
-  public Step weatherStep(JobRepository jobRepository,
+  public Step retryStep(JobRepository jobRepository,
     PlatformTransactionManager transactionManager) {
-    return new StepBuilder("weatherStep", jobRepository)
+    return new StepBuilder("retryStep", jobRepository)
       .<WeatherApiData, List<WeatherData>>chunk(1, transactionManager)
-      .reader(weatherReader())
+      .reader(retryWeatherReader())
       .processor(weatherProcessor)
       .writer(weatherWriter)
       .faultTolerant()
-      .retry(WeatherReadException.class)
       .retryLimit(3) // 최대 3번 재시도
+      .retry(WeatherReadException.class)
       .skip(WeatherReadException.class)
-      .skipLimit(50)
+      .skipLimit(50) // 유연한 실패 허용
       .build();
   }
 
   @Bean
-  public WeatherReader weatherReader() {
-    return new WeatherReader(locationReader(), weatherApiClient, dongRepository, weatherRepository,
-      weatherCache);
+  public WeatherReader retryWeatherReader() {
+    return new WeatherReader(failedLocationReader, weatherApiClient, dongRepository,
+      weatherRepository, weatherCache);
   }
 
-  @Bean
-  public JpaPagingItemReader<Location> locationReader() {
-    JpaPagingItemReader<Location> reader = new JpaPagingItemReader<>();
-    reader.setEntityManagerFactory(entityManagerFactory);
-    reader.setQueryString("SELECT l FROM Location l");
-    reader.setPageSize(10);
-    return reader;
-  }
-
-  @Bean("weatherJob")
-  public Job weatherJob(JobRepository jobRepository, Step weatherStep) {
-    return new JobBuilder("weatherJob", jobRepository)
-      .start(weatherStep)
+  @Bean("retryJob")
+  public Job retryJob(JobRepository jobRepository, Step retryStep) {
+    return new JobBuilder("retryJob", jobRepository)
+      .start(retryStep)
       .listener(batchMonitoringListener)
       .listener(retryJobListener)
       .build();
