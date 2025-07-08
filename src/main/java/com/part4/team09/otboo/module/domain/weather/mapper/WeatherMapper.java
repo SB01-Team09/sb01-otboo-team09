@@ -15,6 +15,7 @@ import com.part4.team09.otboo.module.domain.weather.entity.WindSpeed;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface WeatherMapper {
@@ -32,7 +33,7 @@ public interface WeatherMapper {
   );
 
   WeatherSummaryDto toWeatherSummaryDto(
-    UUID id,
+    UUID weatherId,
     SkyStatus skyStatus,
     Precipitation precipitation,
     Temperature temperature
