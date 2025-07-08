@@ -18,10 +18,10 @@ public class AuthToken extends BaseEntity {
   @Column(nullable = false, unique = true)
   UUID userId;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
+  @Column(columnDefinition = "TEXT")
   String accessToken;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
+  @Column(columnDefinition = "TEXT")
   String refreshToken;
 
   public static AuthToken create(UUID userId, String accessToken, String refreshToken) {

@@ -219,8 +219,8 @@ create table auth_tokens
 (
     id            UUID PRIMARY KEY,
     user_id       UUID UNIQUE              NOT NULL,
-    access_token  TEXT                     NOT NULL,
-    refresh_token TEXT                     NOT NULL,
+    access_token  TEXT,
+    refresh_token TEXT,
     created_at    TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at    TIMESTAMP WITH TIME ZONE
 );

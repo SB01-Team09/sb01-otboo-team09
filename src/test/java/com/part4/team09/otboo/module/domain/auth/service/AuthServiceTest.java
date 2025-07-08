@@ -10,12 +10,13 @@ import com.part4.team09.otboo.module.common.security.exception.InvalidJwtSignatu
 import com.part4.team09.otboo.module.common.security.exception.JwtExpiredException;
 import com.part4.team09.otboo.module.common.security.jwt.AuthToken;
 import com.part4.team09.otboo.module.common.security.jwt.AuthTokenRepository;
+import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.exception.AccountLockedException;
 import com.part4.team09.otboo.module.domain.auth.exception.InvalidTokenException;
+import com.part4.team09.otboo.module.domain.auth.mapper.AuthUserMapper;
 import com.part4.team09.otboo.module.domain.user.entity.User;
-import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +38,8 @@ class AuthServiceTest {
   private UserRepository userRepository;
   @Mock
   private AuthTokenRepository authTokenRepository;
+  @Spy
+  private AuthUserMapper authUserMapper;
 
   @InjectMocks
   private AuthService authService;
@@ -45,7 +49,30 @@ class AuthServiceTest {
   User user = User.createUser("test@test.com", "test", "password!");
   UUID userId = user.getId();
   AuthToken authToken = AuthToken.create(userId, accessToken, refreshToken);
-  AuthUserDto authUserDto = new AuthUserDto(user.getId(), "test@test.com", false, Role.USER);
+
+  @DisplayName("토큰 재발급 성공")
+  @Test
+  void refreshTokens_success() {
+    AuthUserDto authUserDto = authUserMapper.toAuthUserDto(user);
+
+    // given
+    when(jwtTokenProvider.getSubjectFromToken(refreshToken)).thenReturn(user.getEmail());
+    doNothing().when(jwtTokenProvider).validateToken(refreshToken);
+    when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+    when(authTokenRepository.findByUserIdAndRefreshToken(userId, refreshToken))
+      .thenReturn(Optional.of(authToken));
+    when(authUserMapper.toAuthUserDto(user)).thenReturn(authUserDto);
+    when(jwtTokenProvider.generateToken(authUserDto))
+      .thenReturn(new GeneratedToken("new-access-token", "new-refresh-token"));
+
+    // when
+    GeneratedToken result = authService.refreshTokens(refreshToken);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.accessToken()).isEqualTo("new-access-token");
+    assertThat(result.refreshToken()).isEqualTo("new-refresh-token");
+  }
 
   @DisplayName("액세스 토큰 조회")
   @Nested
