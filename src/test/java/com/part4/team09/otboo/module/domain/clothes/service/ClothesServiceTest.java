@@ -26,7 +26,6 @@ import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithD
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesMapper;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
-import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
 import com.part4.team09.otboo.module.domain.file.service.FileStorage;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
