@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.location.batch;
 
+import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
 import java.util.UUID;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
@@ -18,11 +19,13 @@ public class LocationJobRunner implements CommandLineRunner {
 
   private final JobLauncher jobLauncher;
   private final Job locationImportJob;
+  private final LocationRepository locationRepository;
 
   public LocationJobRunner(JobLauncher jobLauncher,
-    @Qualifier("locationJob") Job locationImportJob) {
+    @Qualifier("locationJob") Job locationImportJob, LocationRepository locationRepository) {
     this.jobLauncher = jobLauncher;
     this.locationImportJob = locationImportJob;
+    this.locationRepository = locationRepository;
   }
 
   @Override
@@ -32,6 +35,10 @@ public class LocationJobRunner implements CommandLineRunner {
 
   private void init()
     throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
+    if (locationRepository.count() > 0) {
+      return; // 이미 데이터가 존재하면 배치 실행하지 않음
+    }
+
     JobParameters params = new JobParametersBuilder()
       .addLong("run.id", System.currentTimeMillis()) // 항상 다른 파라미터로 실행
       .addString("unique", UUID.randomUUID().toString())  // 항상 새로운 파라미터
