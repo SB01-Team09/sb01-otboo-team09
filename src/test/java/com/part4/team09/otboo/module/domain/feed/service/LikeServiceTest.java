@@ -12,12 +12,14 @@ import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
+import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.LikeRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import java.time.LocalDateTime;
@@ -39,16 +41,13 @@ class LikeServiceTest {
   private LikeRepository likeRepository;
 
   @Mock
-  private FeedMapper feedMapper;
+  private FeedDtoAssembler feedDtoAssembler;
 
   @Mock
   private FeedRepository feedRepository;
 
   @Mock
   private UserRepository userRepository;
-
-  @Mock
-  private WeatherRepository weatherRepository;
 
   @InjectMocks
   private LikeService likeService;
@@ -63,9 +62,7 @@ class LikeServiceTest {
       // given
       UUID userId = UUID.randomUUID();
       UUID feedId = UUID.randomUUID();
-      User mockUser = mock(User.class);
-      Weather mockWeather = mock(Weather.class);
-      Feed mockFeed = mock(Feed.class);
+      WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
 
       FeedDto feedDto = new FeedDto(
@@ -81,10 +78,9 @@ class LikeServiceTest {
           true
       );
 
-      given(userRepository.findById(any())).willReturn(Optional.of(mockUser));
-      given(feedRepository.findById(any())).willReturn(Optional.of(mockFeed));
-      given(weatherRepository.findById(any())).willReturn(Optional.of(mockWeather));
-      given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class), any(), eq(true))).willReturn(feedDto);
+      given(feedRepository.existsById(any())).willReturn(true);
+      given(userRepository.existsById(any())).willReturn(true);
+      given(feedDtoAssembler.assemble(feedId, userId)).willReturn(feedDto);
 
       // when
       FeedDto result = likeService.create(userId, feedId);
@@ -101,7 +97,7 @@ class LikeServiceTest {
       UUID nonExistFeedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
 
-      given(feedRepository.findById(nonExistFeedId)).willReturn(Optional.empty());
+      given(feedRepository.existsById(nonExistFeedId)).willReturn(false);
 
       // when & then
       assertThrows(FeedNotFoundException.class,
@@ -116,8 +112,8 @@ class LikeServiceTest {
       Feed mockFeed = mock(Feed.class);
       UUID nonExistUserId = UUID.randomUUID();
 
-      given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
-      given(userRepository.findById(nonExistUserId)).willReturn(Optional.empty());
+      given(feedRepository.existsById(feedId)).willReturn(true);
+      given(userRepository.existsById(nonExistUserId)).willReturn(false);
 
       // when & then
       assertThrows(UserNotFoundException.class,
