@@ -2,12 +2,11 @@ package com.part4.team09.otboo.module.domain.weather.batch.retry;
 
 import com.part4.team09.otboo.module.common.monitoring.BatchMonitoringListener;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
-import com.part4.team09.otboo.module.domain.location.repository.FailedLocationRepository;
 import com.part4.team09.otboo.module.domain.weather.batch.WeatherCache;
 import com.part4.team09.otboo.module.domain.weather.batch.WeatherProcessor;
+import com.part4.team09.otboo.module.domain.weather.batch.WeatherReader;
 import com.part4.team09.otboo.module.domain.weather.batch.WeatherWriter;
 import com.part4.team09.otboo.module.domain.weather.batch.listener.RetryJobListener;
-import com.part4.team09.otboo.module.domain.weather.batch.listener.WeatherSkipListener;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherReadException;
@@ -37,8 +36,6 @@ public class RetryBatch {
   private final FailedLocationReader failedLocationReader;
   private final BatchMonitoringListener batchMonitoringListener;
   private final RetryJobListener retryJobListener;
-  private final WeatherSkipListener weatherSkipListener;
-  private final FailedLocationRepository failedLocationRepository;
 
   @Bean
   public Step retryStep(JobRepository jobRepository,
@@ -53,22 +50,21 @@ public class RetryBatch {
       .retry(WeatherReadException.class)
       .skip(WeatherReadException.class)
       .skipLimit(50) // 유연한 실패 허용
-      .listener(weatherSkipListener)
       .build();
   }
 
   @Bean
-  public RetryWeatherReader retryWeatherReader() {
-    return new RetryWeatherReader(failedLocationReader, weatherApiClient, dongRepository,
-      weatherRepository, weatherCache, failedLocationRepository);
+  public WeatherReader retryWeatherReader() {
+    return new WeatherReader(failedLocationReader, weatherApiClient, dongRepository,
+      weatherRepository, weatherCache);
   }
 
   @Bean("retryJob")
   public Job retryJob(JobRepository jobRepository, Step retryStep) {
     return new JobBuilder("retryJob", jobRepository)
+      .start(retryStep)
       .listener(batchMonitoringListener)
       .listener(retryJobListener)
-      .start(retryStep)
       .build();
   }
 }

@@ -214,11 +214,3 @@ CREATE TABLE selectable_values
     attribute_def_id UUID                     NOT NULL,
     item             VARCHAR(50)              NOT NULL
 );
-
-CREATE TABLE failed_locations
-(
-    id                 UUID PRIMARY KEY,
-    created_at         TIMESTAMP WITH TIME ZONE NOT NULL,
-    failed_location_id VARCHAR(10)              NOT NULL,
-    retry_count        INTEGER                  NOT NULL
-);

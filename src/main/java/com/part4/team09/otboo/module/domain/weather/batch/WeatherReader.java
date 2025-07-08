@@ -5,6 +5,7 @@ import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherApiResponse.Response.Body.Items.Item;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
+import com.part4.team09.otboo.module.domain.weather.exception.WeatherReadException;
 import com.part4.team09.otboo.module.domain.weather.external.WeatherApiClient;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import java.util.List;
@@ -97,7 +98,12 @@ public class WeatherReader implements ItemStreamReader<WeatherApiData> {
   }
 
   private List<Item> fetchFromApi(int x, int y) {
-    return weatherApiClient.getWeatherApiResponse(x, y);
+//    throw WeatherReadException.withId(currentLocation.getId());
+    try {
+      return weatherApiClient.getWeatherApiResponse(x, y);
+    } catch (Exception e) {
+      throw WeatherReadException.withId(currentLocation.getId());
+    }
   }
 
   @Override

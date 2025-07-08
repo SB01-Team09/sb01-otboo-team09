@@ -25,7 +25,7 @@ public class WeatherJobLauncher implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-//    init();
+    init();
     // 추후 스케줄러로 전환할 예정
   }
 
