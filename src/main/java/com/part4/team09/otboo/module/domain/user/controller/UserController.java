@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.user.controller;
 
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
+import com.part4.team09.otboo.module.domain.user.dto.request.PasswordUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateRequest;
@@ -52,6 +53,16 @@ public class UserController {
   ) {
     ProfileDto profileDto = userService.updateProfile(userId, request, image);
     return ResponseEntity.ok(profileDto);
+  }
+
+  // 비밀번호 변경
+  @PatchMapping("/{userId}/password")
+  public ResponseEntity<Void> updatePassword(
+    @PathVariable UUID userId,
+    @Valid @RequestBody PasswordUpdateRequest request
+  ) {
+    userService.updatePassword(userId, request);
+    return ResponseEntity.noContent().build();
   }
 
   // 유저 권한 변경: 어드민 권한

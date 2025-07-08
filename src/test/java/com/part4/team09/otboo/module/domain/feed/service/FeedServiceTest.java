@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.feed.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.dto.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
@@ -40,6 +42,12 @@ class FeedServiceTest {
 
   @Mock
   private OotdService ootdService;
+
+  @Mock
+  private LikeService likeService;
+
+  @Mock
+  private CommentService commentService;
 
   @Mock
   private UserRepository userRepository;
@@ -88,7 +96,7 @@ class FeedServiceTest {
       given(weatherRepository.findById(any())).willReturn(Optional.of(mockWeather));
       given(feedRepository.save(any(Feed.class))).willReturn(mockFeed);
       given(ootdService.create(any(), any())).willReturn(ootdDtos);
-      given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class), any())).willReturn(feedDto);
+      given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class), any(), eq(false))).willReturn(feedDto);
 
       // when
       FeedDto result = feedService.create(request);
@@ -96,6 +104,72 @@ class FeedServiceTest {
       // then
       assertThat(result).isEqualTo(feedDto);
       verify(feedRepository).save(any());
+    }
+  }
+
+  @Nested
+  @DisplayName("피드 수정")
+  public class UpdateFeedTest {
+
+    @Test
+    @DisplayName("피드 수정 성공")
+    void update_feed_success() {
+      // given
+      UUID feedId = UUID.randomUUID();
+      User mockUser = mock(User.class);
+      Weather mockWeather = mock(Weather.class);
+      Feed mockFeed = mock(Feed.class);
+      AuthorDto mockAuthorDto = mock(AuthorDto.class);
+
+      FeedUpdateRequest request = new FeedUpdateRequest("newContent");
+
+      FeedDto feedDto = new FeedDto(
+          feedId,
+          LocalDateTime.now(),
+          LocalDateTime.now(),
+          mockAuthorDto,
+          mockWeather,
+          List.of(),
+          "newContent",
+          0,
+          0,
+          false
+      );
+
+      given(userRepository.findById(any())).willReturn(Optional.of(mockUser));
+      given(feedRepository.findById(any())).willReturn(Optional.of(mockFeed));
+      given(weatherRepository.findById(any())).willReturn(Optional.of(mockWeather));
+      given(ootdService.getOotds(any())).willReturn(List.of());
+      given(likeService.isLikedByMe(any(), any())).willReturn(false);
+      given(feedMapper.toDto(any(Feed.class), any(User.class), any(Weather.class), any(), eq(false))).willReturn(feedDto);
+
+      // when
+      FeedDto result = feedService.update(feedId, request);
+
+      // then
+      assertThat(result).isEqualTo(feedDto);
+    }
+  }
+
+  @Nested
+  @DisplayName("피드 삭제")
+  public class DeleteFeedTest {
+
+    @Test
+    @DisplayName("피드 삭제 성공")
+    void delete_feed_success() {
+      // given
+      UUID feedId = UUID.randomUUID();
+
+      given(feedRepository.existsById(feedId)).willReturn(true);
+
+      // when
+      feedService.delete(feedId);
+
+      // then
+      verify(ootdService).deleteAllByFeedId(feedId);
+      verify(commentService).deleteAllByFeedId(feedId);
+      verify(feedRepository).deleteById(feedId);
     }
   }
 }

@@ -36,6 +36,11 @@ public class CommentService {
     return commentMapper.toDto(savedComment, author);
   }
 
+  @Transactional
+  public void deleteAllByFeedId(UUID feedId) {
+    commentRepository.deleteAllByFeedId(feedId);
+  }
+
   private User getUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
         .orElseThrow(() -> UserNotFoundException.withId(userId));
