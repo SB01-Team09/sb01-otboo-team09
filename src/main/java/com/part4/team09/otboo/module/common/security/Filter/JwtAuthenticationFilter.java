@@ -1,10 +1,9 @@
 package com.part4.team09.otboo.module.common.security.Filter;
 
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.common.security.handler.CustomAuthenticationEntryPoint;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
-import com.part4.team09.otboo.module.domain.auth.exception.InvalidJwtFormatException;
-import com.part4.team09.otboo.module.domain.auth.handler.CustomAuthenticationEntryPoint;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,16 +31,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     String token = extractTokenFromRequest(request);
 
-    try {
-      if (token != null && jwtTokenProvider.validateToken(token)) {
+    if (token != null) {
+      try {
+        // 유효성 검사
+        jwtTokenProvider.validateToken(token);
+
         // 인증 설정
         Authentication authentication = setAuthenticationFromToken(token);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+      } catch (AuthenticationException e) {
+        authenticationEntryPoint.commence(request, response, e);
+        return;
       }
-    } catch (AuthenticationException e) {
-      authenticationEntryPoint.commence(request, response, e);
-      return;
     }
 
     filterChain.doFilter(request, response);
@@ -63,12 +66,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private String extractTokenFromRequest(HttpServletRequest request) {
     String authPrefix = "Bearer ";
     String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-
-    if (authorizationHeader == null || !authorizationHeader.startsWith(authPrefix)) {
-      log.info("Jwt 토큰 추출 실패: Header 가 없거나 형식이 틀립니다. ({})", authorizationHeader);
-      throw new InvalidJwtFormatException("JWT 토큰 형식이 올바르지 않습니다");
+    if (authorizationHeader != null) {
+      return authorizationHeader.substring(authPrefix.length());
     }
-    return authorizationHeader.substring(authPrefix.length());
+    return null;
   }
 
   // 화이트 리스트

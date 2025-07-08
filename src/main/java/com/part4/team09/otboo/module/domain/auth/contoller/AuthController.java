@@ -4,6 +4,7 @@ import com.part4.team09.otboo.module.domain.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +22,11 @@ public class AuthController {
   }
 
   // access 토큰 조회
+  @RequestMapping("/me")
+  public ResponseEntity<String> getAccessToken(@CookieValue("refresh_token") String refreshToken) {
+    String accessToken = authService.getAccessTokenByRefreshToken(refreshToken);
+    return ResponseEntity.ok(accessToken);
+  }
 
   // refresh 토큰 재발급
 

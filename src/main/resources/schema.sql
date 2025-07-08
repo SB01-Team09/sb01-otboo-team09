@@ -218,9 +218,9 @@ CREATE TABLE selectable_values
 create table auth_tokens
 (
     id            UUID PRIMARY KEY,
-    user_id       UUID UNIQUE,
-    access_token  VARCHAR(512),
-    refresh_token VARCHAR(512),
+    user_id       UUID UNIQUE              NOT NULL,
+    access_token  TEXT                     NOT NULL,
+    refresh_token TEXT                     NOT NULL,
     created_at    TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at    TIMESTAMP WITH TIME ZONE
 );

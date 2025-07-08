@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.domain.auth.handler;
+package com.part4.team09.otboo.module.common.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;

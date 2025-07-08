@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.domain.auth.exception;
+package com.part4.team09.otboo.module.common.security.exception;
 
 import org.springframework.security.core.AuthenticationException;
 

@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.domain.auth.handler;
+package com.part4.team09.otboo.module.common.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.common.dto.ErrorResponse;
@@ -12,31 +12,31 @@ import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 /**
- * 인가 실패 시 동작 (401)
+ * 인증 실패 시 동작 (401)
+ * jwt가 없거나, 잘못된 토큰, 인증 안된 사용자 등등
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CustomAccessDeniedHandler implements AccessDeniedHandler {
+public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
   private final ObjectMapper objectMapper;
 
   @Override
-  public void handle(HttpServletRequest request, HttpServletResponse response,
-    AccessDeniedException accessDeniedException) throws IOException, ServletException {
+  public void commence(HttpServletRequest request, HttpServletResponse response,
+    AuthenticationException authException) throws IOException, ServletException {
 
-    log.info("접근 권한 없음 (이유: {} - {}, IP: {})",
-      accessDeniedException.getClass().getSimpleName(),
-      accessDeniedException.getMessage(),
+    log.info("인증 실패 (이유: {} - {}, IP: {})",
+      authException.getClass().getSimpleName(),
+      authException.getMessage(),
       IpUtils.getClientIp(request));
 
-    AuthErrorCode errorCode = AuthErrorCode.ACCESS_DENIED;
+    AuthErrorCode errorCode = AuthErrorCode.AUTHENTICATION_REQUIRED;
 
     ErrorResponse errorResponse = ErrorResponse.of(
       AuthenticationException.class.getSimpleName(),

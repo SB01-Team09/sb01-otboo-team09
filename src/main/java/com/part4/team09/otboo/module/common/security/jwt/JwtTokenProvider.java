@@ -10,11 +10,11 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.part4.team09.otboo.module.common.security.exception.InvalidJwtFormatException;
+import com.part4.team09.otboo.module.common.security.exception.InvalidJwtSignatureException;
+import com.part4.team09.otboo.module.common.security.exception.JwtAuthenticationException;
+import com.part4.team09.otboo.module.common.security.exception.JwtExpiredException;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
-import com.part4.team09.otboo.module.domain.auth.exception.InvalidJwtFormatException;
-import com.part4.team09.otboo.module.domain.auth.exception.InvalidJwtSignatureException;
-import com.part4.team09.otboo.module.domain.auth.exception.JwtAuthenticationException;
-import com.part4.team09.otboo.module.domain.auth.exception.JwtExpiredException;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -110,9 +110,30 @@ public class JwtTokenProvider {
   }
 
   // 토큰 유효성 검증
-  public boolean validateToken(String token) {
-    parseToken(token);
-    return true;
+  public void validateToken(String token) {
+    try {
+      // jwt 문자열을 SignedJwt로 파싱
+      SignedJWT signedJWT = SignedJWT.parse(token);
+
+      // 서명 검증을 위한 verifier 생성: 시크릿 키로 MACVerifier 초기화
+      JWSVerifier verifier = new MACVerifier(getSingingKey());
+
+      // 서명 검증
+      if (!signedJWT.verify(verifier)) {
+        throw new InvalidJwtSignatureException("JWT 서명이 유효하지 않습니다.");
+      }
+
+      // 토큰 만료 확인
+      Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+      if (expirationTime.before(new Date())) {
+        throw new JwtExpiredException("토큰이 만료되었습니다.");
+      }
+
+    } catch (ParseException e) {
+      throw new InvalidJwtFormatException("JWT 형식이 잘못되었습니다.");
+    } catch (JOSEException e) {
+      throw new JwtAuthenticationException("JWT 처리 중 오류가 발생했습니다.", e);
+    }
   }
 
   // 클레임에서 유저 정보 추출
@@ -128,6 +149,12 @@ public class JwtTokenProvider {
     } catch (ParseException e) {
       throw new InvalidJwtFormatException("JWT 형식이 잘못되었습니다.");
     }
+  }
+
+  // 클레임에서 유저 subject 추출
+  public String getSubjectFromToken(String token) throws AuthenticationException {
+    JWTClaimsSet claimsSet = parseToken(token);
+    return claimsSet.getSubject();
   }
 
   // 서명
@@ -167,29 +194,10 @@ public class JwtTokenProvider {
   // 클레임 추출
   private JWTClaimsSet parseToken(String token) throws AuthenticationException {
     try {
-      // jwt 문자열을 SignedJwt로 파싱
       SignedJWT signedJWT = SignedJWT.parse(token);
-
-      // 서명 검증을 위한 verifier 생성: 시크릿 키로 MACVerifier 초기화
-      JWSVerifier verifier = new MACVerifier(getSingingKey());
-
-      // 서명 검증 수행
-      if (!signedJWT.verify(verifier)) {
-        throw new InvalidJwtSignatureException("JWT 서명이 유효하지 않습니다.");
-      }
-
-      // 만료 체크
-      Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-      if (expirationTime.before(new Date())) {
-        throw new JwtExpiredException("토큰이 만료되었습니다.");
-      }
-
       return signedJWT.getJWTClaimsSet();
-
     } catch (ParseException e) {
       throw new InvalidJwtFormatException("JWT 형식이 잘못되었습니다.");
-    } catch (JOSEException e) {
-      throw new JwtAuthenticationException("JWT 처리 중 오류가 발생했습니다.", e);
     }
   }
 

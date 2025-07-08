@@ -6,20 +6,22 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "auth_tokens")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 public class AuthToken extends BaseEntity {
 
-  @Column(unique = true)
+  @Column(nullable = false, unique = true)
   UUID userId;
 
-  @Column
+  @Column(nullable = false, columnDefinition = "TEXT")
   String accessToken;
 
-  @Column
+  @Column(nullable = false, columnDefinition = "TEXT")
   String refreshToken;
 
   public static AuthToken create(UUID userId, String accessToken, String refreshToken) {
@@ -28,6 +30,7 @@ public class AuthToken extends BaseEntity {
 
   private AuthToken(UUID userId, String accessToken, String refreshToken) {
     this.userId = userId;
+    this.accessToken = accessToken;
     this.refreshToken = refreshToken;
   }
 

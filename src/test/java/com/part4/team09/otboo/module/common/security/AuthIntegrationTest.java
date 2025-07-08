@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.domain.auth.dto.LoginRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
 import jakarta.transaction.Transactional;
 import java.util.UUID;
 import org.hamcrest.Matchers;
@@ -37,13 +38,13 @@ import org.springframework.test.web.servlet.MvcResult;
 public class AuthIntegrationTest {
 
   @Autowired
-  PasswordEncoder passwordEncoder;
+  private PasswordEncoder passwordEncoder;
 
   @Autowired
-  UserRepository userRepository;
+  private UserRepository userRepository;
 
   @Autowired
-  ObjectMapper objectMapper;
+  private ObjectMapper objectMapper;
 
   @Autowired
   private MockMvc mockMvc;
@@ -118,6 +119,18 @@ public class AuthIntegrationTest {
       .andDo(print());
   }
 
+  @DisplayName("리프레시 토큰으로 액세스 토큰 조회")
+  @Test
+  void getAccessToken_success() throws Exception {
+    String refreshToken = getRefreshToken();
+
+    mockMvc.perform(get("/api/auth/me")
+        .cookie(new Cookie("refresh_token", refreshToken)))
+      .andExpect(status().isOk())
+      .andExpect(content().string(Matchers.not("")))
+      .andDo(print());
+  }
+
   private String getAccessToken() throws Exception {
     LoginRequest request = new LoginRequest(userEmail, password);
 
@@ -129,5 +142,18 @@ public class AuthIntegrationTest {
       .andReturn();
 
     return result.getResponse().getContentAsString().replace("\"", "");
+  }
+
+  private String getRefreshToken() throws Exception {
+    LoginRequest request = new LoginRequest(userEmail, password);
+
+    MvcResult result = mockMvc.perform(post("/api/auth/sign-in")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request))
+        .with(csrf()))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    return result.getResponse().getCookie("refresh_token").getValue();
   }
 }
