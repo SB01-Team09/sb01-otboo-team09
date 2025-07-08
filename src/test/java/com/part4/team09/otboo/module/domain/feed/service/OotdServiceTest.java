@@ -47,22 +47,23 @@ class OotdServiceTest {
     void create_ootd_success() {
       // given
       UUID feedId = UUID.randomUUID();
-      UUID clothedID = UUID.randomUUID();
+      UUID clothedId = UUID.randomUUID();
 
       OotdDto ootdDto = new OotdDto(
-          clothedID,
+          clothedId,
           "name",
           "imageUrl",
           ClothesType.BAG,
           List.of()
       );
 
-      List<UUID> clothesIds = List.of(clothedID);
+      List<UUID> clothesIds = List.of(clothedId);
       List<OotdDto> ootdDtos = List.of(ootdDto);
-
       Clothes mockClothes = mock(Clothes.class);
+      List<Clothes> mockSelectedClothes = List.of(mockClothes);
 
-      given(clothesRepository.findById(any())).willReturn(Optional.of(mockClothes));
+      given(mockClothes.getId()).willReturn(clothedId);
+      given(clothesRepository.findAllById(clothesIds)).willReturn(mockSelectedClothes);
       given(ootdMapper.toDto(any(Clothes.class))).willReturn(ootdDto);
 
       // when

@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum FileDomain {
 
-  PROFILE("profile");
+  PROFILE("profile"),
+  CLOTHES_IMAGE("clothes_image");
 
   private final String folderName;
 

@@ -75,4 +75,36 @@ public class Weather extends BaseEntity {
     this.temperatureId = temperatureId;
     this.windSpeedId = windSpeedId;
   }
+
+  public void updateForecastedAt(LocalDateTime forecastedAt) {
+    this.forecastedAt = forecastedAt;
+  }
+
+  public void updateForecastAt(LocalDateTime forecastAt) {
+    this.forecastAt = forecastAt;
+  }
+
+  public void updateSkyStatus(SkyStatus skyStatus) {
+    this.skyStatus = skyStatus;
+  }
+
+  public void updateLocationId(String locationId) {
+    this.locationId = locationId;
+  }
+
+  public void updatePrecipitationId(UUID precipitationId) {
+    this.precipitationId = precipitationId;
+  }
+
+  public void updateHumidityId(UUID humidityId) {
+    this.humidityId = humidityId;
+  }
+
+  public void updateTemperatureId(UUID temperatureId) {
+    this.temperatureId = temperatureId;
+  }
+
+  public void updateWindSpeedId(UUID windSpeedId) {
+    this.windSpeedId = windSpeedId;
+  }
 }
