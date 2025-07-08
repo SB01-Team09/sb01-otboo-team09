@@ -5,6 +5,7 @@ import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
+import com.part4.team09.otboo.module.domain.feed.repository.LikeRepository;
 import com.part4.team09.otboo.module.domain.feed.service.LikeService;
 import com.part4.team09.otboo.module.domain.feed.service.OotdService;
 import com.part4.team09.otboo.module.domain.user.entity.User;
@@ -33,9 +34,9 @@ public class FeedDtoAssembler {
   private final WeatherMapper weatherMapper;
 
   private final OotdService ootdService;
-  private final LikeService likeService;
 
   private final FeedRepository feedRepository;
+  private final LikeRepository likeRepository;
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
   private final PrecipitationRepository precipitationRepository;
@@ -57,7 +58,7 @@ public class FeedDtoAssembler {
 
     WeatherSummaryDto weatherSummary = getWeatherSummaryDto(weather);
     List<OotdDto> ootds = ootdService.getOotds(feed.getId());
-    boolean likedByMe = likeService.isLikedByMe(userId, feed.getId());
+    boolean likedByMe = likeRepository.existsByUserIdAndFeedId(userId, feed.getId());
 
     return feedMapper.toDto(feed, author, weatherSummary, ootds, likedByMe);
   }
