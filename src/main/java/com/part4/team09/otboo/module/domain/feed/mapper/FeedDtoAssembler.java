@@ -10,9 +10,15 @@ import com.part4.team09.otboo.module.domain.feed.service.OotdService;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
+import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
+import com.part4.team09.otboo.module.domain.weather.entity.Temperature;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherErrorCode;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundException;
+import com.part4.team09.otboo.module.domain.weather.mapper.WeatherMapper;
+import com.part4.team09.otboo.module.domain.weather.repository.PrecipitationRepository;
+import com.part4.team09.otboo.module.domain.weather.repository.TemperatureRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +30,7 @@ import org.springframework.stereotype.Component;
 public class FeedDtoAssembler {
 
   private final FeedMapper feedMapper;
+  private final WeatherMapper weatherMapper;
 
   private final OotdService ootdService;
   private final LikeService likeService;
@@ -31,6 +38,8 @@ public class FeedDtoAssembler {
   private final FeedRepository feedRepository;
   private final UserRepository userRepository;
   private final WeatherRepository weatherRepository;
+  private final PrecipitationRepository precipitationRepository;
+  private final TemperatureRepository temperatureRepository;
 
   public FeedDto assemble(UUID feedId, UUID userId) {
     Feed feed = feedRepository.findById(feedId)
@@ -42,13 +51,31 @@ public class FeedDtoAssembler {
   public FeedDto assemble(Feed feed, UUID userId) {
     User author = userRepository.findById(feed.getAuthorId())
         .orElseThrow(() -> UserNotFoundException.withId(feed.getAuthorId()));
-
     Weather weather = weatherRepository.findById(feed.getWeatherId())
-        .orElseThrow(() -> WeatherNotFoundException.withId(WeatherErrorCode.WEATHER_NOF_FOUND, feed.getWeatherId()));
+        .orElseThrow(() -> WeatherNotFoundException
+            .withId(WeatherErrorCode.WEATHER_NOF_FOUND, feed.getWeatherId()));
 
+    WeatherSummaryDto weatherSummary = getWeatherSummaryDto(weather);
     List<OotdDto> ootds = ootdService.getOotds(feed.getId());
     boolean likedByMe = likeService.isLikedByMe(userId, feed.getId());
 
-    return feedMapper.toDto(feed, author, weather, ootds, likedByMe);
+    return feedMapper.toDto(feed, author, weatherSummary, ootds, likedByMe);
+  }
+
+  private WeatherSummaryDto getWeatherSummaryDto(Weather weather) {
+    Precipitation precipitation = precipitationRepository.findById(weather.getPrecipitationId())
+        .orElseThrow(() -> WeatherNotFoundException
+            .withId(WeatherErrorCode.PRECIPITATION_NOF_FOUND, weather.getPrecipitationId()));
+
+    Temperature temperature = temperatureRepository.findById(weather.getTemperatureId())
+        .orElseThrow(() -> WeatherNotFoundException
+            .withId(WeatherErrorCode.TEMPERATURE_NOF_FOUND, weather.getTemperatureId()));
+
+    return weatherMapper.toWeatherSummaryDto(
+        weather.getId(),
+        weather.getSkyStatus(),
+        precipitation,
+        temperature
+    );
   }
 }

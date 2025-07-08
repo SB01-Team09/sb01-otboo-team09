@@ -22,6 +22,7 @@ import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.service.CommentService;
 import com.part4.team09.otboo.module.domain.feed.service.FeedService;
 import com.part4.team09.otboo.module.domain.feed.service.LikeService;
+import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -65,7 +66,7 @@ class FeedControllerTest {
       // given
       UUID feedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
-      Weather mockWeather = mock(Weather.class);
+      WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
 
@@ -150,7 +151,7 @@ class FeedControllerTest {
       // given
       UUID feedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
-      Weather mockWeather = mock(Weather.class);
+      WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
 
@@ -190,7 +191,7 @@ class FeedControllerTest {
       // given
       UUID feedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
-      Weather mockWeather = mock(Weather.class);
+      WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
 

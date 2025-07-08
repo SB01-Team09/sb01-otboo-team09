@@ -19,6 +19,7 @@ import com.part4.team09.otboo.module.domain.feed.repository.LikeRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import java.time.LocalDateTime;
@@ -61,7 +62,7 @@ class LikeServiceTest {
       // given
       UUID userId = UUID.randomUUID();
       UUID feedId = UUID.randomUUID();
-      Weather mockWeather = mock(Weather.class);
+      WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
 
       FeedDto feedDto = new FeedDto(

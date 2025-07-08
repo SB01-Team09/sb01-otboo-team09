@@ -16,6 +16,7 @@ import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import java.time.LocalDateTime;
@@ -66,7 +67,7 @@ class FeedServiceTest {
     void create_feed_success() {
       // given
       UUID userId = UUID.randomUUID();
-      Weather mockWeather = mock(Weather.class);
+      WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       Feed mockFeed = mock(Feed.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
@@ -115,7 +116,7 @@ class FeedServiceTest {
       // given
       UUID feedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
-      Weather mockWeather = mock(Weather.class);
+      WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       Feed mockFeed = mock(Feed.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
 
