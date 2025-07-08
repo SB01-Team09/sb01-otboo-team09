@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.domain.feed.dto;
+package com.part4.team09.otboo.module.domain.feed.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

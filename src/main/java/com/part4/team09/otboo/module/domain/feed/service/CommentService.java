@@ -1,6 +1,6 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
-import com.part4.team09.otboo.module.domain.feed.dto.CommentCreateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Comment;
 import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;

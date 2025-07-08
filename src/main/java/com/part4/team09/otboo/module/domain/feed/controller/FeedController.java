@@ -1,10 +1,10 @@
 package com.part4.team09.otboo.module.domain.feed.controller;
 
-import com.part4.team09.otboo.module.domain.feed.dto.CommentCreateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
-import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
-import com.part4.team09.otboo.module.domain.feed.dto.FeedUpdateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.service.CommentService;
 import com.part4.team09.otboo.module.domain.feed.service.FeedService;
 import com.part4.team09.otboo.module.domain.feed.service.LikeService;
