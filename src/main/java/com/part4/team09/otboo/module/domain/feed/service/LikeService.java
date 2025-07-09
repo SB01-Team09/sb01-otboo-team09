@@ -45,6 +45,10 @@ public class LikeService {
     likeRepository.deleteById(like.getId());
   }
 
+  public void deleteAllByFeedId(UUID feedId) {
+    likeRepository.deleteAllByFeedId(feedId);
+  }
+
   private Like getLikeOrThrow(UUID userId, UUID feedId) {
     return likeRepository.findByUserIdAndFeedId(userId, feedId)
         .orElseThrow(() -> LikeNotFoundException.withId(userId, feedId));

@@ -60,9 +60,9 @@ public class FeedService {
   public void delete(UUID feedId) {
     validateFeedExists(feedId);
 
-    // TODO: 좋아요 취소 로직 구현 후 삭제 전파 로직 추가
     ootdService.deleteAllByFeedId(feedId);
     commentService.deleteAllByFeedId(feedId);
+    likeService.deleteAllByFeedId(feedId);
 
     feedRepository.deleteById(feedId);
   }
