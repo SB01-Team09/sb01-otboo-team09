@@ -15,6 +15,7 @@ import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
+import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.BadRequestException;
 import com.part4.team09.otboo.module.domain.clothes.exception.SelectableValue.SelectableValueNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithDefMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesDtoCursorResponseMapper;
@@ -64,7 +65,7 @@ public class ClothesService {
 
     log.debug("의상 생성 시작: ownerId = {}, name = {}", request.ownerId(), request.name());
 
-    User user = getUserOrThorw(request.ownerId());
+    User user = getUserOrThrow(request.ownerId());
 
     String url = uploadClothesImage(image);
 
@@ -98,17 +99,25 @@ public class ClothesService {
     return response;
   }
 
+  @Transactional(readOnly = true)
   public ClothesDtoCursorResponse findByCursor(String cursor, UUID idAfter, int limit,
       ClothesType typeEqual, UUID ownerId) {
 
     log.debug("의상 조회 시작: cursor = {}, idAfter = {}, limit = {}, typeEqual = {}, ownerId = {}",
         cursor, idAfter, limit, typeEqual, ownerId);
 
+    if (limit <= 0) {
+      log.warn("유효하지 않은 limit입니다.: limit = {}", limit);
+      throw BadRequestException.withLimit(limit);
+    }
+
+    User user = getUserOrThrow(ownerId);
+
     // 프로토타입 기준
-    String sortBy = "CreatedAt";
+    String sortBy = "createdAt";
     SortDirection sortDirection = SortDirection.DESCENDING;
 
-    List<Clothes> clothesList = ClothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual,
+    List<Clothes> clothesList = clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual,
         ownerId, sortBy, sortDirection);
 
     List<ClothesDto> data = clothesList.stream()
@@ -144,7 +153,7 @@ public class ClothesService {
       return ClothesNotFoundException.withId(clothesId);
     });
 
-    User user = getUserOrThorw(clothes.getOwnerId());
+    User user = getUserOrThrow(clothes.getOwnerId());
 
     // 1. 이미지 삭제
     if (clothes.getImageUrl() != null) {
@@ -286,7 +295,7 @@ public class ClothesService {
     }
   }
 
-  private User getUserOrThorw(UUID request) {
+  private User getUserOrThrow(UUID request) {
     return userRepository.findById(request)
         .orElseThrow(() -> {
           log.warn("사용자가 존재하지 않습니다. id = {}", request);
