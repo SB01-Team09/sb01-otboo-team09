@@ -4,16 +4,20 @@ import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDto
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeWithDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesCreateRequest;
+import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesUpdateRequest;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
+import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.exception.SelectableValue.SelectableValueNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithDefMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesMapper;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
+import com.part4.team09.otboo.module.domain.feed.service.OotdService;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
 import com.part4.team09.otboo.module.domain.file.service.FileStorage;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.List;
@@ -35,6 +39,7 @@ public class ClothesService {
   private final ClothesAttributeDefService clothesAttributeDefService;
   private final SelectableValueService selectableValueService;
   private final ClothesAttributeService clothesAttributeService;
+  private final OotdService ootdService;
 
   private final ClothesRepository clothesRepository;
   private final UserRepository userRepository;
@@ -47,92 +52,146 @@ public class ClothesService {
 
     log.debug("의상 생성 시작: ownerId = {}, name = {}", request.ownerId(), request.name());
 
-    userRepository.findById(request.ownerId())
-        .orElseThrow(() -> UserNotFoundException.withId(request.ownerId()));
+    User user = getUserOrThorw(request.ownerId());
 
-    // 1. 이미지 업로드
     String url = uploadClothesImage(image);
 
-    // 2. Clothes 엔티티 생성
     Clothes clothes = Clothes.create(request.ownerId(), request.name(), request.type(), url);
     Clothes savedClothes = clothesRepository.save(clothes);
 
-    // 3. 선택한 속성 값이 있으면 clothesAttribute 생성
-    List<ClothesAttributeWithDefDto> attributes = request.attributes().isEmpty()
+    Map<UUID, List<SelectableValue>> selectableValueMap = Map.of();
+
+    if (!request.attributes().isEmpty()) {
+      List<UUID> defIds = request.attributes().stream()
+          .map(ClothesAttributeDto::definitionId)
+          .distinct()
+          .toList();
+      selectableValueMap = selectableValueService.findAllByAttributeDefIdIn(defIds).stream()
+          .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
+
+      createClothesAttributes(request.attributes(), clothes, selectableValueMap);
+    }
+
+    List<ClothesAttributeWithDefDto> attributeDtos = request.attributes().isEmpty()
         ? List.of()
-        : createClothesAttributes(request, savedClothes.getId());
+        : createAttributeDtos(request.attributes(), selectableValueMap);
 
     ClothesDto response = clothesMapper.toDto(savedClothes.getId(), savedClothes.getOwnerId(),
-        savedClothes.getName(), savedClothes.getImageUrl(), savedClothes.getType(), attributes);
+        savedClothes.getName(), savedClothes.getImageUrl(), savedClothes.getType(), attributeDtos);
 
-    log.debug("의상 생성 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
-        savedClothes.getId(), savedClothes.getOwnerId(), savedClothes.getName(), savedClothes.getImageUrl(),
-        savedClothes.getType(), attributes.size());
+    log.debug(
+        "의상 생성 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
+        savedClothes.getId(), savedClothes.getOwnerId(), savedClothes.getName(),
+        savedClothes.getImageUrl(), savedClothes.getType(), attributeDtos.size());
     return response;
   }
 
-  private List<ClothesAttributeWithDefDto> createClothesAttributes(
-      ClothesCreateRequest request, UUID savedClothesId) {
+  public ClothesDto update(UUID clothesId, ClothesUpdateRequest request, MultipartFile image) {
 
-    // 1. defIds 및 def 조회
-    List<UUID> defIds = request.attributes().stream()
-        .map(ClothesAttributeDto::definitionId)
+    Clothes clothes = clothesRepository.findById(clothesId).orElseThrow(() -> {
+      log.warn("의상이 존재하지 않습니다. id = {}", clothesId);
+      return ClothesNotFoundException.withId(clothesId);
+    });
+
+    User user = getUserOrThorw(clothes.getOwnerId());
+
+    // 1. 이미지 삭제
+    if (clothes.getImageUrl() != null) {
+      removeClothesImage(clothes.getImageUrl());
+    }
+
+    // 2. 이미지 업로드
+    String newUrl = uploadClothesImage(image);
+
+    // 3. clothes 엔티티 수정
+    clothes.update(request.name(), request.type(), newUrl);
+
+    // 4. clothesAttribute 삭제
+    clothesAttributeService.deleteAllByClothesId(clothes.getId());
+
+    Map<UUID, List<SelectableValue>> selectableValueMap = Map.of();
+
+    if (!request.attributes().isEmpty()) {
+      List<UUID> defIds = request.attributes().stream()
+          .map(ClothesAttributeDto::definitionId)
+          .distinct()
+          .toList();
+      selectableValueMap = selectableValueService.findAllByAttributeDefIdIn(defIds).stream()
+          .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
+      createClothesAttributes(request.attributes(), clothes, selectableValueMap);
+    }
+
+    List<ClothesAttributeWithDefDto> attributeDtos = request.attributes().isEmpty()
+        ? List.of()
+        : createAttributeDtos(request.attributes(), selectableValueMap);
+
+    ClothesDto response = clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(),
+        clothes.getName(), clothes.getImageUrl(), clothes.getType(), attributeDtos);
+
+    log.debug(
+        "의상 생성 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
+        clothes.getId(), clothes.getOwnerId(), clothes.getName(),
+        clothes.getImageUrl(), clothes.getType(), attributeDtos.size());
+    return response;
+  }
+
+  public void delete(UUID clothesId) {
+
+    log.debug("의상 삭제 시작: clothesId = {}", clothesId);
+
+    // 1. 의상이 존재하는 지 확인
+    Clothes clothes = clothesRepository.findById(clothesId).orElseThrow(() -> {
+      log.warn("의상을 찾을 수 없습니다. clothesId = {}", clothesId);
+      return ClothesNotFoundException.withId(clothesId);
+    });
+
+    // 2. ootd 삭제
+    //ootdService.deleteByClothesId(clothes);
+
+    // 3. 의상 정의 연관 삭제
+    clothesAttributeService.deleteAllByClothesId(clothesId);
+
+    // 4. 의상 이미지 삭제
+    if (clothes.getImageUrl() != null) {
+      fileStorage.remove(clothes.getImageUrl());
+    }
+
+    // 5. 의상 삭제
+    clothesRepository.deleteById(clothes.getId());
+    log.debug("의상 삭제 완료: clothesId = {}", clothesId);
+  }
+
+  private void createClothesAttributes(List<ClothesAttributeDto> attributeDtos, Clothes clothes,
+      Map<UUID, List<SelectableValue>> selectableValueMap) {
+
+    List<SelectableValue> selectedValues = attributeDtos.stream()
+        .map(attribute -> selectableValueMap.getOrDefault(attribute.definitionId(), List.of()).stream()
+            .filter(value -> value.getItem().equals(attribute.value()))
+            .findFirst()
+            .orElseThrow(() -> {
+              log.warn("해당 의상 속성 값이 없습니다. value = {}", attribute.value());
+              return SelectableValueNotFoundException.withItem(attribute.value());
+            }))
         .toList();
 
-    // 2. 정의 id, 정의 명으로 구성
+    clothesAttributeService.create(clothes.getId(), selectedValues.stream()
+        .map(SelectableValue::getId)
+        .toList());
+  }
+
+  private List<ClothesAttributeWithDefDto> createAttributeDtos(List<ClothesAttributeDto> attributeDtos,
+      Map<UUID, List<SelectableValue>> selectableValueMap) {
+
+    List<UUID> defIds = attributeDtos.stream()
+        .map(ClothesAttributeDto::definitionId)
+        .distinct()
+        .toList();
+
     Map<UUID, String> defMap = clothesAttributeDefService.findAllByIds(defIds).stream()
         .collect(Collectors.toMap(ClothesAttributeDef::getId, ClothesAttributeDef::getName));
 
-    // 3. 정의 id, 선택 가능한 속성으로 구성
-    Map<UUID, List<SelectableValue>> selectableValueMap = selectableValueService.findAllByAttributeDefIdIn(
-            defIds).stream()
-        .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
 
-    // 4. attribute 등록을 위해 selectableValue의 id 찾기
-    List<UUID> selectedValueIds = request.attributes().stream()
-        .map(attribute -> {
-          UUID defId = attribute.definitionId();
-          String valueItem = attribute.value();
-
-          List<SelectableValue> selectableValues = selectableValueMap.getOrDefault(defId, List.of());
-
-          SelectableValue selectedValue = selectableValues.stream()
-              .filter(selectableValue -> selectableValue.getItem().equals(valueItem))
-              .findFirst()
-              .orElseThrow(() -> SelectableValueNotFoundException.withItem(valueItem));
-
-          return selectedValue.getId();
-        })
-        .toList();
-
-    // 5. 의상 속성 찾기
-    List<ClothesAttributeWithDefDto> attributes = request.attributes().stream()
-        .map(attribute -> {
-          UUID defId = attribute.definitionId();
-          String defName = defMap.get(defId);
-          String valueItem = attribute.value();
-
-          List<SelectableValue> selectableValues = selectableValueMap.getOrDefault(
-              defId, List.of());
-
-          // 선택하려는 값과 같은 속성 값 찾기 - 값이 없으면 예외처리
-          SelectableValue selectedValue = selectableValues.stream()
-              .filter(selectableValue -> selectableValue.getItem().equals(valueItem))
-              .findFirst()
-              .orElseThrow(() -> SelectableValueNotFoundException.withItem(valueItem));
-
-          return clothesAttributeWithDefMapper.toDto(
-              defId,
-              defName,
-              selectableValues.stream().map(SelectableValue::getItem).toList(),
-              selectedValue.getItem()
-          );
-        })
-        .toList();
-
-    // 6. clothesAttribute 생성
-    clothesAttributeService.create(savedClothesId, selectedValueIds);
-    return attributes;
+    return clothesAttributeWithDefMapper.toDto(attributeDtos, defMap, selectableValueMap);
   }
 
   // 이미지 업로드
@@ -155,5 +214,32 @@ public class ClothesService {
       log.warn("message = {}, details = {}", e.getMessage(), e.getDetails());
       return null;
     }
+  }
+
+  // 이미지 삭제
+  private void removeClothesImage(String url) {
+    log.debug("이미지 삭제 시작");
+
+    if (url == null) {
+      log.debug("이미지가 없습니다.");
+    } else {
+
+      try {
+        fileStorage.remove(url);
+
+        log.debug("이미지 삭제 완료: url = {}", url);
+      } catch (FileUploadFailedException e) {
+
+        log.warn("message = {}, details = {}", e.getMessage(), e.getDetails());
+      }
+    }
+  }
+
+  private User getUserOrThorw(UUID request) {
+    return userRepository.findById(request)
+        .orElseThrow(() -> {
+          log.warn("사용자가 존재하지 않습니다. id = {}", request);
+          return UserNotFoundException.withId(request);
+        });
   }
 }

@@ -3,6 +3,8 @@ package com.part4.team09.otboo.module.domain.clothes.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -46,10 +49,10 @@ class ClothesAttributeInfoServiceTest {
   @Mock
   private ClothesAttributeService clothesAttributeService;
 
-  @Mock
+  @Spy
   private ClothesAttributeDefMapper clothesAttributeDefMapper;
 
-  @Mock
+  @Spy
   private ClothesAttributeDefDtoCursorResponseMapper clothesAttributeDefDtoCursorResponseMapper;
 
   @Nested
@@ -155,6 +158,73 @@ class ClothesAttributeInfoServiceTest {
       then(clothesAttributeDefMapper).should().toDto(defId1, "사이즈", List.of("S"));
       then(clothesAttributeDefDtoCursorResponseMapper).should().toDto(List.of(dto1), null, null, false, defs.size(), "name", SortDirection.ASCENDING);
     }
+
+    @Test
+    @DisplayName("의상 속성 정의 조회 성공 - next가 존재")
+    void find_by_cursor_success_exists_next() {
+      // given
+      UUID defId1 = UUID.randomUUID();
+      UUID defId2 = UUID.randomUUID();
+
+      ClothesAttributeDef def1 = ClothesAttributeDef.create("사이즈");
+      ClothesAttributeDef def2 = ClothesAttributeDef.create("색상");
+      ReflectionTestUtils.setField(def1, "id", defId1);
+      ReflectionTestUtils.setField(def2, "id", defId2);
+
+      SelectableValue value1 = SelectableValue.create(defId1, "S");
+      SelectableValue value2 = SelectableValue.create(defId2, "M");
+      ReflectionTestUtils.setField(value1, "id", UUID.randomUUID());
+      ReflectionTestUtils.setField(value2, "id", UUID.randomUUID());
+
+      ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
+          null, null, 1, "name", SortDirection.ASCENDING, "사이즈");
+
+      List<UUID> defIds = List.of(defId1, defId2);
+
+
+      List<ClothesAttributeDef> defs = List.of(def1, def2);
+
+
+      List<SelectableValue> selectableValues = List.of(value1, value2);
+
+      ClothesAttributeDefDto dto1 = new ClothesAttributeDefDto(defId1, def1.getName(), List.of(value1.getItem()));
+      ClothesAttributeDefDto dto2 = new ClothesAttributeDefDto(defId2, def2.getName(), List.of(value2.getItem()));
+
+      ClothesAttributeDefDtoCursorResponse expectedResponse = new ClothesAttributeDefDtoCursorResponse(
+          List.of(dto1),
+          def1.getName(),
+          def1.getId(),
+          true,
+          defIds.size(),
+          "name",
+          SortDirection.ASCENDING);
+
+      given(clothesAttributeDefService.findIdsByKeyword("사이즈")).willReturn(defIds);
+      given(clothesAttributeDefService.findByCursor(defIds, request)).willReturn(defs);
+      given(selectableValueService.findAllByAttributeDefIdIn(anyList()))
+          .willReturn(selectableValues);
+      given(clothesAttributeDefMapper.toDto(defId1, "사이즈", List.of("S"))).willReturn(dto1);
+      given(clothesAttributeDefDtoCursorResponseMapper.toDto(
+          List.of(dto1), def1.getName(), def1.getId(), true, defIds.size(), "name", SortDirection.ASCENDING))
+          .willReturn(expectedResponse);
+
+      // when
+      ClothesAttributeDefDtoCursorResponse result = clothesAttributeInfoService.findByCursor(request);
+
+      // then
+      assertEquals(1, result.data().size());
+      assertTrue(result.hasNext());
+      assertEquals(def1.getName(), result.nextCursor());
+      assertEquals(def1.getId(), result.nextIdAfter());
+
+      then(clothesAttributeDefService).should().findIdsByKeyword("사이즈");
+      then(clothesAttributeDefService).should().findByCursor(defIds, request);
+      then(selectableValueService).should().findAllByAttributeDefIdIn(List.of(defId1));
+      then(clothesAttributeDefMapper).should().toDto(defId1, "사이즈", List.of("S"));
+      then(clothesAttributeDefDtoCursorResponseMapper).should().toDto(
+          List.of(dto1), def1.getName(), def1.getId(), true, defIds.size(), "name", SortDirection.ASCENDING);
+    }
+
 
     @Test
     @DisplayName("의상 속성 정의 조회 결과가 없을 경우 빈 응답 반환")

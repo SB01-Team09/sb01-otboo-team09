@@ -8,7 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
-import com.part4.team09.otboo.module.domain.feed.dto.CommentCreateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Comment;
 import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;

@@ -3,11 +3,12 @@ package com.part4.team09.otboo.module.domain.weather.batch;
 import com.part4.team09.otboo.module.common.monitoring.BatchMonitoringListener;
 import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
+import com.part4.team09.otboo.module.domain.weather.batch.listener.RetryJobListener;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
+import com.part4.team09.otboo.module.domain.weather.exception.WeatherReadException;
 import com.part4.team09.otboo.module.domain.weather.external.WeatherApiClient;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
-import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,8 @@ public class WeatherBatch {
   private final DongRepository dongRepository;
   private final WeatherRepository weatherRepository;
   private final WeatherCache weatherCache;
+  private final BatchMonitoringListener batchMonitoringListener;
+  private final RetryJobListener retryJobListener;
 
   @Bean
   public Step weatherStep(JobRepository jobRepository,
@@ -42,10 +45,10 @@ public class WeatherBatch {
       .processor(weatherProcessor)
       .writer(weatherWriter)
       .faultTolerant()
+      .retry(WeatherReadException.class)
       .retryLimit(3) // 최대 3번 재시도
-      .retry(Exception.class)
-      .skip(Exception.class)
-      .skipLimit(50) // 유연한 실패 허용
+      .skip(WeatherReadException.class)
+      .skipLimit(50)
       .build();
   }
 
@@ -65,11 +68,11 @@ public class WeatherBatch {
   }
 
   @Bean("weatherJob")
-  public Job weatherJob(JobRepository jobRepository, Step weatherStep,
-    MeterRegistry meterRegistry) {
+  public Job weatherJob(JobRepository jobRepository, Step weatherStep) {
     return new JobBuilder("weatherJob", jobRepository)
-      .listener(new BatchMonitoringListener(meterRegistry))
       .start(weatherStep)
+      .listener(batchMonitoringListener)
+      .listener(retryJobListener)
       .build();
   }
 }
