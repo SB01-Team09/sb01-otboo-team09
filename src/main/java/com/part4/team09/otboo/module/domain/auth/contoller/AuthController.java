@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.auth.contoller;
 
+import com.part4.team09.otboo.module.common.security.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.domain.auth.service.AuthService;
 import jakarta.servlet.http.Cookie;
@@ -28,7 +29,9 @@ public class AuthController {
 
   // access 토큰 조회
   @GetMapping("/me")
-  public ResponseEntity<String> getAccessToken(@CookieValue("refresh_token") String refreshToken) {
+  public ResponseEntity<String> getAccessToken(
+    @CookieValue(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME) String refreshToken
+  ) {
     String accessToken = authService.getAccessTokenByRefreshToken(refreshToken);
     return ResponseEntity.ok(accessToken);
   }
@@ -36,11 +39,13 @@ public class AuthController {
   // refresh 토큰 재발급
   @PostMapping("/refresh")
   public ResponseEntity<String> refreshTokens(
-    @CookieValue("refresh_token") String refreshToken,
+    @CookieValue(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME) String refreshToken,
     HttpServletResponse response
   ) {
     GeneratedToken generatedToken = authService.refreshTokens(refreshToken);
-    Cookie refreshCookie = new Cookie("refresh_token", generatedToken.refreshToken());
+
+    Cookie refreshCookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME,
+      generatedToken.refreshToken());
     response.addCookie(refreshCookie);
     return ResponseEntity.ok(generatedToken.accessToken());
   }

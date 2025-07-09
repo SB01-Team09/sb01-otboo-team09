@@ -5,10 +5,13 @@ import com.part4.team09.otboo.module.common.security.Filter.JsonLoginAuthenticat
 import com.part4.team09.otboo.module.common.security.Filter.JwtAuthenticationFilter;
 import com.part4.team09.otboo.module.common.security.handler.CustomAccessDeniedHandler;
 import com.part4.team09.otboo.module.common.security.handler.CustomAuthenticationEntryPoint;
+import com.part4.team09.otboo.module.common.security.handler.CustomLogoutHandler;
+import com.part4.team09.otboo.module.common.security.handler.CustomLogoutSuccessHandler;
 import com.part4.team09.otboo.module.common.security.handler.JsonLoginFailureHandler;
 import com.part4.team09.otboo.module.common.security.handler.JsonLoginSuccessHandler;
 import com.part4.team09.otboo.module.common.security.jwt.JwtProperty;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
+import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +41,8 @@ public class SecurityConfig {
   private final JwtTokenProvider jwtTokenProvider;
   private final CustomAccessDeniedHandler customAccessDeniedHandler;
   private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+  private final CustomLogoutHandler customLogoutHandler;
+  private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
 
   @Bean
   public SecurityFilterChain filterChain(
@@ -52,6 +57,12 @@ public class SecurityConfig {
 
       // 인가 설정
       .authorizeHttpRequests(this::configureAuthorization)
+
+      .logout(logout -> logout
+        .logoutUrl("/api/auth/sign-out")
+        .addLogoutHandler(customLogoutHandler)
+        .logoutSuccessHandler(customLogoutSuccessHandler)
+      )
 
       // 예외 핸들러
       .exceptionHandling(ex -> ex
@@ -76,7 +87,7 @@ public class SecurityConfig {
       .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
       .requestMatchers("/file/**").permitAll()
 
-      .requestMatchers("/api/**").hasRole("USER")
+      .requestMatchers("/api/**").hasRole(Role.USER.name())
 
       .anyRequest().permitAll();
   }

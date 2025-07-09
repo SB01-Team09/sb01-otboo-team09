@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.common.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -10,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.part4.team09.otboo.module.common.security.jwt.AuthTokenRepository;
 import com.part4.team09.otboo.module.domain.auth.dto.LoginRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
@@ -42,6 +44,9 @@ public class AuthIntegrationTest {
 
   @Autowired
   private UserRepository userRepository;
+
+  @Autowired
+  private AuthTokenRepository authTokenRepository;
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -103,7 +108,8 @@ public class AuthIntegrationTest {
       String accessToken = getAccessToken();
 
       mockMvc.perform(get("/api/users/" + userId + "/profiles")
-          .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+          .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+          .with(csrf()))
         .andExpect(status().isOk());
     }
   }
@@ -114,7 +120,8 @@ public class AuthIntegrationTest {
     String accessToken = getAccessToken();
 
     mockMvc.perform(get("/api/users/" + userId + "/profiles")
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken + "no"))
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken + "no")
+        .with(csrf()))
       .andExpect(status().isUnauthorized())
       .andDo(print());
   }
@@ -125,10 +132,25 @@ public class AuthIntegrationTest {
     String refreshToken = getRefreshToken();
 
     mockMvc.perform(get("/api/auth/me")
-        .cookie(new Cookie("refresh_token", refreshToken)))
+        .cookie(new Cookie("refresh_token", refreshToken))
+        .with(csrf()))
       .andExpect(status().isOk())
       .andExpect(content().string(Matchers.not("")))
       .andDo(print());
+  }
+
+  @DisplayName("로그아웃 성공 시 쿠키 삭제 및 auth token 데이터 삭제")
+  @Test
+  void logout_success_thenRemoves_cookie_and_authToken() throws Exception {
+    String refreshToken = getRefreshToken();
+
+    mockMvc.perform(post("/api/auth/sign-out")
+        .cookie(new Cookie("refresh_token", refreshToken))
+        .with(csrf()))
+      .andExpect(status().isNoContent())
+      .andExpect(cookie().maxAge(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME, 0));
+
+    assertThat(authTokenRepository.findByRefreshToken(refreshToken)).isEmpty();
   }
 
   private String getAccessToken() throws Exception {
