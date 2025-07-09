@@ -7,7 +7,7 @@ import java.util.UUID;
 public record FollowListRequest(
         UUID userId,
         LocalDateTime cursor,
-        UUID idAFter,
+        UUID idAfter,
         int limit,
         String nameLike
 ) {
