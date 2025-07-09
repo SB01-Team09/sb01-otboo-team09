@@ -1,18 +1,26 @@
 package com.part4.team09.otboo.module.domain.clothes.service;
 
+import com.part4.team09.otboo.module.common.entity.BaseEntity;
+import com.part4.team09.otboo.module.common.enums.SortDirection;
+import com.part4.team09.otboo.module.domain.clothes.assembler.ClothesAttributeWithDefDtoAssembler;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeWithDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesCreateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesUpdateRequest;
+import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
+import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
+import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.exception.SelectableValue.SelectableValueNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithDefMapper;
+import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesMapper;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
+import com.part4.team09.otboo.module.domain.clothes.repository.custom.ClothesRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.feed.service.OotdService;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
@@ -22,6 +30,7 @@ import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -43,9 +52,12 @@ public class ClothesService {
 
   private final ClothesRepository clothesRepository;
   private final UserRepository userRepository;
+  private final ClothesRepositoryQueryDSL clothesRepositoryQueryDSL;
 
   private final ClothesMapper clothesMapper;
   private final ClothesAttributeWithDefMapper clothesAttributeWithDefMapper;
+  private final ClothesDtoCursorResponseMapper clothesDtoCursorResponseMapper;
+  private final ClothesAttributeWithDefDtoAssembler clothesAttributeWithDefDtoAssembler;
   private final FileStorage fileStorage;
 
   public ClothesDto create(ClothesCreateRequest request, MultipartFile image) {
@@ -83,6 +95,45 @@ public class ClothesService {
         "의상 생성 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
         savedClothes.getId(), savedClothes.getOwnerId(), savedClothes.getName(),
         savedClothes.getImageUrl(), savedClothes.getType(), attributeDtos.size());
+    return response;
+  }
+
+  public ClothesDtoCursorResponse findByCursor(String cursor, UUID idAfter, int limit,
+      ClothesType typeEqual, UUID ownerId) {
+
+    log.debug("의상 조회 시작: cursor = {}, idAfter = {}, limit = {}, typeEqual = {}, ownerId = {}",
+        cursor, idAfter, limit, typeEqual, ownerId);
+
+    // 프로토타입 기준
+    String sortBy = "CreatedAt";
+    SortDirection sortDirection = SortDirection.DESCENDING;
+
+    List<Clothes> clothesList = ClothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual,
+        ownerId, sortBy, sortDirection);
+
+    List<ClothesDto> data = clothesList.stream()
+        .map(clothes -> clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(), clothes.getName(),
+            clothes.getImageUrl(), clothes.getType(), clothesAttributeWithDefDtoAssembler.assemble(clothes.getId())))
+        .toList();
+
+    boolean hasNext = clothesList.size() > limit;
+    String nextCursor = null;
+    UUID nexIdAfter = null;
+    int totalCount = clothesRepository.countByOwnerIdAndType(ownerId, typeEqual);
+
+    if (hasNext) {
+      clothesList = clothesList.subList(0, limit);
+      Clothes lastClothes = clothesList.get(clothesList.size() - 1);
+      nextCursor = lastClothes.getCreatedAt().toString();
+      nexIdAfter = lastClothes.getId();
+    }
+
+    ClothesDtoCursorResponse response = clothesDtoCursorResponseMapper.toDto(data, nextCursor,
+        nexIdAfter, hasNext, totalCount, sortBy, sortDirection);
+
+    log.debug("의상 조회 완료: dataSize = {}, nexCursor = {}, nextIdAfter = {}, hasNext = {}, "
+        + "totalCount = {}, sortBy = {}, sortDirection = {}", data, nextCursor, nexIdAfter, hasNext,
+        totalCount, sortBy, sortDirection);
     return response;
   }
 
