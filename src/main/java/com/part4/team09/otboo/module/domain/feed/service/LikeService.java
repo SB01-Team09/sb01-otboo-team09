@@ -39,8 +39,8 @@ public class LikeService {
   }
 
   public void delete(UUID userId, UUID feedId) {
-    validateUserExists(userId);
     validateFeedExists(feedId);
+    validateUserExists(userId);
 
     Like like = getLikeOrThrow(userId, feedId);
     likeRepository.deleteById(like.getId());

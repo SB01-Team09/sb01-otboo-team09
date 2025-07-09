@@ -12,6 +12,7 @@ import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Like;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
+import com.part4.team09.otboo.module.domain.feed.exception.like.LikeNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.LikeRepository;
@@ -139,6 +140,51 @@ class LikeServiceTest {
 
       // then
       verify(likeRepository).deleteById(likeId);
+    }
+
+    @Test
+    @DisplayName("좋아요 삭제 실패 - 존재하지 않는 피드 ID")
+    void delete_like_throwsFeedNotFoundException_whenFeedDoseNotExist() {
+      // given
+      UUID nonExistFeedId = UUID.randomUUID();
+      UUID userId = UUID.randomUUID();
+
+      given(feedRepository.existsById(nonExistFeedId)).willReturn(false);
+
+      // when & then
+      assertThrows(FeedNotFoundException.class,
+          () -> likeService.delete(userId, nonExistFeedId));
+    }
+
+    @Test
+    @DisplayName("좋아요 삭제 실패 - 존재하지 않는 유저 ID")
+    void delete_like_throwsUserNotFoundException_whenUserDoseNotExist() {
+      // given
+      UUID feedId = UUID.randomUUID();
+      UUID nonExistUserId = UUID.randomUUID();
+
+      given(feedRepository.existsById(feedId)).willReturn(true);
+      given(userRepository.existsById(nonExistUserId)).willReturn(false);
+
+      // when & then
+      assertThrows(UserNotFoundException.class,
+          () -> likeService.delete(nonExistUserId, feedId));
+    }
+
+    @Test
+    @DisplayName("좋아요 삭제 실패 - 존재하지 않는 좋아요")
+    void delete_like_throwsLikeNotFoundException_whenLikeDoseNotExist() {
+      // given
+      UUID feedId = UUID.randomUUID();
+      UUID userId = UUID.randomUUID();
+
+      given(feedRepository.existsById(feedId)).willReturn(true);
+      given(userRepository.existsById(userId)).willReturn(true);
+      given(likeRepository.findByUserIdAndFeedId(userId, feedId)).willReturn(Optional.empty());
+
+      // when & then
+      assertThrows(LikeNotFoundException.class,
+          () -> likeService.delete(userId, feedId));
     }
   }
 }
