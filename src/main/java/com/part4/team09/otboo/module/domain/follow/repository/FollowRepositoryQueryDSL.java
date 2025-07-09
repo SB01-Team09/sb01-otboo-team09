@@ -30,7 +30,7 @@ public class FollowRepositoryQueryDSL {
                 .where(
                         follow.followerId.eq(request.userId()), // followerId
                         user.name.likeIgnoreCase("%" + request.nameLike() + "%"),
-                        cursorCondition(request.cursor(), request.idAFter()) // null일 때 처리를 위해 메서드로 따로 뺐습니다
+                        cursorCondition(request.cursor(), request.idAfter()) // null일 때 처리를 위해 메서드로 따로 뺐습니다
                 )
                 .orderBy(follow.createdAt.desc(), follow.id.desc())
                 .limit(request.limit())
@@ -45,7 +45,7 @@ public class FollowRepositoryQueryDSL {
                 .where(
                         follow.followeeId.eq(request.userId()), // followeeId
                         user.name.likeIgnoreCase("%" + request.nameLike() + "%"),
-                        cursorCondition(request.cursor(), request.idAFter()) // null일 때 처리를 위해 메서드로 따로 뺐습니다
+                        cursorCondition(request.cursor(), request.idAfter()) // null일 때 처리를 위해 메서드로 따로 뺐습니다
                 )
                 .orderBy(follow.createdAt.desc(), follow.id.desc())
                 .limit(request.limit())

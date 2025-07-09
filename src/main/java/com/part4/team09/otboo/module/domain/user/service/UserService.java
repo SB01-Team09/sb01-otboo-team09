@@ -7,12 +7,9 @@ import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILoca
 import com.part4.team09.otboo.module.domain.location.service.LocationService;
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
-import com.part4.team09.otboo.module.domain.user.dto.request.PasswordUpdateRequest;
-import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.UserDtoCursorResponse;
+import com.part4.team09.otboo.module.domain.user.dto.request.*;
 import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest.LocationUpdateRequest;
-import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
-import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateRequest;
-import com.part4.team09.otboo.module.domain.user.dto.request.UserRoleUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import com.part4.team09.otboo.module.domain.user.event.UserProfileUpdateEvent;
@@ -21,9 +18,14 @@ import com.part4.team09.otboo.module.domain.user.exception.SameAsOldPasswordExce
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.mapper.UserMapper;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import com.part4.team09.otboo.module.domain.user.repository.UserRepositoryQueryDSL;
 import jakarta.validation.Valid;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -43,6 +45,7 @@ public class UserService {
   private final LocationService locationService;
   private final FileStorage fileStorage;
   private final ApplicationEventPublisher eventPublisher;
+  private final UserRepositoryQueryDSL userRepositoryQueryDSL;
 
   @Transactional
   public UserDto createUser(UserCreateRequest request) {
@@ -153,6 +156,38 @@ public class UserService {
     user.changePassword(encodedPassword);
   }
 
+  // 계정 목록 조회
+  @Transactional(readOnly = true)
+  public UserDtoCursorResponse getUsers(UserListRequest request){
+
+    List<User> pagedUserList = userRepositoryQueryDSL.getUsers(request);
+    int totalCount = userRepositoryQueryDSL.countUsers(request);
+
+    // hasNext 판단 후, 진짜 data는 (limit)개만큼 subList로 가져오기
+    boolean hasNext = pagedUserList.size() > request.limit();
+    if (hasNext) {
+      pagedUserList = pagedUserList.subList(0, request.limit());
+    }
+
+    // Dto 변환
+    List<UserDto> pagedUserDtoList = pagedUserList.stream()
+            .map(user -> userMapper.toDto(user, null))
+            .collect(Collectors.toList());
+
+    // 다음 커서 생성
+    String nextCursor = null;
+    UUID nextIdAfter = null;
+
+    if (hasNext && !pagedUserList.isEmpty()) {
+      User lastUser = pagedUserList.get(request.limit() - 1);
+
+      nextCursor = extractCursorValue(lastUser, request.sortBy());
+      nextIdAfter = lastUser.getId();
+    }
+
+    return new UserDtoCursorResponse(pagedUserDtoList, nextCursor, nextIdAfter, hasNext, totalCount, request.sortBy(), request.sortDirection());
+  }
+
   // 권한 변경
   @Transactional
   public UserDto changeRole(UUID id, UserRoleUpdateRequest request) {
@@ -178,6 +213,7 @@ public class UserService {
     }
     return userMapper.toDto(user, null);
   }
+
 
   /**
    * 이하 내부 유틸 / 검증 메서드
@@ -212,6 +248,17 @@ public class UserService {
       // TODO: 프로필 업로드 실패 알림 전송
       log.warn("{} | {}", e.getMessage(), e.getDetails());
       return null;
+    }
+  }
+
+  private String extractCursorValue(User user, String sortBy) {
+    switch (sortBy) {
+      case "email":
+        return user.getEmail();
+      case "createdAt":
+        return user.getCreatedAt().toString();
+      default:
+        throw new IllegalArgumentException("지원하지 않는 sortBy: " + sortBy);
     }
   }
 }
