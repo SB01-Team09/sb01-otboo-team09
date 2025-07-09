@@ -48,6 +48,23 @@ public class ClothesAttributeService {
     return savedClothesAttributes;
   }
 
+  @Transactional(readOnly = true)
+  public List<ClothesAttribute> findByClothesId(UUID clothesId) {
+    log.debug("의상 속성 값 - 의상 연관 조회 시작: clothesId = {}", clothesId);
+
+    clothesRepository.findById(clothesId)
+        .orElseThrow(() -> {
+          log.warn("의상이 존재하지 않습니다. id = {}", clothesId);
+          return ClothesNotFoundException.withId(clothesId);
+        });
+
+    List<ClothesAttribute> clothesAttributes = clothesAttributeRepository.findAllByClothesId(clothesId);
+
+    log.debug("의상 속성 값 - 의상 연관 조회 완료: clothesAttributeSize = {}", clothesAttributes.size());
+
+    return clothesAttributes;
+  }
+
   public void deleteBySelectableValueIdIn(List<UUID> valueIds) {
     log.debug("의상 속성 값 - 의상 연관 삭제 시작: valueIdsSize = {}", valueIds.size());
 
@@ -64,5 +81,4 @@ public class ClothesAttributeService {
 
     log.debug("의상 속성 값 - 의상 연관 삭제 완료");
   }
-
 }
