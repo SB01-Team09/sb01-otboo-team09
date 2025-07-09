@@ -241,4 +241,24 @@ class FeedControllerTest {
           .andExpect(status().isNoContent());
     }
   }
+
+  @Nested
+  @DisplayName("좋아요 삭제")
+  public class DeleteLikeTest {
+
+    @Test
+    @DisplayName("좋아요 삭제 성공")
+    void delete_like_success() throws Exception {
+      // given
+      UUID userId = UUID.randomUUID();
+      UUID feedId = UUID.randomUUID();
+
+      // when & then
+      mockMvc.perform(delete("/api/feeds/{feedId}/like", feedId)
+              .contentType(MediaType.APPLICATION_JSON)
+              .param("userId", userId.toString())
+              .with(csrf()))
+          .andExpect(status().isNoContent());
+    }
+  }
 }
