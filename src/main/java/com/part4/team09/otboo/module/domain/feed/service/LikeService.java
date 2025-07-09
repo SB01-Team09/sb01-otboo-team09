@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.entity.Like;
 import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
@@ -8,6 +9,7 @@ import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.LikeRepository;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,20 @@ public class LikeService {
     likeRepository.save(like);
 
     return feedDtoAssembler.assemble(feedId, userId);
+  }
+
+  public void delete(UUID userId, UUID feedId) {
+    validateUserExists(userId);
+    validateFeedExists(feedId);
+
+    Like like = getLikeOrThrow(userId, feedId);
+    likeRepository.deleteById(like.getId());
+  }
+
+  // TODO: 커스텀 예외 만들기
+  private Like getLikeOrThrow(UUID userId, UUID feedId) {
+    return likeRepository.findByUserIdAndFeedId(userId, feedId)
+        .orElseThrow(() -> FeedNotFoundException.withId(feedId));
   }
 
   public boolean isLikedByMe(UUID userId, UUID feedId) {

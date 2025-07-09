@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
+import com.part4.team09.otboo.module.domain.feed.entity.Like;
 import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
@@ -109,7 +110,6 @@ class LikeServiceTest {
     void create_like_throwsUserNotFoundException_whenUserDoseNotExist() {
       // given
       UUID feedId = UUID.randomUUID();
-      Feed mockFeed = mock(Feed.class);
       UUID nonExistUserId = UUID.randomUUID();
 
       given(feedRepository.existsById(feedId)).willReturn(true);
@@ -118,6 +118,32 @@ class LikeServiceTest {
       // when & then
       assertThrows(UserNotFoundException.class,
           () -> likeService.create(nonExistUserId, feedId));
+    }
+  }
+
+  @Nested
+  @DisplayName("좋아요 삭제")
+  public class DeleteLikeTest {
+
+    @Test
+    @DisplayName("좋아요 삭제 성공")
+    void delete_like_success() {
+      // given
+      UUID userId = UUID.randomUUID();
+      UUID feedId = UUID.randomUUID();
+      UUID likeId = UUID.randomUUID();
+      Like mockLike = mock(Like.class);
+
+      given(feedRepository.existsById(any())).willReturn(true);
+      given(userRepository.existsById(any())).willReturn(true);
+      given(likeRepository.findByUserIdAndFeedId(userId, feedId)).willReturn(Optional.of(mockLike));
+      given(mockLike.getId()).willReturn(likeId);
+
+      // when
+      likeService.delete(userId, feedId);
+
+      // then
+      verify(likeRepository).deleteById(likeId);
     }
   }
 }
