@@ -1,6 +1,5 @@
 package com.part4.team09.otboo.module.domain.clothes.service;
 
-import com.part4.team09.otboo.module.common.entity.BaseEntity;
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.clothes.assembler.ClothesAttributeWithDefDtoAssembler;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDto;
@@ -11,7 +10,6 @@ import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesUpdateReq
 import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
-import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
@@ -31,7 +29,6 @@ import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -114,16 +111,12 @@ public class ClothesService {
     User user = getUserOrThrow(ownerId);
 
     // 프로토타입 기준
+    if(typeEqual == null) typeEqual = ClothesType.TOP;
     String sortBy = "createdAt";
     SortDirection sortDirection = SortDirection.DESCENDING;
 
     List<Clothes> clothesList = clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual,
         ownerId, sortBy, sortDirection);
-
-    List<ClothesDto> data = clothesList.stream()
-        .map(clothes -> clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(), clothes.getName(),
-            clothes.getImageUrl(), clothes.getType(), clothesAttributeWithDefDtoAssembler.assemble(clothes.getId())))
-        .toList();
 
     boolean hasNext = clothesList.size() > limit;
     String nextCursor = null;
@@ -136,6 +129,13 @@ public class ClothesService {
       nextCursor = lastClothes.getCreatedAt().toString();
       nexIdAfter = lastClothes.getId();
     }
+
+    List<ClothesDto> data = clothesList.isEmpty()
+        ? List.of()
+        : clothesList.stream()
+            .map(clothes -> clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(), clothes.getName(),
+                clothes.getImageUrl(), clothes.getType(), clothesAttributeWithDefDtoAssembler.assemble(clothes.getId())))
+            .toList();
 
     ClothesDtoCursorResponse response = clothesDtoCursorResponseMapper.toDto(data, nextCursor,
         nexIdAfter, hasNext, totalCount, sortBy, sortDirection);
