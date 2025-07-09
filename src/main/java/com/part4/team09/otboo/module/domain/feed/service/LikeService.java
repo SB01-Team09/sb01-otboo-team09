@@ -38,6 +38,7 @@ public class LikeService {
     return feedDtoAssembler.assemble(feedId, userId);
   }
 
+  @Transactional
   public void delete(UUID userId, UUID feedId) {
     validateFeedExists(feedId);
     validateUserExists(userId);
