@@ -3,6 +3,7 @@ package com.part4.team09.otboo.module.domain.feed.service;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Like;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
+import com.part4.team09.otboo.module.domain.feed.exception.like.LikeAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.feed.exception.like.LikeNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
@@ -25,11 +26,11 @@ public class LikeService {
   private final FeedRepository feedRepository;
   private final UserRepository userRepository;
 
-  // TODO: 이미 존재하는 좋아요인지 확인
   @Transactional
   public FeedDto create(UUID userId, UUID feedId) {
     validateFeedExists(feedId);
     validateUserExists(userId);
+    validateLikeNotExists(userId, feedId);
 
     Like like = Like.create(feedId, userId);
     likeRepository.save(like);
@@ -54,8 +55,10 @@ public class LikeService {
         .orElseThrow(() -> LikeNotFoundException.withId(userId, feedId));
   }
 
-  public boolean isLikedByMe(UUID userId, UUID feedId) {
-    return likeRepository.existsByUserIdAndFeedId(userId, feedId);
+  public void validateLikeNotExists(UUID userId, UUID feedId) {
+    if (likeRepository.existsByUserIdAndFeedId(userId, feedId)) {
+      throw LikeAlreadyExistsException.withId(userId, feedId);
+    }
   }
 
   private void validateFeedExists(UUID feedId) {
