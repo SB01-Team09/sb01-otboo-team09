@@ -10,7 +10,6 @@ import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesUpdateReq
 import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
-import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.BadRequestException;
@@ -24,7 +23,6 @@ import com.part4.team09.otboo.module.domain.feed.service.OotdService;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
 import com.part4.team09.otboo.module.domain.file.service.FileStorage;
-import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.List;
@@ -43,7 +41,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class ClothesService {
 
-  private final ClothesAttributeDefService clothesAttributeDefService;
   private final SelectableValueService selectableValueService;
   private final ClothesAttributeService clothesAttributeService;
   private final OotdService ootdService;
@@ -53,7 +50,6 @@ public class ClothesService {
   private final ClothesRepositoryQueryDSL clothesRepositoryQueryDSL;
 
   private final ClothesMapper clothesMapper;
-  private final ClothesAttributeWithDefMapper clothesAttributeWithDefMapper;
   private final ClothesDtoCursorResponseMapper clothesDtoCursorResponseMapper;
   private final ClothesAttributeWithDefDtoAssembler clothesAttributeWithDefDtoAssembler;
   private final FileStorage fileStorage;
@@ -62,29 +58,20 @@ public class ClothesService {
 
     log.debug("의상 생성 시작: ownerId = {}, name = {}", request.ownerId(), request.name());
 
-    User user = getUserOrThrow(request.ownerId());
+    validateUserExists(request.ownerId());
 
     String url = uploadClothesImage(image);
 
     Clothes clothes = Clothes.create(request.ownerId(), request.name(), request.type(), url);
     Clothes savedClothes = clothesRepository.save(clothes);
 
-    Map<UUID, List<SelectableValue>> selectableValueMap = Map.of();
+    // 연관 생성
+    List<ClothesAttributeWithDefDto> attributeDtos = List.of();
 
     if (!request.attributes().isEmpty()) {
-      List<UUID> defIds = request.attributes().stream()
-          .map(ClothesAttributeDto::definitionId)
-          .distinct()
-          .toList();
-      selectableValueMap = selectableValueService.findAllByAttributeDefIdIn(defIds).stream()
-          .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
-
-      createClothesAttributes(request.attributes(), clothes, selectableValueMap);
+      createClothesAttributes(request.attributes(), clothes.getId());
+      attributeDtos = clothesAttributeWithDefDtoAssembler.assemble(clothes.getId());
     }
-
-    List<ClothesAttributeWithDefDto> attributeDtos = request.attributes().isEmpty()
-        ? List.of()
-        : createAttributeDtos(request.attributes(), selectableValueMap);
 
     ClothesDto response = clothesMapper.toDto(savedClothes.getId(), savedClothes.getOwnerId(),
         savedClothes.getName(), savedClothes.getImageUrl(), savedClothes.getType(), attributeDtos);
@@ -99,7 +86,6 @@ public class ClothesService {
   @Transactional(readOnly = true)
   public ClothesDtoCursorResponse findByCursor(String cursor, UUID idAfter, int limit,
       ClothesType typeEqual, UUID ownerId) {
-
     log.debug("의상 조회 시작: cursor = {}, idAfter = {}, limit = {}, typeEqual = {}, ownerId = {}",
         cursor, idAfter, limit, typeEqual, ownerId);
 
@@ -108,14 +94,17 @@ public class ClothesService {
       throw BadRequestException.withLimit(limit);
     }
 
-    User user = getUserOrThrow(ownerId);
+    validateUserExists(ownerId);
 
     // 프로토타입 기준
-    if(typeEqual == null) typeEqual = ClothesType.TOP;
+    if (typeEqual == null) {
+      typeEqual = ClothesType.TOP;
+    }
     String sortBy = "createdAt";
     SortDirection sortDirection = SortDirection.DESCENDING;
 
-    List<Clothes> clothesList = clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual,
+    List<Clothes> clothesList = clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit,
+        typeEqual,
         ownerId, sortBy, sortDirection);
 
     boolean hasNext = clothesList.size() > limit;
@@ -133,15 +122,16 @@ public class ClothesService {
     List<ClothesDto> data = clothesList.isEmpty()
         ? List.of()
         : clothesList.stream()
-            .map(clothes -> clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(), clothes.getName(),
-                clothes.getImageUrl(), clothes.getType(), clothesAttributeWithDefDtoAssembler.assemble(clothes.getId())))
+            .map(clothes -> clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(),
+                clothes.getName(), clothes.getImageUrl(), clothes.getType(),
+                clothesAttributeWithDefDtoAssembler.assemble(clothes.getId())))
             .toList();
 
     ClothesDtoCursorResponse response = clothesDtoCursorResponseMapper.toDto(data, nextCursor,
         nexIdAfter, hasNext, totalCount, sortBy, sortDirection);
 
     log.debug("의상 조회 완료: dataSize = {}, nexCursor = {}, nextIdAfter = {}, hasNext = {}, "
-        + "totalCount = {}, sortBy = {}, sortDirection = {}", data, nextCursor, nexIdAfter, hasNext,
+            + "totalCount = {}, sortBy = {}, sortDirection = {}", data, nextCursor, nexIdAfter, hasNext,
         totalCount, sortBy, sortDirection);
     return response;
   }
@@ -153,7 +143,7 @@ public class ClothesService {
       return ClothesNotFoundException.withId(clothesId);
     });
 
-    User user = getUserOrThrow(clothes.getOwnerId());
+    validateUserExists(clothes.getOwnerId());
 
     // 1. 이미지 삭제
     if (clothes.getImageUrl() != null) {
@@ -169,21 +159,12 @@ public class ClothesService {
     // 4. clothesAttribute 삭제
     clothesAttributeService.deleteAllByClothesId(clothes.getId());
 
-    Map<UUID, List<SelectableValue>> selectableValueMap = Map.of();
+    List<ClothesAttributeWithDefDto> attributeDtos = List.of();
 
     if (!request.attributes().isEmpty()) {
-      List<UUID> defIds = request.attributes().stream()
-          .map(ClothesAttributeDto::definitionId)
-          .distinct()
-          .toList();
-      selectableValueMap = selectableValueService.findAllByAttributeDefIdIn(defIds).stream()
-          .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
-      createClothesAttributes(request.attributes(), clothes, selectableValueMap);
+      createClothesAttributes(request.attributes(), clothes.getId());
+      attributeDtos = clothesAttributeWithDefDtoAssembler.assemble(clothes.getId());
     }
-
-    List<ClothesAttributeWithDefDto> attributeDtos = request.attributes().isEmpty()
-        ? List.of()
-        : createAttributeDtos(request.attributes(), selectableValueMap);
 
     ClothesDto response = clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(),
         clothes.getName(), clothes.getImageUrl(), clothes.getType(), attributeDtos);
@@ -221,11 +202,21 @@ public class ClothesService {
     log.debug("의상 삭제 완료: clothesId = {}", clothesId);
   }
 
-  private void createClothesAttributes(List<ClothesAttributeDto> attributeDtos, Clothes clothes,
-      Map<UUID, List<SelectableValue>> selectableValueMap) {
+  private void createClothesAttributes(List<ClothesAttributeDto> attributeDtos,
+      UUID clothesId) {
+
+    List<UUID> defIds = attributeDtos.stream()
+        .map(ClothesAttributeDto::definitionId)
+        .distinct()
+        .toList();
+
+    Map<UUID, List<SelectableValue>> selectableValueMap = selectableValueService.findAllByAttributeDefIdIn(
+            defIds).stream()
+        .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
 
     List<SelectableValue> selectedValues = attributeDtos.stream()
-        .map(attribute -> selectableValueMap.getOrDefault(attribute.definitionId(), List.of()).stream()
+        .map(attribute -> selectableValueMap.getOrDefault(attribute.definitionId(), List.of())
+            .stream()
             .filter(value -> value.getItem().equals(attribute.value()))
             .findFirst()
             .orElseThrow(() -> {
@@ -234,24 +225,10 @@ public class ClothesService {
             }))
         .toList();
 
-    clothesAttributeService.create(clothes.getId(), selectedValues.stream()
-        .map(SelectableValue::getId)
-        .toList());
-  }
-
-  private List<ClothesAttributeWithDefDto> createAttributeDtos(List<ClothesAttributeDto> attributeDtos,
-      Map<UUID, List<SelectableValue>> selectableValueMap) {
-
-    List<UUID> defIds = attributeDtos.stream()
-        .map(ClothesAttributeDto::definitionId)
-        .distinct()
-        .toList();
-
-    Map<UUID, String> defMap = clothesAttributeDefService.findAllByIds(defIds).stream()
-        .collect(Collectors.toMap(ClothesAttributeDef::getId, ClothesAttributeDef::getName));
-
-
-    return clothesAttributeWithDefMapper.toDto(attributeDtos, defMap, selectableValueMap);
+    clothesAttributeService.create(clothesId,
+        selectedValues.stream()
+            .map(SelectableValue::getId)
+            .toList());
   }
 
   // 이미지 업로드
@@ -295,11 +272,11 @@ public class ClothesService {
     }
   }
 
-  private User getUserOrThrow(UUID request) {
-    return userRepository.findById(request)
-        .orElseThrow(() -> {
-          log.warn("사용자가 존재하지 않습니다. id = {}", request);
-          return UserNotFoundException.withId(request);
-        });
+  private void validateUserExists(UUID userId) {
+    if (!userRepository.existsById(userId)) {
+      log.warn("사용자가 존재하지 않습니다. id = {}", userId);
+      throw UserNotFoundException.withId(userId);
+    }
   }
 }
+
