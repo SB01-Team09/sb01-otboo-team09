@@ -9,6 +9,7 @@ import java.util.UUID;
 public record AuthUserDto(
   UUID userId,
   String email,
+  String name,
   boolean locked,
   Role role
 ) {

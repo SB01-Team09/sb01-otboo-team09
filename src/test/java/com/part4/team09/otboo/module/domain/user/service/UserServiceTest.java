@@ -3,10 +3,6 @@ package com.part4.team09.otboo.module.domain.user.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
-import com.part4.team09.otboo.module.domain.location.repository.GuRepository;
-import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
-import com.part4.team09.otboo.module.domain.location.repository.SidoRepository;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateRequest;
@@ -30,14 +26,6 @@ class UserServiceTest {
 
   @Autowired
   private UserRepository userRepository;
-  @Autowired
-  private LocationRepository locationRepository;
-  @Autowired
-  private SidoRepository sidoRepository;
-  @Autowired
-  private GuRepository guRepository;
-  @Autowired
-  private DongRepository dongRepository;
   @Autowired
   private UserService userService;
 

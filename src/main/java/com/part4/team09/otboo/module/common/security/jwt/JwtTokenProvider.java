@@ -10,6 +10,8 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.part4.team09.otboo.module.common.security.exception.AccessTokenNotFoundException;
+import com.part4.team09.otboo.module.common.security.exception.AccessTokenReplacedException;
 import com.part4.team09.otboo.module.common.security.exception.InvalidJwtFormatException;
 import com.part4.team09.otboo.module.common.security.exception.InvalidJwtSignatureException;
 import com.part4.team09.otboo.module.common.security.exception.JwtAuthenticationException;
@@ -84,6 +86,7 @@ public class JwtTokenProvider {
       .jwtID(UUID.randomUUID().toString())
       .claim("type", "access")
       .claim("userId", authUserDto.userId())
+      .claim("name", authUserDto.name())
       .claim("email", authUserDto.email())
       .claim("role", authUserDto.role())
       .build();
@@ -107,6 +110,28 @@ public class JwtTokenProvider {
       .build();
 
     return createSignedToken(jwtClaimsSet);
+  }
+
+  // 동시 로그인 제한 및 유효성 검증
+  public void validateTokenWithSession(String accessToken) {
+    // 유효성
+    validateToken(accessToken);
+
+    // 동시 로그인 제한
+    UUID userId = getAuthUserDtoFromToken(accessToken).userId();
+    authTokenRepository.findByUserId(userId)
+      .ifPresentOrElse(
+        authToken -> {
+          if (!authToken.getAccessToken().equals(accessToken)) {
+            log.info("이전 토큰으로 인증 시도 (userId: {})", userId);
+            throw new AccessTokenReplacedException("다른 세션에서 로그인되어 기존 토큰은 만료되었습니다.");
+          }
+        },
+        () -> {
+          log.info("로그아웃된 토큰으로 인증 시도 (userId: {})", userId);
+          throw new AccessTokenNotFoundException("토큰이 만료되었습니다. 다시 로그인하세요.");
+        }
+      );
   }
 
   // 토큰 유효성 검증
@@ -142,9 +167,10 @@ public class JwtTokenProvider {
       JWTClaimsSet claimsSet = parseToken(token);
       UUID userId = UUID.fromString(claimsSet.getClaimAsString("userId"));
       String email = claimsSet.getClaimAsString("email");
+      String name = claimsSet.getClaimAsString("name");
       Role role = Role.valueOf(claimsSet.getClaim("role").toString());
 
-      return new AuthUserDto(userId, email, false, role);
+      return new AuthUserDto(userId, email, name, false, role);
 
     } catch (ParseException e) {
       throw new InvalidJwtFormatException("JWT 형식이 잘못되었습니다.");

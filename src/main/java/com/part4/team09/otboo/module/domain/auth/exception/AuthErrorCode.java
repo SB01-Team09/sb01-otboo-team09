@@ -8,12 +8,13 @@ public enum AuthErrorCode implements ErrorCode {
   ACCOUNT_LOCKED(HttpStatus.UNAUTHORIZED, "계정이 잠겼습니다. 관리자에게 문의하세요."),
   CREDENTIALS_EXPIRED(HttpStatus.UNAUTHORIZED, "비밀번호가 만료되었습니다."),
   AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "로그인에 실패했습니다."),
-  AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다. 로그인해주세요."),
+  AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
 
   ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
 
   // auth
-  INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+  INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다. 재로그인이 필요합니다."),
+  REFRESH_TOKEN_MISSING(HttpStatus.BAD_REQUEST, "Refresh Token이 요청에 없습니다.");
 
   private final HttpStatus httpStatus;
   private final String message;

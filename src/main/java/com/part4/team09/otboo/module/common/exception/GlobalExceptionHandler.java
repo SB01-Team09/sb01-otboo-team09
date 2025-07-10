@@ -1,13 +1,22 @@
 package com.part4.team09.otboo.module.common.exception;
 
 import com.part4.team09.otboo.module.common.dto.ErrorResponse;
+import com.part4.team09.otboo.module.common.security.AuthCookieNames;
+import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.domain.auth.exception.AuthErrorCode;
 import com.part4.team09.otboo.module.domain.auth.exception.AuthException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -91,19 +100,50 @@ public class GlobalExceptionHandler {
     return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);
   }
 
+  // method level security
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  protected ResponseEntity<ErrorResponse> handleAuthorizationDeniedException(
+    AuthorizationDeniedException ex,
+    HttpServletRequest request,
+    @AuthenticationPrincipal CustomUserDetails principal
+  ) {
+    log.warn("Authorization denied: {}, path: {}, userId: {}, role: {}",
+      ex.getMessage(),
+      request.getRequestURI(),
+      principal != null ? principal.getId() : "anonymous",
+      principal != null ? principal.getAuthorities() : "anonymous"
+    );
+
+    AuthErrorCode errorCode = AuthErrorCode.ACCESS_DENIED;
+
+    ErrorResponse errorResponse = ErrorResponse.of(
+      ex.getClass().getSimpleName(),
+      errorCode.getMessage()
+    );
+
+    return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);
+  }
+
   // auth
   @ExceptionHandler(AuthException.class)
-  protected ResponseEntity<ErrorResponse> handleAuthException(AuthException ex) {
+  protected ResponseEntity<ErrorResponse> handleAuthException(AuthException ex,
+    HttpServletResponse response) {
 
     ErrorCode errorCode = ex.getErrorCode();
 
-    log.info("Authentication failed : {} | Error: {}",
+    log.info("Authentication failed : {} | Error: {})",
       errorCode, errorCode.getMessage());
 
     ErrorResponse errorResponse = ErrorResponse.of(
       AuthenticationException.class.getSimpleName(),
-      ex.getMessage()
+      errorCode.getMessage()
     );
+
+    // refresh token 쿠키 무효화
+    Cookie cookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME, "");
+    cookie.setMaxAge(0);
+    cookie.setHttpOnly(true);
+    response.addCookie(cookie);
 
     return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);
   }
@@ -143,6 +183,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse) {
     return ResponseEntity
       .status(status)
+      .contentType(MediaType.APPLICATION_JSON)
       .body(errorResponse);
   }
 }

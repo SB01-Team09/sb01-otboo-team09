@@ -34,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     if (token != null) {
       try {
         // 유효성 검사
-        jwtTokenProvider.validateToken(token);
+        jwtTokenProvider.validateTokenWithSession(token);
 
         // 인증 설정
         Authentication authentication = setAuthenticationFromToken(token);
