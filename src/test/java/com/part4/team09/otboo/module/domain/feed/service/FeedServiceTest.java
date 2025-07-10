@@ -164,6 +164,7 @@ class FeedServiceTest {
       // then
       verify(ootdService).deleteAllByFeedId(feedId);
       verify(commentService).deleteAllByFeedId(feedId);
+      verify(likeService).deleteAllByFeedId(feedId);
       verify(feedRepository).deleteById(feedId);
     }
   }

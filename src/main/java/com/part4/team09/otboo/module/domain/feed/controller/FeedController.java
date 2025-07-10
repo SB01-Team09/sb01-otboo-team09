@@ -91,4 +91,17 @@ public class FeedController {
         .status(HttpStatus.CREATED)
         .body(feedDto);
   }
+
+  // TODO: @AuthenticationPrincipal로 변경
+  @DeleteMapping("/{feedId}/like")
+  public ResponseEntity<Void> deleteLike(
+      @RequestParam UUID userId,
+      @PathVariable UUID feedId
+  ) {
+    likeService.delete(userId, feedId);
+
+    return ResponseEntity
+        .status(HttpStatus.NO_CONTENT)
+        .build();
+  }
 }

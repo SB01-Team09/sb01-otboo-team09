@@ -9,13 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "dongs"
-//  uniqueConstraints = {
-//    @UniqueConstraint(
-//      name = "uk_dongs_latitude_longitude",
-//      columnNames = {"latitude", "longitude"})
-//  }
-)
+@Table(name = "dongs")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Dong extends BaseEntity {

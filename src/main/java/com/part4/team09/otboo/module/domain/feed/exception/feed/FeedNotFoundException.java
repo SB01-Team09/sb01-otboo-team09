@@ -1,5 +1,7 @@
-package com.part4.team09.otboo.module.domain.feed.exception;
+package com.part4.team09.otboo.module.domain.feed.exception.feed;
 
+import com.part4.team09.otboo.module.domain.feed.exception.FeedErrorCode;
+import com.part4.team09.otboo.module.domain.feed.exception.FeedException;
 import java.util.UUID;
 
 public class FeedNotFoundException extends FeedException {

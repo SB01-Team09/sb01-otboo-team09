@@ -11,7 +11,7 @@ import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Comment;
-import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
+import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.CommentMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.CommentRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
