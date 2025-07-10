@@ -1,11 +1,13 @@
 package com.part4.team09.otboo.module.common.exception;
 
 import com.part4.team09.otboo.module.common.dto.ErrorResponse;
+import com.part4.team09.otboo.module.domain.auth.exception.AuthException;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -84,6 +86,23 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse = ErrorResponse.of(
       ex.getClass().getSimpleName(),
       errorCode.getMessage()
+    );
+
+    return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);
+  }
+
+  // auth
+  @ExceptionHandler(AuthException.class)
+  protected ResponseEntity<ErrorResponse> handleAuthException(AuthException ex) {
+
+    ErrorCode errorCode = ex.getErrorCode();
+
+    log.info("Authentication failed : {} | Error: {}",
+      errorCode, errorCode.getMessage());
+
+    ErrorResponse errorResponse = ErrorResponse.of(
+      AuthenticationException.class.getSimpleName(),
+      ex.getMessage()
     );
 
     return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);

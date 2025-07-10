@@ -1,20 +1,17 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
-import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
-import com.part4.team09.otboo.module.domain.feed.dto.FeedUpdateRequest;
-import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
-import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
-import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
+import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
+import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
-import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import com.part4.team09.otboo.module.domain.weather.entity.Weather;
+import com.part4.team09.otboo.module.domain.weather.exception.WeatherErrorCode;
+import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundException;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
-import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedService {
 
   private final FeedRepository feedRepository;
-  private final FeedMapper feedMapper;
+  private final FeedDtoAssembler feedDtoAssembler;
 
   private final OotdService ootdService;
   private final CommentService commentService;
@@ -38,30 +35,24 @@ public class FeedService {
 
   // TODO: 로그인 한 사용자와 같은지 확인
   @Transactional
-  public FeedDto create(FeedCreateRequest request) {
-    User author = getUserOrThrow(request.authorId());
-    Weather weather = getWeatherOrThrow(request.weatherId());
+  public FeedDto create(UUID userId, FeedCreateRequest request) {
+    validateUserExists(request.authorId());
+    validateWeatherExists(request.weatherId());
 
     Feed feed = Feed.create(request.authorId(), request.weatherId(), request.content());
     Feed savedFeed = feedRepository.save(feed);
+    ootdService.create(savedFeed.getId(), request.clothesIds());
 
-    List<OotdDto> ootds = ootdService.create(savedFeed.getId(), request.clothesIds());
-
-    return feedMapper.toDto(savedFeed, author, weather, ootds, false);
+    return feedDtoAssembler.assemble(savedFeed, userId);
   }
 
   // TODO: 로그인 한 사용자와 같은지 확인
   @Transactional
-  public FeedDto update(UUID feedId, FeedUpdateRequest request) {
+  public FeedDto update(UUID feedId, UUID userId, FeedUpdateRequest request) {
     Feed feed = getFeedOrThrow(feedId);
-    User author = getUserOrThrow(feed.getAuthorId());
-    Weather weather = getWeatherOrThrow(feed.getWeatherId());
-    List<OotdDto> ootds = ootdService.getOotds(feedId);
-    boolean likedByMe = likeService.isLikedByMe(author.getId(), feedId);
-
     feed.update(request.content());
 
-    return feedMapper.toDto(feed, author, weather, ootds, likedByMe);
+    return feedDtoAssembler.assemble(feed, userId);
   }
 
   // TODO: 로그인 한 사용자와 같은지 확인
@@ -69,9 +60,9 @@ public class FeedService {
   public void delete(UUID feedId) {
     validateFeedExists(feedId);
 
-    // TODO: 좋아요 취소 로직 구현 후 삭제 전파 로직 추가
     ootdService.deleteAllByFeedId(feedId);
     commentService.deleteAllByFeedId(feedId);
+    likeService.deleteAllByFeedId(feedId);
 
     feedRepository.deleteById(feedId);
   }
@@ -87,14 +78,15 @@ public class FeedService {
     }
   }
 
-  private User getUserOrThrow(UUID userId) {
-    return userRepository.findById(userId)
-        .orElseThrow(() -> UserNotFoundException.withId(userId));
+  private void validateUserExists(UUID userId) {
+    if (!userRepository.existsById(userId)) {
+      throw UserNotFoundException.withId(userId);
+    }
   }
 
-  // TODO: 날씨 커스텀 예외로 변경
-  private Weather getWeatherOrThrow(UUID weatherId) {
-    return weatherRepository.findById(weatherId)
-        .orElseThrow(() -> new EntityNotFoundException("Weather not found with id: " + weatherId));
+  private void validateWeatherExists(UUID weatherId) {
+    if (!weatherRepository.existsById(weatherId)) {
+      throw WeatherNotFoundException.withId(WeatherErrorCode.WEATHER_NOF_FOUND, weatherId);
+    }
   }
 }

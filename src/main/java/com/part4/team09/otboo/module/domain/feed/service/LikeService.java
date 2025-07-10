@@ -1,19 +1,15 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
-import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.entity.Like;
-import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
-import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
+import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
+import com.part4.team09.otboo.module.domain.feed.exception.like.LikeAlreadyExistsException;
+import com.part4.team09.otboo.module.domain.feed.exception.like.LikeNotFoundException;
+import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.LikeRepository;
-import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import com.part4.team09.otboo.module.domain.weather.entity.Weather;
-import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
-import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,41 +21,56 @@ public class LikeService {
 
   private final LikeRepository likeRepository;
 
-  private final FeedMapper feedMapper;
+  private final FeedDtoAssembler feedDtoAssembler;
 
   private final FeedRepository feedRepository;
   private final UserRepository userRepository;
-  private final WeatherRepository weatherRepository;
 
   @Transactional
   public FeedDto create(UUID userId, UUID feedId) {
-    Feed feed = getFeedOrThrow(feedId);
-    User user = getUserOrThrow(userId);
-    Weather weather = getWeatherOrThrow(feed.getWeatherId());
+    validateFeedExists(feedId);
+    validateUserExists(userId);
+    validateLikeNotExists(userId, feedId);
 
     Like like = Like.create(feedId, userId);
     likeRepository.save(like);
 
-    return feedMapper.toDto(feed, user, weather, List.of(), true);
+    return feedDtoAssembler.assemble(feedId, userId);
   }
 
-  public boolean isLikedByMe(UUID userId, UUID feedId) {
-    return likeRepository.existsByUserIdAndFeedId(userId, feedId);
-  }
-  
-  private User getUserOrThrow(UUID userId) {
-    return userRepository.findById(userId)
-        .orElseThrow(() -> UserNotFoundException.withId(userId));
+  @Transactional
+  public void delete(UUID userId, UUID feedId) {
+    validateFeedExists(feedId);
+    validateUserExists(userId);
+
+    Like like = getLikeOrThrow(userId, feedId);
+    likeRepository.deleteById(like.getId());
   }
 
-  private Feed getFeedOrThrow(UUID feedId) {
-    return feedRepository.findById(feedId)
-        .orElseThrow(() -> FeedNotFoundException.withId(feedId));
+  public void deleteAllByFeedId(UUID feedId) {
+    likeRepository.deleteAllByFeedId(feedId);
   }
 
-  // TODO: 날씨 커스텀 예외로 변경
-  private Weather getWeatherOrThrow(UUID weatherId) {
-    return weatherRepository.findById(weatherId)
-        .orElseThrow(() -> new EntityNotFoundException("Weather not found with id: " + weatherId));
+  private Like getLikeOrThrow(UUID userId, UUID feedId) {
+    return likeRepository.findByUserIdAndFeedId(userId, feedId)
+        .orElseThrow(() -> LikeNotFoundException.withId(userId, feedId));
+  }
+
+  public void validateLikeNotExists(UUID userId, UUID feedId) {
+    if (likeRepository.existsByUserIdAndFeedId(userId, feedId)) {
+      throw LikeAlreadyExistsException.withId(userId, feedId);
+    }
+  }
+
+  private void validateFeedExists(UUID feedId) {
+    if (!feedRepository.existsById(feedId)) {
+      throw FeedNotFoundException.withId(feedId);
+    }
+  }
+
+  private void validateUserExists(UUID userId) {
+    if (!userRepository.existsById(userId)) {
+      throw UserNotFoundException.withId(userId);
+    }
   }
 }

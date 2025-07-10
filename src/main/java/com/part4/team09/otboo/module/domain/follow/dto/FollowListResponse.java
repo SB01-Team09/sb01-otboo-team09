@@ -10,7 +10,7 @@ public record FollowListResponse(
         String nextCursor,
         UUID nextIdAfter,
         boolean hasNext,
-        Integer totalCount,
+        int totalCount,
         String sortBy,
         SortDirection sortDirection
 

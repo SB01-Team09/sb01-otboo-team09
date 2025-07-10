@@ -3,7 +3,6 @@ package com.part4.team09.otboo.module.domain.feed.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.mock;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -14,17 +13,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
-import com.part4.team09.otboo.module.domain.feed.dto.CommentCreateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
-import com.part4.team09.otboo.module.domain.feed.dto.FeedCreateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
-import com.part4.team09.otboo.module.domain.feed.dto.FeedUpdateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
-import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.service.CommentService;
 import com.part4.team09.otboo.module.domain.feed.service.FeedService;
 import com.part4.team09.otboo.module.domain.feed.service.LikeService;
-import com.part4.team09.otboo.module.domain.user.entity.User;
+import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -67,12 +65,13 @@ class FeedControllerTest {
     void create_feed_success() throws Exception {
       // given
       UUID feedId = UUID.randomUUID();
-      Weather mockWeather = mock(Weather.class);
+      UUID userId = UUID.randomUUID();
+      WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
 
       FeedCreateRequest request = new FeedCreateRequest(
-          UUID.randomUUID(),
+          userId,
           UUID.randomUUID(),
           List.of(UUID.randomUUID()),
           "content"
@@ -91,11 +90,12 @@ class FeedControllerTest {
           false
       );
 
-      given(feedService.create(any(FeedCreateRequest.class))).willReturn(feedDto);
+      given(feedService.create(eq(userId), any(FeedCreateRequest.class))).willReturn(feedDto);
 
       // when & then
       mockMvc.perform(post("/api/feeds")
               .contentType(MediaType.APPLICATION_JSON)
+              .param("userId", userId.toString())
               .content(objectMapper.writeValueAsString(request))
               .with(csrf()))
           .andExpect(status().isCreated())
@@ -151,7 +151,7 @@ class FeedControllerTest {
       // given
       UUID feedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
-      Weather mockWeather = mock(Weather.class);
+      WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
 
@@ -190,7 +190,8 @@ class FeedControllerTest {
     void update_feed_success() throws Exception {
       // given
       UUID feedId = UUID.randomUUID();
-      Weather mockWeather = mock(Weather.class);
+      UUID userId = UUID.randomUUID();
+      WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
 
@@ -209,11 +210,12 @@ class FeedControllerTest {
           false
       );
 
-      given(feedService.update(feedId, request)).willReturn(feedDto);
+      given(feedService.update(feedId, userId, request)).willReturn(feedDto);
 
       // when & then
       mockMvc.perform(patch("/api/feeds/{feedId}", feedId)
               .contentType(MediaType.APPLICATION_JSON)
+              .param("userId", userId.toString())
               .content(objectMapper.writeValueAsString(request))
               .with(csrf()))
           .andExpect(status().isOk())
@@ -235,6 +237,26 @@ class FeedControllerTest {
       // when & then
       mockMvc.perform(delete("/api/feeds/{feedId}", feedId)
               .contentType(MediaType.APPLICATION_JSON)
+              .with(csrf()))
+          .andExpect(status().isNoContent());
+    }
+  }
+
+  @Nested
+  @DisplayName("좋아요 삭제")
+  public class DeleteLikeTest {
+
+    @Test
+    @DisplayName("좋아요 삭제 성공")
+    void delete_like_success() throws Exception {
+      // given
+      UUID userId = UUID.randomUUID();
+      UUID feedId = UUID.randomUUID();
+
+      // when & then
+      mockMvc.perform(delete("/api/feeds/{feedId}/like", feedId)
+              .contentType(MediaType.APPLICATION_JSON)
+              .param("userId", userId.toString())
               .with(csrf()))
           .andExpect(status().isNoContent());
     }
