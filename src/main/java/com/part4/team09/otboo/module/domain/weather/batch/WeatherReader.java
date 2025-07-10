@@ -98,7 +98,6 @@ public class WeatherReader implements ItemStreamReader<WeatherApiData> {
   }
 
   private List<Item> fetchFromApi(int x, int y) {
-//    throw WeatherReadException.withId(currentLocation.getId());
     try {
       return weatherApiClient.getWeatherApiResponse(x, y);
     } catch (Exception e) {
