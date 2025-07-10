@@ -84,6 +84,7 @@ public class JwtTokenProvider {
       .jwtID(UUID.randomUUID().toString())
       .claim("type", "access")
       .claim("userId", authUserDto.userId())
+      .claim("name", authUserDto.name())
       .claim("email", authUserDto.email())
       .claim("role", authUserDto.role())
       .build();
@@ -142,9 +143,10 @@ public class JwtTokenProvider {
       JWTClaimsSet claimsSet = parseToken(token);
       UUID userId = UUID.fromString(claimsSet.getClaimAsString("userId"));
       String email = claimsSet.getClaimAsString("email");
+      String name = claimsSet.getClaimAsString("name");
       Role role = Role.valueOf(claimsSet.getClaim("role").toString());
 
-      return new AuthUserDto(userId, email, false, role);
+      return new AuthUserDto(userId, email, name, false, role);
 
     } catch (ParseException e) {
       throw new InvalidJwtFormatException("JWT 형식이 잘못되었습니다.");
