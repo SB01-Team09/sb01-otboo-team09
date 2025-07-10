@@ -97,12 +97,12 @@ public class GlobalExceptionHandler {
 
     ErrorCode errorCode = ex.getErrorCode();
 
-    log.info("Authentication failed : {} | Error: {}",
+    log.info("Authentication failed : {} | Error: {})",
       errorCode, errorCode.getMessage());
 
     ErrorResponse errorResponse = ErrorResponse.of(
       AuthenticationException.class.getSimpleName(),
-      ex.getMessage()
+      errorCode.getMessage()
     );
 
     return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);
