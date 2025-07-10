@@ -21,6 +21,7 @@ import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository
 import com.part4.team09.otboo.module.domain.weather.repository.WindSpeedRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,15 @@ class WeatherWriterTest {
 
   @Autowired
   private WeatherWriter weatherWriter;
+
+  @BeforeEach
+  private void deleteAll() {
+    weatherRepository.deleteAll();
+    humidityRepository.deleteAll();
+    precipitationRepository.deleteAll();
+    temperatureRepository.deleteAll();
+    windSpeedRepository.deleteAll();
+  }
 
   @Test
   void write_save_test() throws Exception {
@@ -120,7 +130,7 @@ class WeatherWriterTest {
 
     // then
     List<Weather> weathers = weatherRepository.findAll();
-//    assertEquals(1, weathers.size());
+    assertEquals(1, weathers.size());
 
     Humidity savedHumidity = humidityRepository.findById(weathers.get(0).getHumidityId()).get();
     assertNotNull(savedHumidity);
