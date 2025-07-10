@@ -78,12 +78,12 @@ public class ClothesRepositoryQueryDSL {
   private OrderSpecifier<?> getOrderSpecifier(String sortBy, SortDirection sortDirection) {
     if (sortBy.equals("createdAt")) {
       return sortDirection.equals(SortDirection.ASCENDING)
-          ? clothes.name.asc()
-          : clothes.name.desc();
-    } else {
-      return sortDirection.equals(SortDirection.ASCENDING)
           ? clothes.createdAt.asc()
           : clothes.createdAt.desc();
+    } else {
+      return sortDirection.equals(SortDirection.ASCENDING)
+          ? clothes.name.asc()
+          : clothes.name.desc();
     }
   }
 }
