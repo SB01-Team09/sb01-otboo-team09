@@ -1,7 +1,10 @@
 package com.part4.team09.otboo.module.common.exception;
 
 import com.part4.team09.otboo.module.common.dto.ErrorResponse;
+import com.part4.team09.otboo.module.common.security.AuthCookieNames;
 import com.part4.team09.otboo.module.domain.auth.exception.AuthException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -93,7 +96,8 @@ public class GlobalExceptionHandler {
 
   // auth
   @ExceptionHandler(AuthException.class)
-  protected ResponseEntity<ErrorResponse> handleAuthException(AuthException ex) {
+  protected ResponseEntity<ErrorResponse> handleAuthException(AuthException ex,
+    HttpServletResponse response) {
 
     ErrorCode errorCode = ex.getErrorCode();
 
@@ -104,6 +108,12 @@ public class GlobalExceptionHandler {
       AuthenticationException.class.getSimpleName(),
       errorCode.getMessage()
     );
+
+    // refresh token 쿠키 무효화
+    Cookie cookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME, "");
+    cookie.setMaxAge(0);
+    cookie.setHttpOnly(true);
+    response.addCookie(cookie);
 
     return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);
   }
