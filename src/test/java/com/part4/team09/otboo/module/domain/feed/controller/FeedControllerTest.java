@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,6 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
@@ -22,6 +25,8 @@ import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.service.CommentService;
 import com.part4.team09.otboo.module.domain.feed.service.FeedService;
 import com.part4.team09.otboo.module.domain.feed.service.LikeService;
+import com.part4.team09.otboo.module.domain.user.dto.UserDto;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import java.time.LocalDateTime;
@@ -66,6 +71,8 @@ class FeedControllerTest {
       // given
       UUID feedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
+      AuthUserDto mockAuthUserDto = mock(AuthUserDto.class);
+      CustomUserDetails userDetails = CustomUserDetails.create(mockAuthUserDto);
       WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
@@ -90,12 +97,13 @@ class FeedControllerTest {
           false
       );
 
+      given(userDetails.getId()).willReturn(userId);
       given(feedService.create(eq(userId), any(FeedCreateRequest.class))).willReturn(feedDto);
 
       // when & then
       mockMvc.perform(post("/api/feeds")
               .contentType(MediaType.APPLICATION_JSON)
-              .param("userId", userId.toString())
+              .with(user(userDetails))
               .content(objectMapper.writeValueAsString(request))
               .with(csrf()))
           .andExpect(status().isCreated())
@@ -151,6 +159,8 @@ class FeedControllerTest {
       // given
       UUID feedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
+      AuthUserDto mockAuthUserDto = mock(AuthUserDto.class);
+      CustomUserDetails userDetails = CustomUserDetails.create(mockAuthUserDto);
       WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
@@ -168,12 +178,13 @@ class FeedControllerTest {
           false
       );
 
+      given(userDetails.getId()).willReturn(userId);
       given(likeService.create(userId, feedId)).willReturn(feedDto);
 
       // when & then
       mockMvc.perform(post("/api/feeds/{feedId}/like", feedId)
               .contentType(MediaType.APPLICATION_JSON)
-              .param("userId", userId.toString())
+              .with(user(userDetails))
               .with(csrf()))
           .andExpect(status().isCreated())
           .andExpect(jsonPath("$.id").value(feedId.toString()))
@@ -191,6 +202,8 @@ class FeedControllerTest {
       // given
       UUID feedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
+      AuthUserDto mockAuthUserDto = mock(AuthUserDto.class);
+      CustomUserDetails userDetails = CustomUserDetails.create(mockAuthUserDto);
       WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
@@ -210,12 +223,13 @@ class FeedControllerTest {
           false
       );
 
+      given(userDetails.getId()).willReturn(userId);
       given(feedService.update(feedId, userId, request)).willReturn(feedDto);
 
       // when & then
       mockMvc.perform(patch("/api/feeds/{feedId}", feedId)
               .contentType(MediaType.APPLICATION_JSON)
-              .param("userId", userId.toString())
+              .with(user(userDetails))
               .content(objectMapper.writeValueAsString(request))
               .with(csrf()))
           .andExpect(status().isOk())
@@ -252,11 +266,15 @@ class FeedControllerTest {
       // given
       UUID userId = UUID.randomUUID();
       UUID feedId = UUID.randomUUID();
+      AuthUserDto mockAuthUserDto = mock(AuthUserDto.class);
+      CustomUserDetails userDetails = CustomUserDetails.create(mockAuthUserDto);
+
+      given(userDetails.getId()).willReturn(userId);
 
       // when & then
       mockMvc.perform(delete("/api/feeds/{feedId}/like", feedId)
               .contentType(MediaType.APPLICATION_JSON)
-              .param("userId", userId.toString())
+              .with(user(userDetails))
               .with(csrf()))
           .andExpect(status().isNoContent());
     }
