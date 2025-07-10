@@ -32,13 +32,13 @@ public class AdminInitializer implements ApplicationRunner {
 
   @Override
   public void run(ApplicationArguments args) throws Exception {
-//    initializeAdmin();
+    initializeAdmin();
   }
 
   private void initializeAdmin() {
 
     UserCreateRequest request = new UserCreateRequest(
-      adminEmail, adminName, adminPassword
+      adminName, adminEmail, adminPassword
     );
 
     try {
