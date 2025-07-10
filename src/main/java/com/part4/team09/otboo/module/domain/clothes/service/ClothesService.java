@@ -14,12 +14,11 @@ import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.BadRequestException;
 import com.part4.team09.otboo.module.domain.clothes.exception.SelectableValue.SelectableValueNotFoundException;
-import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithDefMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesMapper;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.custom.ClothesRepositoryQueryDSL;
-import com.part4.team09.otboo.module.domain.feed.service.OotdService;
+import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
 import com.part4.team09.otboo.module.domain.file.service.FileStorage;
@@ -43,10 +42,10 @@ public class ClothesService {
 
   private final SelectableValueService selectableValueService;
   private final ClothesAttributeService clothesAttributeService;
-  private final OotdService ootdService;
 
   private final ClothesRepository clothesRepository;
   private final UserRepository userRepository;
+  private final OotdRepository ootdRepository;
   private final ClothesRepositoryQueryDSL clothesRepositoryQueryDSL;
 
   private final ClothesMapper clothesMapper;
@@ -187,7 +186,7 @@ public class ClothesService {
     });
 
     // 2. ootd 삭제
-    //ootdService.deleteByClothesId(clothes);
+    ootdRepository.deleteByClothesId(clothesId);
 
     // 3. 의상 정의 연관 삭제
     clothesAttributeService.deleteAllByClothesId(clothesId);
