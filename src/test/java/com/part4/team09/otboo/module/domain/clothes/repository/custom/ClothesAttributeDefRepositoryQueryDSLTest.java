@@ -109,7 +109,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
 
     @Test
     @DisplayName("커서 기반 조회 - 생성일 오름차순")
-    void find_by_cursor_success_order_by_create_at_asc() {
+    void find_by_cursor_success_order_by_created_at_asc() {
 
       // given
       List<UUID> ids = List.of(def1.getId(), def2.getId(), def3.getId());
@@ -129,7 +129,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
 
     @Test
     @DisplayName("커서 기반 조회 - 생성일 내림차순")
-    void find_by_cursor_success_order_by_create_at_desc() {
+    void find_by_cursor_success_order_by_created_at_desc() {
 
       // given
       List<UUID> ids = List.of(def1.getId(), def2.getId(), def3.getId());
