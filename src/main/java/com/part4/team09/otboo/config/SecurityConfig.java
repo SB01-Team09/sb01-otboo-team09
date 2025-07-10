@@ -127,6 +127,7 @@ public class SecurityConfig {
     return new JwtAuthenticationFilter(jwtTokenProvider, customAuthenticationEntryPoint);
   }
 
+  // 계층 설정
   @Bean
   public RoleHierarchy roleHierarchy() {
     return RoleHierarchyImpl.fromHierarchy("""
