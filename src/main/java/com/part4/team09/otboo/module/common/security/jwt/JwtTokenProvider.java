@@ -157,6 +157,12 @@ public class JwtTokenProvider {
     return claimsSet.getSubject();
   }
 
+  // 무효화
+  @Transactional
+  public void invalidateRefreshToken(String refreshToken) {
+    authTokenRepository.deleteByRefreshToken(refreshToken);
+  }
+
   // 서명
   private String createSignedToken(JWTClaimsSet jwtClaimsSet) {
     try {

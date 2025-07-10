@@ -9,4 +9,8 @@ public interface AuthTokenRepository extends JpaRepository<AuthToken, UUID> {
   Optional<AuthToken> findByUserId(UUID userId);
 
   Optional<AuthToken> findByUserIdAndRefreshToken(UUID userId, String refreshToken);
+
+  Optional<AuthToken> findByRefreshToken(String refreshToken);
+
+  void deleteByRefreshToken(String refreshToken);
 }

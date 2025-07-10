@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.common.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.part4.team09.otboo.module.common.security.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
@@ -24,8 +25,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JsonLoginSuccessHandler implements AuthenticationSuccessHandler {
 
-  private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-
   private final ObjectMapper objectMapper;
   private final JwtTokenProvider jwtTokenProvider;
 
@@ -41,7 +40,8 @@ public class JsonLoginSuccessHandler implements AuthenticationSuccessHandler {
     GeneratedToken generatedToken = jwtTokenProvider.generateToken(authUserDto);
 
     // 쿠키 생성 (refresh token)
-    Cookie tempCookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, generatedToken.refreshToken());
+    Cookie tempCookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME,
+      generatedToken.refreshToken());
     tempCookie.setHttpOnly(true);
 
     // 응답 설정
