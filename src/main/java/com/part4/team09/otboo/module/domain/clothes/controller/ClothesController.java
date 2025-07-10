@@ -3,6 +3,8 @@ package com.part4.team09.otboo.module.domain.clothes.controller;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesCreateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesUpdateRequest;
+import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesDtoCursorResponse;
+import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
 import com.part4.team09.otboo.module.domain.clothes.service.ClothesService;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -11,10 +13,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +43,24 @@ public class ClothesController {
 
     log.info("의상 생성 응답: {}", HttpStatus.CREATED.value());
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
+  }
+
+  // 의상 조회
+  @GetMapping
+  public ResponseEntity<ClothesDtoCursorResponse> findByCursor(
+      @RequestParam(required = false) String cursor,
+      @RequestParam(required = false) UUID idAfter,
+      @RequestParam int limit,
+      @RequestParam(required = false) ClothesType typeEqual,
+      @RequestParam UUID ownerId
+  ) {
+    log.info("의상 조회 요청");
+
+    ClothesDtoCursorResponse response = clothesService.findByCursor(cursor, idAfter, limit, typeEqual,
+        ownerId);
+
+    log.info("의상 조회 응답: {}", HttpStatus.OK.value());
+    return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   // 의상 수정

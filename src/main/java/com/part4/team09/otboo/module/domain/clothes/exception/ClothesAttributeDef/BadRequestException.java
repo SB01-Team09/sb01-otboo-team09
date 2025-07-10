@@ -11,7 +11,7 @@ public class BadRequestException extends ClothesException {
 
   public static BadRequestException withLimit(int limit) {
     BadRequestException exception = new BadRequestException();
-    exception.addDetail("String", limit);
+    exception.addDetail("limit", limit);
     return exception;
   }
 

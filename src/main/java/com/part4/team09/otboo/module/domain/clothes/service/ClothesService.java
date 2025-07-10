@@ -1,18 +1,25 @@
 package com.part4.team09.otboo.module.domain.clothes.service;
 
+import com.part4.team09.otboo.module.common.enums.SortDirection;
+import com.part4.team09.otboo.module.domain.clothes.assembler.ClothesAttributeWithDefDtoAssembler;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeWithDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesCreateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesUpdateRequest;
+import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
+import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
+import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.BadRequestException;
 import com.part4.team09.otboo.module.domain.clothes.exception.SelectableValue.SelectableValueNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithDefMapper;
+import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesMapper;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
+import com.part4.team09.otboo.module.domain.clothes.repository.custom.ClothesRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.feed.service.OotdService;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
@@ -43,16 +50,19 @@ public class ClothesService {
 
   private final ClothesRepository clothesRepository;
   private final UserRepository userRepository;
+  private final ClothesRepositoryQueryDSL clothesRepositoryQueryDSL;
 
   private final ClothesMapper clothesMapper;
   private final ClothesAttributeWithDefMapper clothesAttributeWithDefMapper;
+  private final ClothesDtoCursorResponseMapper clothesDtoCursorResponseMapper;
+  private final ClothesAttributeWithDefDtoAssembler clothesAttributeWithDefDtoAssembler;
   private final FileStorage fileStorage;
 
   public ClothesDto create(ClothesCreateRequest request, MultipartFile image) {
 
     log.debug("의상 생성 시작: ownerId = {}, name = {}", request.ownerId(), request.name());
 
-    User user = getUserOrThorw(request.ownerId());
+    User user = getUserOrThrow(request.ownerId());
 
     String url = uploadClothesImage(image);
 
@@ -86,6 +96,56 @@ public class ClothesService {
     return response;
   }
 
+  @Transactional(readOnly = true)
+  public ClothesDtoCursorResponse findByCursor(String cursor, UUID idAfter, int limit,
+      ClothesType typeEqual, UUID ownerId) {
+
+    log.debug("의상 조회 시작: cursor = {}, idAfter = {}, limit = {}, typeEqual = {}, ownerId = {}",
+        cursor, idAfter, limit, typeEqual, ownerId);
+
+    if (limit <= 0) {
+      log.warn("유효하지 않은 limit입니다.: limit = {}", limit);
+      throw BadRequestException.withLimit(limit);
+    }
+
+    User user = getUserOrThrow(ownerId);
+
+    // 프로토타입 기준
+    if(typeEqual == null) typeEqual = ClothesType.TOP;
+    String sortBy = "createdAt";
+    SortDirection sortDirection = SortDirection.DESCENDING;
+
+    List<Clothes> clothesList = clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual,
+        ownerId, sortBy, sortDirection);
+
+    boolean hasNext = clothesList.size() > limit;
+    String nextCursor = null;
+    UUID nexIdAfter = null;
+    int totalCount = clothesRepository.countByOwnerIdAndType(ownerId, typeEqual);
+
+    if (hasNext) {
+      clothesList = clothesList.subList(0, limit);
+      Clothes lastClothes = clothesList.get(clothesList.size() - 1);
+      nextCursor = lastClothes.getCreatedAt().toString();
+      nexIdAfter = lastClothes.getId();
+    }
+
+    List<ClothesDto> data = clothesList.isEmpty()
+        ? List.of()
+        : clothesList.stream()
+            .map(clothes -> clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(), clothes.getName(),
+                clothes.getImageUrl(), clothes.getType(), clothesAttributeWithDefDtoAssembler.assemble(clothes.getId())))
+            .toList();
+
+    ClothesDtoCursorResponse response = clothesDtoCursorResponseMapper.toDto(data, nextCursor,
+        nexIdAfter, hasNext, totalCount, sortBy, sortDirection);
+
+    log.debug("의상 조회 완료: dataSize = {}, nexCursor = {}, nextIdAfter = {}, hasNext = {}, "
+        + "totalCount = {}, sortBy = {}, sortDirection = {}", data, nextCursor, nexIdAfter, hasNext,
+        totalCount, sortBy, sortDirection);
+    return response;
+  }
+
   public ClothesDto update(UUID clothesId, ClothesUpdateRequest request, MultipartFile image) {
 
     Clothes clothes = clothesRepository.findById(clothesId).orElseThrow(() -> {
@@ -93,7 +153,7 @@ public class ClothesService {
       return ClothesNotFoundException.withId(clothesId);
     });
 
-    User user = getUserOrThorw(clothes.getOwnerId());
+    User user = getUserOrThrow(clothes.getOwnerId());
 
     // 1. 이미지 삭제
     if (clothes.getImageUrl() != null) {
@@ -235,7 +295,7 @@ public class ClothesService {
     }
   }
 
-  private User getUserOrThorw(UUID request) {
+  private User getUserOrThrow(UUID request) {
     return userRepository.findById(request)
         .orElseThrow(() -> {
           log.warn("사용자가 존재하지 않습니다. id = {}", request);

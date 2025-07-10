@@ -72,6 +72,17 @@ public class SelectableValueService {
     return response;
   }
 
+  @Transactional(readOnly = true)
+  public List<SelectableValue> findAllByIdIn(List<UUID> selectedValueIds) {
+    log.debug("의상 속성 값 조회 시작: selectedValueIdsSize = {}", selectedValueIds.size());
+
+    List<SelectableValue> selectableValues = selectableValueRepository.findAllById(selectedValueIds);
+
+    log.debug("의상 속성 값 조회 시작: selectableValuesSize = {}", selectableValues.size());
+
+    return selectableValues;
+  }
+
   public List<SelectableValue> updateWhenNameSame(UUID defId, List<UUID> valueIdsForDelete,
       List<String> newValues) {
 
@@ -142,5 +153,4 @@ public class SelectableValueService {
       throw ClothesAttributeDefNotFoundException.withId(defId);
     }
   }
-
 }
