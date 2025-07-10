@@ -4,7 +4,7 @@ import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
-import com.part4.team09.otboo.module.domain.feed.exception.FeedNotFoundException;
+import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
@@ -60,9 +60,9 @@ public class FeedService {
   public void delete(UUID feedId) {
     validateFeedExists(feedId);
 
-    // TODO: 좋아요 취소 로직 구현 후 삭제 전파 로직 추가
     ootdService.deleteAllByFeedId(feedId);
     commentService.deleteAllByFeedId(feedId);
+    likeService.deleteAllByFeedId(feedId);
 
     feedRepository.deleteById(feedId);
   }
