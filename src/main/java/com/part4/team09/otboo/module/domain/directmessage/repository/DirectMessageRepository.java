@@ -18,9 +18,9 @@ public interface DirectMessageRepository extends JpaRepository<DirectMessage, UU
     FROM DirectMessage dm
     WHERE 
         (
-            (dm.senderId = :loginUserId AND dm.receiverId = :userId)
+            (dm.senderId = :currentUserId AND dm.receiverId = :userId)
             OR
-            (dm.senderId = :userId AND dm.receiverId = :loginUserId)
+            (dm.senderId = :userId AND dm.receiverId = :currentUserId)
         )
         AND (
             (:cursor IS NULL)
@@ -30,8 +30,8 @@ public interface DirectMessageRepository extends JpaRepository<DirectMessage, UU
     ORDER BY dm.createdAt ASC, dm.id ASC
     """)
     List<DirectMessage> getDirectMessages(
-            @Param("loginUserId") UUID loginUserId,
             @Param("userId") UUID userId,
+            @Param("currentUserId") UUID currentUserId,
             @Param("cursor") LocalDateTime cursor,
             @Param("idAfter") UUID idAfter,
             Pageable pageable
@@ -42,10 +42,10 @@ public interface DirectMessageRepository extends JpaRepository<DirectMessage, UU
     FROM DirectMessage dm
     WHERE
         (
-            (dm.senderId = :loginUserId AND dm.receiverId = :userId)
+            (dm.senderId = :currentUserId AND dm.receiverId = :userId)
             OR
-            (dm.senderId = :userId AND dm.receiverId = :loginUserId)
+            (dm.senderId = :userId AND dm.receiverId = :currentUserId)
     )
 """)
-    int countDirectMessages(@Param("userId") UUID userId, @Param("loginUserId") UUID loginUserId);
+    int countDirectMessages(@Param("userId") UUID userId, @Param("currentUserId") UUID currentUserId);
 }
