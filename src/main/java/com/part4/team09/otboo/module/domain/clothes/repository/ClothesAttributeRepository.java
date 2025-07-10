@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ClothesAttributeRepository extends JpaRepository<ClothesAttribute, UUID> {
 
+  List<ClothesAttribute> findAllByClothesId(UUID clothesId);
+
   void deleteBySelectableValueIdIn(List<UUID> oldValueIds);
 
   void deleteAllByClothesId(UUID clothesId);
-
-  List<ClothesAttribute> findAllByClothesId(UUID clothesId);
 }
