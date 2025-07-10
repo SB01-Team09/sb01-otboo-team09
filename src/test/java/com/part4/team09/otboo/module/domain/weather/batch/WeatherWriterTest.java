@@ -56,7 +56,7 @@ class WeatherWriterTest {
   private WeatherWriter weatherWriter;
 
   @BeforeEach
-  private void deleteAll() {
+  public void deleteAll() {
     weatherRepository.deleteAll();
     humidityRepository.deleteAll();
     precipitationRepository.deleteAll();
@@ -100,7 +100,7 @@ class WeatherWriterTest {
     assertNotNull(weatherCache.getData(x, y));
   }
 
-  //  @Test
+  @Test
   void write_update_test() throws Exception {
     // given
     LocalDateTime forecastedAt = LocalDateTime.now();
