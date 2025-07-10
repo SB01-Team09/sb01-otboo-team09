@@ -5,6 +5,7 @@ import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
+import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.exception.SelectableValue.SelectableValueNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithDefMapper;
@@ -39,7 +40,7 @@ public class OotdService {
 
   @Transactional
   public void create(UUID feedId, List<UUID> clothesIds) {
-    validateAllClothesExist(clothesIds);
+    getAllByClothesIdsOrThrow(clothesIds);
     List<Ootd> ootds = clothesIds.stream()
         .map(clothesId -> Ootd.create(feedId, clothesId))
         .toList();
@@ -64,15 +65,6 @@ public class OotdService {
     ootdRepository.deleteAllByFeedId(feedId);
   }
 
-  private void validateAllClothesExist(List<UUID> clothesIds) {
-    int foundCount = clothesRepository.countByIdIn(clothesIds);
-
-    // TODO: 의상 커스텀 예외로 변경
-    if (foundCount != clothesIds.size()) {
-      throw new EntityNotFoundException("");
-    }
-  }
-
   private List<Clothes> getAllByClothesIdsOrThrow(List<UUID> clothesIds) {
     List<Clothes> foundClothes = clothesRepository.findAllById(clothesIds);
 
@@ -84,9 +76,8 @@ public class OotdService {
         .filter(id -> !foundIds.contains(id))
         .toList();
 
-    // TODO: 의상 커스텀 예외로 변경
     if (!missingIds.isEmpty()) {
-      throw new EntityNotFoundException();
+      throw ClothesNotFoundException.withIds(missingIds);
     }
 
     return foundClothes;
