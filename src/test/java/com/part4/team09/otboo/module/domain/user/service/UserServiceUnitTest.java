@@ -9,12 +9,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
+import com.part4.team09.otboo.module.domain.auth.service.AuthService;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.service.FileStorage;
 import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
 import com.part4.team09.otboo.module.domain.location.exception.LocationNotFoundException;
-import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
-import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
 import com.part4.team09.otboo.module.domain.location.service.LocationService;
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
@@ -29,14 +28,13 @@ import com.part4.team09.otboo.module.domain.user.event.UserProfileUpdateEvent;
 import com.part4.team09.otboo.module.domain.user.exception.SameAsOldPasswordException;
 import com.part4.team09.otboo.module.domain.user.mapper.UserMapper;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import com.part4.team09.otboo.module.domain.user.repository.UserRepositoryQueryDSL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import com.part4.team09.otboo.module.domain.user.repository.UserRepositoryQueryDSL;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,7 +44,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,9 +58,7 @@ public class UserServiceUnitTest {
   @Mock
   private LocationService locationService;
   @Mock
-  private LocationRepository locationRepository;
-  @Mock
-  private DongRepository dongRepository;
+  private AuthService authService;
   @Mock
   private FileStorage fileStorage;
   @Mock
@@ -217,11 +212,13 @@ public class UserServiceUnitTest {
     List<User> Users = new ArrayList<>(List.of(user1, user2));
     Users.add(User.createUser("es@naver.com", "은수", "pass"));
 
-    UserDto userDto1 = new UserDto(id1, LocalDateTime.now(), "yg@naver.com", "연경", User.Role.USER, List.of(), false);
-    UserDto userDto2 = new UserDto(id2, LocalDateTime.now(), "ke@naver.com", "가은", User.Role.ADMIN, List.of(), false);
+    UserDto userDto1 = new UserDto(id1, LocalDateTime.now(), "yg@naver.com", "연경", User.Role.USER,
+      List.of(), false);
+    UserDto userDto2 = new UserDto(id2, LocalDateTime.now(), "ke@naver.com", "가은", User.Role.ADMIN,
+      List.of(), false);
 
     UserListRequest request = new UserListRequest(
-            null, null, 2, "email", SortDirection.ASCENDING, null, null, null
+      null, null, 2, "email", SortDirection.ASCENDING, null, null, null
     );
 
     when(userRepositoryQueryDSL.getUsers(request)).thenReturn(Users);
@@ -247,10 +244,11 @@ public class UserServiceUnitTest {
   void getUsersHasNextFalse() {
     // given
     User user = User.createUser("hm@naver.com", "혜민", "pw");
-    UserDto userDto = new UserDto(UUID.randomUUID(), LocalDateTime.now(), user.getEmail(), user.getName(), user.getRole(), List.of(), user.isLocked());
+    UserDto userDto = new UserDto(UUID.randomUUID(), LocalDateTime.now(), user.getEmail(),
+      user.getName(), user.getRole(), List.of(), user.isLocked());
 
     UserListRequest request = new UserListRequest(
-            null, null, 2, "email", SortDirection.ASCENDING, null, null, null
+      null, null, 2, "email", SortDirection.ASCENDING, null, null, null
     );
 
     when(userRepositoryQueryDSL.getUsers(request)).thenReturn(List.of(user));

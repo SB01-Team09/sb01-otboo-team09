@@ -71,6 +71,10 @@ public class AuthService {
     return jwtTokenProvider.generateToken(authUserDto);
   }
 
+  public void forceLogout(UUID userId) {
+    authTokenRepository.deleteByUserId(userId);
+  }
+
   // 리프레시 토큰 검증
   private void validateRefreshTokenOrThrow(String userEmail, String refreshToken) {
     try {

@@ -13,7 +13,7 @@ public enum AuthErrorCode implements ErrorCode {
   ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
 
   // auth
-  INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
+  INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다. 재로그인이 필요합니다."),
   REFRESH_TOKEN_MISSING(HttpStatus.BAD_REQUEST, "Refresh Token이 요청에 없습니다.");
 
   private final HttpStatus httpStatus;
