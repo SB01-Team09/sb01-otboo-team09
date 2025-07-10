@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -56,7 +55,6 @@ class WeatherWriterTest {
   private WeatherWriter weatherWriter;
 
   @Test
-  @Transactional
   void write_save_test() throws Exception {
     // given
     Humidity humidity = Humidity.create(0, 0.0);
@@ -93,7 +91,6 @@ class WeatherWriterTest {
   }
 
   @Test
-  @Transactional
   void write_update_test() throws Exception {
     // given
     LocalDateTime forecastedAt = LocalDateTime.now();
@@ -106,7 +103,7 @@ class WeatherWriterTest {
     Temperature temperature = Temperature.create(21, 6.0, 20, 34);
     WindSpeed windSpeed = WindSpeed.create(2.0, AsWord.STRONG);
     SkyStatus skyStatus = SkyStatus.CLOUDY;
-    String locationId = "1111111111";
+    String locationId = "1111111112";
     int x = 60;
     int y = 127;
 
@@ -141,7 +138,7 @@ class WeatherWriterTest {
     Temperature temperature = Temperature.create(23, 5.0, 18, 31);
     WindSpeed windSpeed = WindSpeed.create(1.0, AsWord.MODERATE);
     SkyStatus skyStatus = SkyStatus.CLEAR;
-    String locationId = "1111111111";
+    String locationId = "1111111112";
     int x = 60;
     int y = 127;
 
