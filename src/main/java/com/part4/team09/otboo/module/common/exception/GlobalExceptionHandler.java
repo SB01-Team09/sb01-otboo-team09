@@ -2,8 +2,11 @@ package com.part4.team09.otboo.module.common.exception;
 
 import com.part4.team09.otboo.module.common.dto.ErrorResponse;
 import com.part4.team09.otboo.module.common.security.AuthCookieNames;
+import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.domain.auth.exception.AuthErrorCode;
 import com.part4.team09.otboo.module.domain.auth.exception.AuthException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -86,6 +91,30 @@ public class GlobalExceptionHandler {
       ex.getHttpInputMessage(), ex.getMostSpecificCause().getMessage());
 
     CommonErrorCode errorCode = CommonErrorCode.INVALID_JSON_FORMAT;
+
+    ErrorResponse errorResponse = ErrorResponse.of(
+      ex.getClass().getSimpleName(),
+      errorCode.getMessage()
+    );
+
+    return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);
+  }
+
+  // method level security
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  protected ResponseEntity<ErrorResponse> handleAuthorizationDeniedException(
+    AuthorizationDeniedException ex,
+    HttpServletRequest request,
+    @AuthenticationPrincipal CustomUserDetails principal
+  ) {
+    log.warn("Authorization denied: {}, path: {}, userId: {}, role: {}",
+      ex.getMessage(),
+      request.getRequestURI(),
+      principal != null ? principal.getId() : "anonymous",
+      principal != null ? principal.getAuthorities() : "anonymous"
+    );
+
+    AuthErrorCode errorCode = AuthErrorCode.ACCESS_DENIED;
 
     ErrorResponse errorResponse = ErrorResponse.of(
       ex.getClass().getSimpleName(),
