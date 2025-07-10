@@ -10,8 +10,8 @@ import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessa
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,7 +27,8 @@ public class DirectMessageService {
 
 
     // DM 목록 조회
-    public DirectMessageDtoCursorResponse getDirectMessages(UUID userId, @AuthenticationPrincipal CustomUserDetails currentUser, String cursor, UUID idAfter, int limit){
+    @Transactional(readOnly = true)
+    public DirectMessageDtoCursorResponse getDirectMessages(UUID userId, CustomUserDetails currentUser, String cursor, UUID idAfter, int limit){
         // 예외처리
         if(!userRepository.existsById(userId)){
             throw UserNotFoundException.withId(userId);
