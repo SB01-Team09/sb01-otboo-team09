@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.AuthenticationException;
@@ -153,6 +154,7 @@ public class GlobalExceptionHandler {
     ErrorResponse errorResponse) {
     return ResponseEntity
       .status(status)
+      .contentType(MediaType.APPLICATION_JSON)
       .body(errorResponse);
   }
 }
