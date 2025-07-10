@@ -15,6 +15,7 @@ import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +34,6 @@ public class FeedService {
   private final WeatherRepository weatherRepository;
   private final LikeService likeService;
 
-  // TODO: 로그인 한 사용자와 같은지 확인
   @Transactional
   public FeedDto create(UUID userId, FeedCreateRequest request) {
     validateUserExists(request.authorId());
@@ -46,7 +46,7 @@ public class FeedService {
     return feedDtoAssembler.assemble(savedFeed, userId);
   }
 
-  // TODO: 로그인 한 사용자와 같은지 확인
+  @PreAuthorize("@feedPermissionEvaluator.isFeedAuthor(principal.id, #feedId)")
   @Transactional
   public FeedDto update(UUID feedId, UUID userId, FeedUpdateRequest request) {
     Feed feed = getFeedOrThrow(feedId);
@@ -55,7 +55,7 @@ public class FeedService {
     return feedDtoAssembler.assemble(feed, userId);
   }
 
-  // TODO: 로그인 한 사용자와 같은지 확인
+  @PreAuthorize("hasRole('ADMIN') or @feedPermissionEvaluator.isFeedAuthor(principal.id, #feedId)")
   @Transactional
   public void delete(UUID feedId) {
     validateFeedExists(feedId);

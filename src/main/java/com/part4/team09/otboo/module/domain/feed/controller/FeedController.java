@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.feed.controller;
 
+import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
@@ -13,6 +14,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,12 +34,13 @@ public class FeedController {
   private final CommentService commentService;
   private final LikeService likeService;
 
-  // TODO: userId @AuthenticationPrincipal로 변경
+  @PreAuthorize("principal.id == #request.authorId")
   @PostMapping
   public ResponseEntity<FeedDto> createFeed(
-      @RequestParam UUID userId,
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @RequestBody @Valid FeedCreateRequest request
   ) {
+    UUID userId = userDetails.getId();
     FeedDto feedDto = feedService.create(userId, request);
 
     return ResponseEntity
@@ -44,13 +48,13 @@ public class FeedController {
         .body(feedDto);
   }
 
-  // TODO: userId @AuthenticationPrincipal로 변경
   @PatchMapping("/{feedId}")
   public ResponseEntity<FeedDto> updateFeed(
       @PathVariable UUID feedId,
-      @RequestParam UUID userId,
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @RequestBody @Valid FeedUpdateRequest request
   ) {
+    UUID userId = userDetails.getId();
     FeedDto feedDto = feedService.update(feedId, userId, request);
 
     return ResponseEntity
@@ -66,7 +70,8 @@ public class FeedController {
         .status(HttpStatus.NO_CONTENT)
         .build();
   }
-  
+
+  @PreAuthorize("principal.id == #request.authorId")
   @PostMapping("/{feedId}/comments")
   public ResponseEntity<CommentDto> createComment(
       @PathVariable UUID feedId,
@@ -79,12 +84,12 @@ public class FeedController {
         .body(commentDto);
   }
 
-  // TODO: @AuthenticationPrincipal로 변경
   @PostMapping("/{feedId}/like")
   public ResponseEntity<FeedDto> createLike(
-      @RequestParam UUID userId,
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @PathVariable UUID feedId
   ) {
+    UUID userId = userDetails.getId();
     FeedDto feedDto = likeService.create(userId, feedId);
 
     return ResponseEntity
@@ -92,12 +97,12 @@ public class FeedController {
         .body(feedDto);
   }
 
-  // TODO: @AuthenticationPrincipal로 변경
   @DeleteMapping("/{feedId}/like")
   public ResponseEntity<Void> deleteLike(
-      @RequestParam UUID userId,
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @PathVariable UUID feedId
   ) {
+    UUID userId = userDetails.getId();
     likeService.delete(userId, feedId);
 
     return ResponseEntity
