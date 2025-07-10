@@ -6,12 +6,10 @@ import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageDto;
 import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.directmessage.entity.DirectMessage;
 import com.part4.team09.otboo.module.domain.directmessage.mapper.DirectMessageMapper;
-import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessageRepository;
+import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessageRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +22,7 @@ import java.util.UUID;
 public class DirectMessageService {
 
     private final UserRepository userRepository;
-    private final DirectMessageRepository directMessageRepository;
+    private final DirectMessageRepositoryQueryDSL directMessageRepositoryQueryDSL;
     private final DirectMessageMapper directMessageMapper;
 
 
@@ -38,9 +36,8 @@ public class DirectMessageService {
         // 쿼리
         // cursor을 LocalDateTime으로 디코딩
         LocalDateTime decodedCursor = decodeCursor(cursor);
-        Pageable pageable = PageRequest.of(0, limit+1);
-        List<DirectMessage> directMessages = directMessageRepository.getDirectMessages(userId, currentUser.getId(), decodedCursor, idAfter, pageable);
-        int totalCount = directMessageRepository.countDirectMessages(userId, currentUser.getId());
+        List<DirectMessage> directMessages = directMessageRepositoryQueryDSL.getDirectMessages(userId, currentUser.getId(), decodedCursor, idAfter, limit+1);
+        int totalCount = directMessageRepositoryQueryDSL.countDirectMessages(userId, currentUser.getId());
 
         // Dto 리스트로 변환
         List<DirectMessageDto> directMessageDtos = directMessages.stream().map(directMessageMapper::toDto).toList();
