@@ -141,6 +141,7 @@ public class FeedServiceIntergrationTest {
         assertThat(result.data()).hasSize(1);
 
         FeedDto dto = result.data().get(0);
+        assertThat(dto.ootds()).anyMatch(o -> o.clothesId().equals(clothes.getId()));
         assertThat(dto.content()).isEqualTo("오늘 날씨와 어울리는 코디");
         assertThat(dto.author().userId()).isEqualTo(user.getId());
         assertThat(dto.weather().skyStatus()).isEqualTo(Weather.SkyStatus.CLOUDY);
