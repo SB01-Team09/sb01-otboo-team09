@@ -7,6 +7,7 @@ import com.part4.team09.otboo.module.domain.recommendation.dto.response.GeminiRe
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -17,11 +18,15 @@ public class LLMApiClient {
   @Qualifier("geminiRestClient")
   private final RestClient geminiRestClient;
 
+  @Value("${GEMINI_API_KEY:dev-placeholder-key}")
+  private String API_KEY;
+
   public String getInfo(String text) {
     Part part = new Part(text);
     Content content = new Content(List.of(part));
     ContentRequest contentRequest = new ContentRequest(List.of(content));
     GeminiResponse response = geminiRestClient.post()
+      .header("x-goog-api-key", API_KEY)
       .body(contentRequest)
       .retrieve()
       .toEntity(GeminiResponse.class)
