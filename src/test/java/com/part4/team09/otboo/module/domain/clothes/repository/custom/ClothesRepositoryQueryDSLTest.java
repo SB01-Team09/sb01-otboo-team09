@@ -61,7 +61,7 @@ class ClothesRepositoryQueryDSLTest {
     void find_by_cursor_success_created_at_asc() {
 
       // given
-      String cursor = clothes1.getCreatedAt().toString();
+      String cursor = clothes1.getCreatedAt().plusNanos(1).toString();
       UUID idAfter = clothes1.getId();
       int limit = 10;
       ClothesType typeEqual = ClothesType.BOTTOM;
@@ -84,7 +84,7 @@ class ClothesRepositoryQueryDSLTest {
     void find_by_cursor_success_created_at_desc() {
 
       // given
-      String cursor = clothes2.getCreatedAt().toString();
+      String cursor = clothes2.getCreatedAt().plusNanos(1).toString();
       UUID idAfter = clothes2.getId();
       int limit = 10;
       ClothesType typeEqual = ClothesType.BOTTOM;
