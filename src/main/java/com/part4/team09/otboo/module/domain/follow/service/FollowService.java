@@ -172,25 +172,25 @@ public class FollowService {
     }
 
 
-    // 팔로우 요약 정보 조회 TODO: loginUserId 파라미터 수정
+    // 팔로우 요약 정보 조회
     @Transactional(readOnly = true)
     @Cacheable(value = "followSummary", key = "#userId.toString() + ':' + #loginUserId.toString()")
-    public FollowSummaryDto getFollowSummary(UUID userId, UUID loginUserId){
+    public FollowSummaryDto getFollowSummary(UUID userId, UUID currentUserId){
         // 두 유저가 존재하지 않을 경우 각각 예외 처리
         if (!userRepository.existsById(userId)) {
             throw UserNotFoundException.withId(userId);
         }
 
-        if (!userRepository.existsById(loginUserId)) {
-            throw UserNotFoundException.withId(loginUserId);
+        if (!userRepository.existsById(currentUserId)) {
+            throw UserNotFoundException.withId(currentUserId);
         }
 
         UUID followeeId = userId; // 조회 대상 userId
         int followerCount = followRepository.countFollowersForSummary(userId); // 조회 대상의 팔로워 수
         int followingCount = followRepository.countFollowingsForSummary(userId); // 조회 대상의 팔로잉 수
-        boolean followedByMe = followRepository.followRelationship(userId, loginUserId); // 로그인한 사용자(Me, 팔로워)가 조회 대상(팔로이)를 팔로우하고 있는지 여부
-        UUID followedByMeId = followRepository.followedByMeId(userId, loginUserId); // 로그인한 사용자(Me, 팔로워)가 조회 대상(팔로이)을 팔로우 했을 때의 팔로우 값 아이디
-        boolean followingMe = followRepository.followRelationship(loginUserId, userId); // 조회 대상(팔로워)이 로그인한 사용자(Me, 팔로이)를 팔로우하고 있는지 여부
+        boolean followedByMe = followRepository.followRelationship(userId, currentUserId); // 로그인한 사용자(Me, 팔로워)가 조회 대상(팔로이)를 팔로우하고 있는지 여부
+        UUID followedByMeId = followRepository.followedByMeId(userId, currentUserId); // 로그인한 사용자(Me, 팔로워)가 조회 대상(팔로이)을 팔로우 했을 때의 팔로우 값 아이디
+        boolean followingMe = followRepository.followRelationship(currentUserId, userId); // 조회 대상(팔로워)이 로그인한 사용자(Me, 팔로이)를 팔로우하고 있는지 여부
 
         return new FollowSummaryDto(followeeId, followerCount, followingCount, followedByMe, followedByMeId, followingMe);
     }

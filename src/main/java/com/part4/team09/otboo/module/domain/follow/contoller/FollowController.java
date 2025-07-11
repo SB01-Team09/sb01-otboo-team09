@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.follow.contoller;
 
+import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowCreateRequest;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
@@ -9,6 +10,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
@@ -69,11 +71,11 @@ public class FollowController {
                 .body(response);
     }
 
-    // 팔로우 요악 정보 조회 TODO: loginUserId 파라미터 수정
+    // 팔로우 요악 정보 조회
     @GetMapping("/summary")
-    public ResponseEntity<FollowSummaryDto> getFollowSummary(@RequestParam UUID userId, @RequestParam UUID loginUserId){
+    public ResponseEntity<FollowSummaryDto> getFollowSummary(@RequestParam UUID userId, @AuthenticationPrincipal CustomUserDetails currentUser){
 
-        FollowSummaryDto response = followService.getFollowSummary(userId, loginUserId);
+        FollowSummaryDto response = followService.getFollowSummary(userId, currentUser.getId());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
