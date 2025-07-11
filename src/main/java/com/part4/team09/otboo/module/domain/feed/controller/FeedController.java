@@ -11,8 +11,6 @@ import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.service.CommentService;
 import com.part4.team09.otboo.module.domain.feed.service.FeedService;
 import com.part4.team09.otboo.module.domain.feed.service.LikeService;
-import com.part4.team09.otboo.module.domain.user.dto.request.UserListRequest;
-import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import jakarta.validation.Valid;
@@ -70,6 +68,29 @@ public class FeedController {
     return ResponseEntity
         .status(HttpStatus.NO_CONTENT)
         .build();
+  }
+
+  // 피드 목록 조회
+  @GetMapping
+  public ResponseEntity<FeedDtoCursorResponse> getFeeds(
+          @AuthenticationPrincipal CustomUserDetails currentUser,
+          @RequestParam(required = false) String cursor,
+          @RequestParam(required = false) UUID idAfter,
+          @RequestParam(defaultValue = "20") @Min(value = 1, message = "limit은 0보다 커야합니다.") int limit,
+          @RequestParam(defaultValue = "createdAt") String sortBy,
+          @RequestParam(defaultValue = "DESCENDING") SortDirection sortDirection,
+          @RequestParam(required = false) String keywordLike,
+          @RequestParam(required = false) Weather.SkyStatus skyStatusEqual,
+          @RequestParam(required = false) Precipitation.PrecipitationType precipitationTypeEqual,
+          @RequestParam(required = false) UUID authorIdEqual
+
+  ){
+
+    FeedDtoCursorResponse response = feedService.getFeeds(currentUser, cursor, idAfter, limit, sortBy, sortDirection, keywordLike, skyStatusEqual, precipitationTypeEqual, authorIdEqual);
+
+    return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(response);
   }
 
   @PreAuthorize("principal.id == #request.authorId")

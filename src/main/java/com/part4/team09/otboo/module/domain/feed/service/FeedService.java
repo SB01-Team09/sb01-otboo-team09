@@ -1,23 +1,18 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
-import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageDtoCursorResponse;
+import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDtoCursorResponse;
-import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
-import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
-import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepositoryQueryDSL;
-import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
 import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherErrorCode;
@@ -40,9 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedService {
 
   private final FeedRepository feedRepository;
-  private final FeedRepositoryQueryDSL feedRepositoryQueryDSL;
   private final FeedDtoAssembler feedDtoAssembler;
-  private final FeedMapper feedMapper;
+  private final FeedRepositoryQueryDSL feedRepositoryQueryDSL;
 
   private final OotdService ootdService;
   private final CommentService commentService;
@@ -85,6 +79,43 @@ public class FeedService {
     feedRepository.deleteById(feedId);
   }
 
+  // 피드 목록 조회
+  @Transactional(readOnly = true)
+  public FeedDtoCursorResponse getFeeds(CustomUserDetails currentUser, String cursor, UUID idAfter, int limit, String sortBy, SortDirection sortDirection, String keywordLike, Weather.SkyStatus skyStatusEqual, Precipitation.PrecipitationType precipitationTypeEqual, UUID authorIdEqual){
+
+    // 쿼리
+    // 피드 불러오기
+    List<Feed> feeds = feedRepositoryQueryDSL.getFeeds(cursor, idAfter, limit+1, sortBy, sortDirection, keywordLike, skyStatusEqual, precipitationTypeEqual, authorIdEqual);
+    int totalCount = feedRepositoryQueryDSL.countFeeds(keywordLike, skyStatusEqual, precipitationTypeEqual, authorIdEqual);
+
+    // Dto 리스트로 변환
+    List<FeedDto> feedDtos = feeds.stream().map(feed -> feedDtoAssembler.assemble(feed, currentUser.getId())).toList();
+
+    // 반환
+    // hasNext
+    boolean hasNext = feedDtos.size() > limit;
+    if (hasNext) {
+      feedDtos = feedDtos.subList(0, limit);
+    }
+
+    // nextCursor, nextIdAfter
+    String nextCursor = null;
+    UUID nextIdAfter = null;
+    FeedDto lastFeedDto = feedDtos.get(limit-1);
+    if(hasNext && !feedDtos.isEmpty()){
+      if(sortBy == "createdAt"){
+        nextCursor = lastFeedDto.createdAt().toString();
+      }else if(sortBy == "likeCount"){
+        nextCursor = String.valueOf(lastFeedDto.likeCount());
+      }
+      nextIdAfter = lastFeedDto.id();
+    }
+
+    // 최종 반환
+    return new FeedDtoCursorResponse(feedDtos, nextCursor, nextIdAfter, hasNext, totalCount, sortBy, sortDirection);
+
+  }
+
   private Feed getFeedOrThrow(UUID feedId) {
     return feedRepository.findById(feedId)
         .orElseThrow(() -> FeedNotFoundException.withId(feedId));
@@ -106,15 +137,5 @@ public class FeedService {
     if (!weatherRepository.existsById(weatherId)) {
       throw WeatherNotFoundException.withId(WeatherErrorCode.WEATHER_NOF_FOUND, weatherId);
     }
-  }
-
-  // cursor 인코딩 로직 (LocalDateTime -> String)
-  private String encodeCursor(LocalDateTime cursor) {
-    return cursor == null ? null : cursor.toString();
-  }
-
-  // cursor 디코딩 로직 (String -> LocalDateTime)
-  private LocalDateTime decodeCursor(String cursor){
-    return cursor == null || cursor.isEmpty() ? null : LocalDateTime.parse(cursor);
   }
 }
