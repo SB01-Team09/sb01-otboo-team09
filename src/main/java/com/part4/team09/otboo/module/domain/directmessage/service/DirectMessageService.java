@@ -7,6 +7,8 @@ import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageDtoCu
 import com.part4.team09.otboo.module.domain.directmessage.entity.DirectMessage;
 import com.part4.team09.otboo.module.domain.directmessage.mapper.DirectMessageMapper;
 import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessageRepositoryQueryDSL;
+import com.part4.team09.otboo.module.domain.user.dto.UserSummary;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +43,15 @@ public class DirectMessageService {
         int totalCount = directMessageRepositoryQueryDSL.countDirectMessages(userId, currentUser.getId());
 
         // Dto 리스트로 변환
-        List<DirectMessageDto> directMessageDtos = directMessages.stream().map(directMessageMapper::toDto).toList();
+        User sender = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> UserNotFoundException.withId(currentUser.getId()));
+        UserSummary senderSummary = new UserSummary(sender.getId(), sender.getName(), sender.getProfileImageUrl());
+        User receiver = userRepository.findById(userId)
+                .orElseThrow(() -> UserNotFoundException.withId(userId));
+        UserSummary receiverSummary = new UserSummary(receiver.getId(), receiver.getName(), receiver.getProfileImageUrl());
+        List<DirectMessageDto> directMessageDtos = directMessages.stream()
+                .map(dm -> directMessageMapper.toDto(dm, senderSummary, receiverSummary))
+                .toList();
 
         // 반환
         // hasNext
