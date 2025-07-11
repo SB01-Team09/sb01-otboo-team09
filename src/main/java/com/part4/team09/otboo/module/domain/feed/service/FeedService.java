@@ -1,18 +1,33 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
+import com.part4.team09.otboo.module.common.enums.SortDirection;
+import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageDtoCursorResponse;
+import com.part4.team09.otboo.module.domain.feed.dto.FeedDtoCursorResponse;
+import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
+import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
+import com.part4.team09.otboo.module.domain.feed.mapper.FeedMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
+import com.part4.team09.otboo.module.domain.feed.repository.FeedRepositoryQueryDSL;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
+import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
+import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherErrorCode;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundException;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
+
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,7 +40,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedService {
 
   private final FeedRepository feedRepository;
+  private final FeedRepositoryQueryDSL feedRepositoryQueryDSL;
   private final FeedDtoAssembler feedDtoAssembler;
+  private final FeedMapper feedMapper;
 
   private final OotdService ootdService;
   private final CommentService commentService;
@@ -34,6 +51,7 @@ public class FeedService {
   private final WeatherRepository weatherRepository;
   private final LikeService likeService;
 
+  // 피드 등록
   @Transactional
   public FeedDto create(UUID userId, FeedCreateRequest request) {
     validateUserExists(request.authorId());
@@ -88,5 +106,15 @@ public class FeedService {
     if (!weatherRepository.existsById(weatherId)) {
       throw WeatherNotFoundException.withId(WeatherErrorCode.WEATHER_NOF_FOUND, weatherId);
     }
+  }
+
+  // cursor 인코딩 로직 (LocalDateTime -> String)
+  private String encodeCursor(LocalDateTime cursor) {
+    return cursor == null ? null : cursor.toString();
+  }
+
+  // cursor 디코딩 로직 (String -> LocalDateTime)
+  private LocalDateTime decodeCursor(String cursor){
+    return cursor == null || cursor.isEmpty() ? null : LocalDateTime.parse(cursor);
   }
 }

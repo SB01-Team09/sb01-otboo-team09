@@ -1,6 +1,8 @@
 package com.part4.team09.otboo.module.domain.feed.controller;
 
+import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.domain.feed.dto.FeedDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
@@ -9,21 +11,20 @@ import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.service.CommentService;
 import com.part4.team09.otboo.module.domain.feed.service.FeedService;
 import com.part4.team09.otboo.module.domain.feed.service.LikeService;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserListRequest;
+import com.part4.team09.otboo.module.domain.user.entity.User;
+import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
+import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import jakarta.validation.Valid;
 import java.util.UUID;
+
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/feeds")
