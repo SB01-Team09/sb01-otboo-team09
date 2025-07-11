@@ -161,7 +161,8 @@ public class ClothesAttributeInfoService {
     Set<String> newValuesSet = new HashSet<>(request.selectableValues());
 
     List<UUID> valueIdsForDelete = oldValues.stream()
-        .filter(oldValue -> !newValuesSet.contains(oldValue.getItem())).map(BaseEntity::getId)
+        .filter(oldValue -> !newValuesSet.contains(oldValue.getItem()))
+        .map(BaseEntity::getId)
         .toList();
 
     // 2. clothesAttribute 삭제
