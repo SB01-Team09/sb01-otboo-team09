@@ -33,7 +33,7 @@ public class Clothes extends BaseUpdatableEntity {
   public enum ClothesType{
     TOP,
     BOTTOM,
-    ONE_PIECE,
+    DRESS,
     OUTER,
     UNDERWEAR,
     ACCESSORY,
