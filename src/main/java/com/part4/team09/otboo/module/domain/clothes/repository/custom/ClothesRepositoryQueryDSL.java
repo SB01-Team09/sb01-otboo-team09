@@ -21,9 +21,7 @@ public class ClothesRepositoryQueryDSL {
 
   private final JPAQueryFactory queryFactory;
 
-  public List<Clothes> findAllOrderedByAttributeScores(
-    List<ClothingOption> options, int limit
-  ) {
+  public List<Clothes> findAllOrderedByAttributeScores(List<ClothingOption> options, int limit) {
     QClothes c = QClothes.clothes;
     QClothesAttribute ca = QClothesAttribute.clothesAttribute;
     QSelectableValue sv = QSelectableValue.selectableValue;
@@ -46,8 +44,7 @@ public class ClothesRepositoryQueryDSL {
   private NumberExpression<Integer> buildScoreExpression(
     List<ClothingOption> options,
     StringExpression attributeName,
-    StringExpression itemValue
-  ) {
+    StringExpression itemValue) {
     CaseBuilder caseBuilder = new CaseBuilder();
     CaseBuilder.Cases<Integer, NumberExpression<Integer>> cases = null;
 
