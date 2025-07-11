@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 
 import com.part4.team09.otboo.module.common.entity.BaseEntity;
 import com.part4.team09.otboo.module.common.enums.SortDirection;
@@ -232,28 +232,32 @@ class ClothesAttributeInfoServiceTest {
       given(clothesAttributeDefService.findById(defId)).willReturn(def1);
 
       List<SelectableValue> oldValues = List.of(value1, value2, value3);
-      given(selectableValueService.findAllByAttributeDefId(defId)).willReturn(oldValues);
 
-      List<SelectableValue> newSelectableValues = List.of(oldValues.get(0), oldValues.get(1),
-          SelectableValue.create(defId, "XL"));
       Set<String> newValuesSet = new HashSet<>(request.selectableValues());
       List<UUID> valueIdsForDelete = oldValues.stream()
           .filter(oldValue -> !newValuesSet.contains(oldValue.getItem()))
           .map(BaseEntity::getId)
           .toList();
+      System.out.println("valueIdsForDelete: " + valueIdsForDelete);
+      List<SelectableValue> newSelectableValues = List.of(SelectableValue.create(defId, "XL"));
       given(selectableValueService.updateWhenNameSame(defId, valueIdsForDelete,
           request.selectableValues())).willReturn(newSelectableValues);
+
+      List<SelectableValue> values = List.of(value1, value2, newSelectableValues.get(0));
+      given(selectableValueService.findAllByAttributeDefId(defId))
+          .willReturn(oldValues)    // 첫 호출 때 (delete 대상 판단용)
+          .willReturn(values);
 
       // when
       ClothesAttributeDefDto result = clothesAttributeInfoService.update(defId, request);
 
       // then
       assertNotNull(result);
-      assertEquals(result.selectableValues(), newSelectableValues.stream()
+      assertEquals(result.selectableValues(), values.stream()
           .map(SelectableValue::getItem)
           .toList());
       then(clothesAttributeDefService).should().findById(defId);
-      then(selectableValueService).should().findAllByAttributeDefId(defId);
+      then(selectableValueService).should(times(2)).findAllByAttributeDefId(defId);
       then(selectableValueService).should()
           .updateWhenNameSame(defId, valueIdsForDelete, request.selectableValues());
       then(clothesAttributeService).should().deleteBySelectableValueIdIn(valueIdsForDelete);
