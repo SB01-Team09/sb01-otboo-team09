@@ -3,6 +3,7 @@ package com.part4.team09.otboo.module.domain.recommendation.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
@@ -43,11 +44,14 @@ public class RecommendationService {
   private final SelectableValueRepository selectableValueRepository;
 
   public String getRecommendations() {
-//    String text = getText();
-//    String response = llmApiClient.getInfo(text);
+    UUID weatherId = UUID.fromString("47d61cc4-fcd0-40e2-ba1f-f2c697428085");
+    UUID userId = UUID.fromString("f1b7659d-f990-4172-b7d0-c64ef4027ea5");
+    String text = getText(weatherId, userId);
+    String response = llmApiClient.getInfo(text);
 
-    List<ClothingOption> clothingOptions = getOptions();
-    clothesRepositoryQueryDSL.findAllOrderedByAttributeScores(clothingOptions, 10);
+    List<ClothingOption> clothingOptions = getOptions(response);
+    List<Clothes> clothes =
+      clothesRepositoryQueryDSL.findAllOrderedByAttributeScores(clothingOptions, 10);
     return null;
   }
 
@@ -129,7 +133,7 @@ public class RecommendationService {
     return String.valueOf(clotheInfo.append("\n"));
   }
 
-  private List<ClothingOption> getOptions() {
+  private List<ClothingOption> getOptions(String response) {
     String text = """
       ```json
       [
@@ -169,7 +173,7 @@ public class RecommendationService {
       ```
       """;
 
-    String cleaned = text
+    String cleaned = response
       .replaceAll("(?i)```json\\s*", "")  // ```json 또는 ```JSON 제거
       .replaceAll("```", "")               // 닫는 ``` 제거
       .trim();                             // 양쪽 공백 제거
