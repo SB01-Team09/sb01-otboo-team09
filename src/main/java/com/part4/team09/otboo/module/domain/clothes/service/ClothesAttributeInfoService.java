@@ -171,8 +171,13 @@ public class ClothesAttributeInfoService {
     List<String> newValueItems = selectableValueService.updateWhenNameSame(def.getId(),
             valueIdsForDelete, request.selectableValues()).stream().map(SelectableValue::getItem)
         .toList();
+    log.debug("새로 생성된 의상 속성 값: newValues: {}", newValueItems);
 
-    return clothesAttributeDefMapper.toDto(def.getId(), def.getName(), newValueItems);
+    List<String> values = selectableValueService.findAllByAttributeDefId(def.getId()).stream()
+        .map(SelectableValue::getItem)
+        .toList();
+
+    return clothesAttributeDefMapper.toDto(def.getId(), def.getName(), values);
   }
 
   private ClothesAttributeDefDto updateWhenNameChanged(ClothesAttributeDef def,
