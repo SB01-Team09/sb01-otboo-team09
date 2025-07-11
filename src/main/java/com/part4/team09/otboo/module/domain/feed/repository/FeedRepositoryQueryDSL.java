@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.feed.repository;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedListRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.entity.QFeed;
 import com.part4.team09.otboo.module.domain.feed.entity.QOotd;
@@ -18,7 +19,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-
 @Repository
 @RequiredArgsConstructor
 public class FeedRepositoryQueryDSL {
@@ -32,34 +32,36 @@ public class FeedRepositoryQueryDSL {
 
 
     // 피드 목록 조회
-    public List<Feed> getFeeds(String cursor, UUID idAfter, int limit, String sortBy, SortDirection sortDirection, String keywordLike, Weather.SkyStatus skyStatusEqual, Precipitation.PrecipitationType precipitationTypeEqual, UUID authorIdEqual) {
+    public List<Feed> getFeeds(FeedListRequest request) {
         return queryFactory
                 .selectFrom(feed)
                 .join(ootd).on(feed.id.eq(ootd.feedId)) // feed, ootd 조인
                 .join(weather).on(feed.weatherId.eq(weather.id)) // feed, weather 조인
                 .join(precipitation).on(weather.precipitationId.eq(precipitation.id)) // weather, precipitation 조인
                 .where(
-                        keywordLikeCondition(keywordLike),
-                        skyStatusCondition(skyStatusEqual),
-                        precipitationCondition(precipitationTypeEqual),
-                        equalAuthorId(authorIdEqual),
-                        cursorCondition(cursor, idAfter, sortBy, sortDirection)
+                        keywordLikeCondition(request.keywordLike()),
+                        skyStatusCondition(request.skyStatusEqual()),
+                        precipitationCondition(request.precipitationTypeEqual()),
+                        equalAuthorId(request.authorIdEqual()),
+                        cursorCondition(request.cursor(), request.idAfter(), request.sortBy(), request.sortDirection())
                 )
-                .orderBy(getSortOrder(sortBy, sortDirection))
-                .limit(limit)
+                .orderBy(getSortOrder(request.sortBy(), request.sortDirection()))
+                .limit(request.limit()+1)
                 .fetch();
     }
 
     // 피드 개수
-    public int countFeeds(String keywordLike, Weather.SkyStatus skyStatusEqual, Precipitation.PrecipitationType precipitationTypeEqual, UUID authorIdEqual){
+    public int countFeeds(FeedListRequest request){
         Long count = queryFactory
                 .select(feed.count())
                 .from(feed)
+                .join(weather).on(feed.weatherId.eq(weather.id)) // feed, weather 조인
+                .join(precipitation).on(weather.precipitationId.eq(precipitation.id)) // weather, precipitation 조인
                 .where(
-                        keywordLikeCondition(keywordLike),
-                        skyStatusCondition(skyStatusEqual),
-                        precipitationCondition(precipitationTypeEqual),
-                        equalAuthorId(authorIdEqual)
+                        keywordLikeCondition(request.keywordLike()),
+                        skyStatusCondition(request.skyStatusEqual()),
+                        precipitationCondition(request.precipitationTypeEqual()),
+                        equalAuthorId(request.authorIdEqual())
                 )
                 .fetchOne();
         return count != null ? Math.toIntExact(count) : 0;

@@ -1,10 +1,9 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
-import com.part4.team09.otboo.module.common.enums.SortDirection;
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedListRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
@@ -13,8 +12,6 @@ import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
-import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherErrorCode;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundException;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
@@ -81,38 +78,41 @@ public class FeedService {
 
   // 피드 목록 조회
   @Transactional(readOnly = true)
-  public FeedDtoCursorResponse getFeeds(CustomUserDetails currentUser, String cursor, UUID idAfter, int limit, String sortBy, SortDirection sortDirection, String keywordLike, Weather.SkyStatus skyStatusEqual, Precipitation.PrecipitationType precipitationTypeEqual, UUID authorIdEqual){
+  public FeedDtoCursorResponse getFeeds(UUID currentUserId, FeedListRequest request){
 
     // 쿼리
     // 피드 불러오기
-    List<Feed> feeds = feedRepositoryQueryDSL.getFeeds(cursor, idAfter, limit+1, sortBy, sortDirection, keywordLike, skyStatusEqual, precipitationTypeEqual, authorIdEqual);
-    int totalCount = feedRepositoryQueryDSL.countFeeds(keywordLike, skyStatusEqual, precipitationTypeEqual, authorIdEqual);
+    List<Feed> feeds = feedRepositoryQueryDSL.getFeeds(request);
+    int totalCount = feedRepositoryQueryDSL.countFeeds(request);
 
     // Dto 리스트로 변환
-    List<FeedDto> feedDtos = feeds.stream().map(feed -> feedDtoAssembler.assemble(feed, currentUser.getId())).toList();
+    List<FeedDto> feedDtos = feeds.stream().map(feed -> feedDtoAssembler.assemble(feed, currentUserId)).toList();
 
     // 반환
     // hasNext
-    boolean hasNext = feedDtos.size() > limit;
+    boolean hasNext = feedDtos.size() > request.limit();
     if (hasNext) {
-      feedDtos = feedDtos.subList(0, limit);
+      feedDtos = feedDtos.subList(0,request.limit());
     }
 
     // nextCursor, nextIdAfter
     String nextCursor = null;
     UUID nextIdAfter = null;
-    FeedDto lastFeedDto = feedDtos.get(limit-1);
-    if(hasNext && !feedDtos.isEmpty()){
-      if(sortBy == "createdAt"){
+    FeedDto lastFeedDto = null;
+    if (hasNext && feedDtos.size() >= request.limit()) {
+      lastFeedDto = feedDtos.get(request.limit() - 1);
+
+      if (request.sortBy().equals("createdAt")) {
         nextCursor = lastFeedDto.createdAt().toString();
-      }else if(sortBy == "likeCount"){
+      } else if (request.sortBy().equals("likeCount")) {
         nextCursor = String.valueOf(lastFeedDto.likeCount());
       }
       nextIdAfter = lastFeedDto.id();
     }
 
+
     // 최종 반환
-    return new FeedDtoCursorResponse(feedDtos, nextCursor, nextIdAfter, hasNext, totalCount, sortBy, sortDirection);
+    return new FeedDtoCursorResponse(feedDtos, nextCursor, nextIdAfter, hasNext, totalCount, request.sortBy(), request.sortDirection());
 
   }
 
