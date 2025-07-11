@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.clothes.service;
 
 
 import com.part4.team09.otboo.module.common.entity.BaseEntity;
+import com.part4.team09.otboo.module.domain.clothes.assembler.ClothesAttributeDefDtoAssembler;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefFindRequest;
@@ -13,10 +14,8 @@ import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefDt
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefMapper;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,11 +30,12 @@ public class ClothesAttributeInfoService {
 
   // 의상 속성 정의 관련 서비스
   private final ClothesAttributeDefService clothesAttributeDefService;
-  // 의상 속성 값 관련 서비스
   private final SelectableValueService selectableValueService;
   private final ClothesAttributeService clothesAttributeService;
+
   private final ClothesAttributeDefMapper clothesAttributeDefMapper;
   private final ClothesAttributeDefDtoCursorResponseMapper clothesAttributeDefDtoCursorResponseMapper;
+  private final ClothesAttributeDefDtoAssembler clothesAttributeDefDtoAssembler;
 
   // 의상 속성 정의 생성
   public ClothesAttributeDefDto create(ClothesAttributeDefCreateRequest request) {
@@ -64,46 +64,37 @@ public class ClothesAttributeInfoService {
             + "sortDirection = {}, keywordLike = {}", request.cursor(), request.idAfter(),
         request.limit(), request.sortBy(), request.sortDirection(), request.keywordLike());
 
-    // 1. 키워드에 해당하는 id 저장
+    // 1. 키워드로 정의 명 또는 속성 값 찾기
     List<UUID> defIds = clothesAttributeDefService.findIdsByKeyword(request.keywordLike());
 
+    // 키워드를 포함하는 속성이 없을 경우 빈리스트 반환
     if (defIds.isEmpty()) {
       log.debug("조회 결과가 없습니다.");
       return clothesAttributeDefDtoCursorResponseMapper.toDto(
-          List.of(), null, null, false, defIds.size(), request.sortBy(), request.sortDirection());
+          List.of(),
+          null,
+          null,
+          false, defIds.size(),
+          request.sortBy(),
+          request.sortDirection());
     }
 
-    // 2 커서 기반 페이지네이션
+    // 2. 커서 기반 페이지네이션
     List<ClothesAttributeDef> defs = clothesAttributeDefService.findByCursor(defIds, request);
 
-    // 2.1 hasNext 판단, 마지막 값 제거
+    // 3 반환 값 생성
     boolean hasNext = defs.size() > request.limit();
+    String nextCursor = null;
+    UUID nextIdAfter = null;
     if (hasNext) {
       defs = defs.subList(0, request.limit());
+      ClothesAttributeDef lastDef = defs.get(defs.size() - 1);
+      nextCursor = lastDef.getName();
+      nextIdAfter = lastDef.getId();
     }
-
-    // 2.2 nextCursor, nextIdAfter, totalCount
-    // 다음 커서 - 프로토타입에서 다음 페이지를 나타내는 것으로 보임, 사용자 커서처럼 마지막 정의 명을 반환
-    String nextCursor = hasNext ? defs.get(defs.size() - 1).getName() : null;
-    UUID nextIdAfter = hasNext ? defs.get(defs.size() - 1).getId() : null;
     int totalCount = defIds.size();
 
-    // 3. 2에서 가져온 def로 의상 속성 값 가져오기
-    List<UUID> pagedDefIds = defs.stream()
-        .map(BaseEntity::getId)
-        .toList();
-
-    // 4. 해당 속성 값 가져오기, dto로 변환
-    Map<UUID, List<SelectableValue>> valueMap = selectableValueService.findAllByAttributeDefIdIn(
-            pagedDefIds).stream()
-        .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
-
-    List<ClothesAttributeDefDto> data = defs.stream().map(
-            def -> clothesAttributeDefMapper.toDto(def.getId(), def.getName(),
-                valueMap.get(def.getId()).stream()
-                    .map(SelectableValue::getItem)
-                    .toList()))
-        .toList();
+    List<ClothesAttributeDefDto> data = clothesAttributeDefDtoAssembler.assemble(defs);
 
     ClothesAttributeDefDtoCursorResponse response = clothesAttributeDefDtoCursorResponseMapper.toDto(
         data,

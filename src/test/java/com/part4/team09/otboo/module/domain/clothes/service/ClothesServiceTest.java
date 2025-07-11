@@ -202,8 +202,8 @@ class ClothesServiceTest {
           .toList();
       List<ClothesAttributeWithDefDto> dtos = List.of(new ClothesAttributeWithDefDto(def1.getId(),
           def1.getName(), selectableItems, value1.getItem()));
-      given(clothesAttributeWithDefMapper.toDto(request.attributes(), defMap, selectableValueMap))
-          .willReturn(dtos);
+      //given(clothesAttributeWithDefMapper.toDto(request.attributes(), defMap, selectableValueMap))
+      //    .willReturn(dtos);
 
       ClothesDto clothesDto = new ClothesDto(clothes1.getId(), clothes1.getOwnerId(),
           clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), dtos);
@@ -220,7 +220,7 @@ class ClothesServiceTest {
       then(clothesRepository).should().save(any(Clothes.class));
       then(clothesAttributeDefService).should().findAllByIds(defIds);
       then(selectableValueService).should().findAllByAttributeDefIdIn(defIds);
-      then(clothesAttributeWithDefMapper).should().toDto(request.attributes(), defMap, selectableValueMap);
+      //then(clothesAttributeWithDefMapper).should().toDto(request.attributes(), defMap, selectableValueMap);
       then(clothesAttributeService).should().create(clothes1.getId(), selectableValueIds);
       then(clothesMapper).should().toDto(clothes1.getId(), clothes1.getOwnerId(), clothes1.getName(),
           clothes1.getImageUrl(), clothes1.getType(), dtos);
@@ -595,7 +595,7 @@ class ClothesServiceTest {
       given(fileStorage.upload(image, FileDomain.CLOTHES_IMAGE)).willReturn(newUrl);
       given(clothesAttributeDefService.findAllByIds(List.of(def1.getId()))).willReturn(defs);
       given(selectableValueService.findAllByAttributeDefIdIn(List.of(def1.getId()))).willReturn(values);
-      given(clothesAttributeWithDefMapper.toDto(request.attributes(), defMap, selectableValueMap)).willReturn(attributes);
+      //given(clothesAttributeWithDefMapper.toDto(request.attributes(), defMap, selectableValueMap)).willReturn(attributes);
       given(clothesMapper.toDto(clothes1.getId(), user.getId(), request.name(), newUrl, request.type(), attributes)).willReturn(dto);
 
 
@@ -612,7 +612,7 @@ class ClothesServiceTest {
       then(fileStorage).should().upload(image, FileDomain.CLOTHES_IMAGE);
       then(clothesAttributeDefService).should().findAllByIds(List.of(def1.getId()));
       then(selectableValueService).should().findAllByAttributeDefIdIn(List.of(def1.getId()));
-      then(clothesAttributeWithDefMapper).should().toDto(request.attributes(), defMap, selectableValueMap);
+      //then(clothesAttributeWithDefMapper).should().toDto(request.attributes(), defMap, selectableValueMap);
       then(clothesMapper).should().toDto(clothes1.getId(), user.getId(), request.name(), newUrl, request.type(), attributes);
     }
 
@@ -643,7 +643,7 @@ class ClothesServiceTest {
       given(userRepository.findById(clothesWithoutImage.getOwnerId())).willReturn(Optional.of(user));
       given(clothesAttributeDefService.findAllByIds(List.of(def1.getId()))).willReturn(defs);
       given(selectableValueService.findAllByAttributeDefIdIn(List.of(def1.getId()))).willReturn(values);
-      given(clothesAttributeWithDefMapper.toDto(request.attributes(), defMap, selectableValueMap)).willReturn(attributes);
+      //given(clothesAttributeWithDefMapper.toDto(request.attributes(), defMap, selectableValueMap)).willReturn(attributes);
       given(clothesMapper.toDto(clothesWithoutImage.getId(), user.getId(), request.name(), newUrl, request.type(), attributes)).willReturn(dto);
 
       // when

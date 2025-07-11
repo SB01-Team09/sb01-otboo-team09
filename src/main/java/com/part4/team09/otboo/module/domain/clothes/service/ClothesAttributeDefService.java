@@ -51,11 +51,7 @@ public class ClothesAttributeDefService {
   public ClothesAttributeDef findById(UUID defId) {
     log.debug("의상 속성 정의 명 조회 시작: defId = {}", defId);
 
-    ClothesAttributeDef def = clothesAttributeDefRepository.findById(defId)
-        .orElseThrow(() -> {
-            log.warn("의상 속성 정의가 존재하지 않습니다. id = {}", defId);
-            return ClothesAttributeDefNotFoundException.withId(defId);
-        });
+    ClothesAttributeDef def = getOrDefThrow(defId);
 
     log.debug("의상 속성 정의 명 조회 완료: defId = {}, name = {}", def.getId(), def.getName());
     return def;
@@ -106,7 +102,8 @@ public class ClothesAttributeDefService {
       return List.of();
     }
 
-    List<ClothesAttributeDef> defs = clothesAttributeDefRepositoryQueryDSL.findByCursor(defIds, request);
+    List<ClothesAttributeDef> defs = clothesAttributeDefRepositoryQueryDSL.findByCursor(defIds,
+        request);
     log.debug("의상 속성 페이지네이션 완료: defsSize = {}", defs.size());
     return defs;
   }
@@ -121,7 +118,8 @@ public class ClothesAttributeDefService {
     }
 
     log.debug("defIds로 def 리스트 조회 시작: defIdsSize = {}", defIds.size());
-    List<ClothesAttributeDef> clothesAttributeDefs = clothesAttributeDefRepository.findAllById(defIds);
+    List<ClothesAttributeDef> clothesAttributeDefs = clothesAttributeDefRepository.findAllById(
+        defIds);
 
     log.debug("defIds로 def 리스트 조회 완료: clothesAttributeDefsSize = {}", clothesAttributeDefs.size());
     return clothesAttributeDefs;
@@ -133,10 +131,7 @@ public class ClothesAttributeDefService {
     log.debug("의상 속성 정의 명 수정 시작: defId = {}, newName = {}", defId, newName);
 
     // id 검사
-    ClothesAttributeDef def = clothesAttributeDefRepository.findById(defId).orElseThrow(() -> {
-      log.warn("의상 속성 정의가 존재하지 않습니다. id = {}", defId);
-      return ClothesAttributeDefNotFoundException.withId(defId);
-    });
+    ClothesAttributeDef def = getOrDefThrow(defId);
 
     // 이름 변경
     def.update(newName);
@@ -149,14 +144,21 @@ public class ClothesAttributeDefService {
   public void delete(UUID defId) {
     log.debug("의상 속성 정의 명 삭제 시작: defId = {}", defId);
 
-    clothesAttributeDefRepository.findById(defId)
-        .orElseThrow(() -> {
-          log.warn("의상 속성 정의가 존재하지 않습니다. id = {}", defId);
-          return ClothesAttributeDefNotFoundException.withId(defId);
-        });
+    if (!clothesAttributeDefRepository.existsById(defId)) {
+      log.warn("의상 속성 정의가 존재하지 않습니다. id = {}", defId);
+      throw  ClothesAttributeDefNotFoundException.withId(defId);
+    }
 
     clothesAttributeDefRepository.deleteById(defId);
 
     log.debug("의상 속성 정의 명 삭제 완료");
+  }
+
+  private ClothesAttributeDef getOrDefThrow(UUID defId) {
+    return clothesAttributeDefRepository.findById(defId)
+        .orElseThrow(() -> {
+          log.warn("의상 속성 정의가 존재하지 않습니다. id = {}", defId);
+          return ClothesAttributeDefNotFoundException.withId(defId);
+        });
   }
 }

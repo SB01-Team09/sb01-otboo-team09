@@ -1,10 +1,10 @@
 package com.part4.team09.otboo.module.domain.clothes.assembler;
 
-import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeWithDefDto;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
+import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithDefMapper;
 import com.part4.team09.otboo.module.domain.clothes.service.ClothesAttributeDefService;
 import com.part4.team09.otboo.module.domain.clothes.service.ClothesAttributeService;
 import com.part4.team09.otboo.module.domain.clothes.service.SelectableValueService;
@@ -22,6 +22,8 @@ public class ClothesAttributeWithDefDtoAssembler {
   private final ClothesAttributeService clothesAttributeService;
   private final SelectableValueService selectableValueService;
   private final ClothesAttributeDefService clothesAttributeDefService;
+
+  private final ClothesAttributeWithDefMapper clothesAttributeWithDefMapper;
 
   public List<ClothesAttributeWithDefDto> assemble(UUID clothesId) {
 
@@ -54,7 +56,7 @@ public class ClothesAttributeWithDefDtoAssembler {
     List<ClothesAttributeDef> defs = clothesAttributeDefService.findAllByIds(defIds);
 
     return defs.stream()
-        .map(def -> new ClothesAttributeWithDefDto(
+        .map(def -> clothesAttributeWithDefMapper.toDto(
             def.getId(),
             def.getName(),
             selectableValues.get(def.getId()).stream()
