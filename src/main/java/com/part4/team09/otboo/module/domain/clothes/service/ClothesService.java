@@ -144,16 +144,27 @@ public class ClothesService {
 
     validateUserExists(clothes.getOwnerId());
 
-    // 1. 이미지 삭제
-    if (clothes.getImageUrl() != null) {
-      removeClothesImage(clothes.getImageUrl());
+    // 이미지가 새로 들어오면 수정
+    if (image != null && !image.isEmpty()) {
+
+      // 이미 이미지가 있었으면 삭제
+      if (clothes.getImageUrl() != null) {
+        removeClothesImage(clothes.getImageUrl());
+      }
+
+      // 새로운 이미지 업로드 및 엔티티 업데이트
+      String newUrl = uploadClothesImage(image);
+      clothes.updateImageUrl(newUrl);
     }
 
-    // 2. 이미지 업로드
-    String newUrl = uploadClothesImage(image);
-
     // 3. clothes 엔티티 수정
-    clothes.update(request.name(), request.type(), newUrl);
+    if (request.name() != null) {
+      clothes.updateName(request.name());
+    }
+
+    if (request.type() != null ) {
+      clothes.updateType(request.type());
+    }
 
     // 4. clothesAttribute 삭제
     clothesAttributeService.deleteAllByClothesId(clothes.getId());
