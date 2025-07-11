@@ -41,9 +41,11 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
   private ClothesAttributeDef def3;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws InterruptedException {
     def1 = clothesAttributeDefRepository.save(ClothesAttributeDef.create("사이즈"));
+    Thread.sleep(1000);
     def2 = clothesAttributeDefRepository.save(ClothesAttributeDef.create("색상"));
+    Thread.sleep(1000);
     def3 = clothesAttributeDefRepository.save(ClothesAttributeDef.create("신축성"));
   }
 
@@ -114,7 +116,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
       // given
       List<UUID> ids = List.of(def1.getId(), def2.getId(), def3.getId());
       ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
-          def1.getCreatedAt().toString(), def1.getId(), 2, "createdAt", SortDirection.ASCENDING, null
+          def1.getCreatedAt().plusNanos(1).toString(), def1.getId(), 2, "createdAt", SortDirection.ASCENDING, null
       );
 
       List<ClothesAttributeDef> defs = List.of(def2, def3);
@@ -134,7 +136,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
       // given
       List<UUID> ids = List.of(def1.getId(), def2.getId(), def3.getId());
       ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
-          def2.getCreatedAt().toString(), def2.getId(), 1, "createdAt", SortDirection.DESCENDING, null
+          def2.getCreatedAt().plusNanos(1).toString(), def2.getId(), 1, "createdAt", SortDirection.DESCENDING, null
       );
 
       List<ClothesAttributeDef> defs = List.of(def1);
