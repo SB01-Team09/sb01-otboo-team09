@@ -40,12 +40,13 @@ public class JsonLoginSuccessHandler implements AuthenticationSuccessHandler {
     GeneratedToken generatedToken = jwtTokenProvider.generateToken(authUserDto);
 
     // 쿠키 생성 (refresh token)
-    Cookie tempCookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME,
+    Cookie refreshTokenCookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME,
       generatedToken.refreshToken());
-    tempCookie.setHttpOnly(true);
+    refreshTokenCookie.setHttpOnly(true);
+    refreshTokenCookie.setPath("/");
 
     // 응답 설정
-    response.addCookie(tempCookie);
+    response.addCookie(refreshTokenCookie);
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     response.setCharacterEncoding(StandardCharsets.UTF_8.name());
     response.setStatus(HttpServletResponse.SC_OK);
