@@ -25,9 +25,8 @@ public record ClothesCreateRequest(
   ClothesType type,
 
   // 의상 속성
-  @Valid
   @NotNull(message = "속성 리스트는 null일 수 없습니다.")
-  List<@Valid ClothesAttributeDto> attributes
+  List<ClothesAttributeDto> attributes
 
 ) {
 
