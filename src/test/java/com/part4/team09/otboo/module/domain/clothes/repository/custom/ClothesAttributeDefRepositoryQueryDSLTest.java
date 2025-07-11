@@ -116,7 +116,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
       // given
       List<UUID> ids = List.of(def1.getId(), def2.getId(), def3.getId());
       ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
-          def1.getCreatedAt().plusNanos(1).toString(), def1.getId(), 2, "createdAt", SortDirection.ASCENDING, null
+          def1.getCreatedAt().plusNanos(500000000).toString(), def1.getId(), 2, "createdAt", SortDirection.ASCENDING, null
       );
 
       List<ClothesAttributeDef> defs = List.of(def2, def3);
@@ -136,7 +136,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
       // given
       List<UUID> ids = List.of(def1.getId(), def2.getId(), def3.getId());
       ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
-          def2.getCreatedAt().plusNanos(1).toString(), def2.getId(), 1, "createdAt", SortDirection.DESCENDING, null
+          def2.getCreatedAt().minusNanos(500000000).toString(), def2.getId(), 1, "createdAt", SortDirection.DESCENDING, null
       );
 
       List<ClothesAttributeDef> defs = List.of(def1);
