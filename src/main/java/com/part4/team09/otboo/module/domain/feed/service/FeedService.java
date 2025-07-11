@@ -42,7 +42,6 @@ public class FeedService {
   private final WeatherRepository weatherRepository;
   private final LikeService likeService;
 
-  // 피드 등록
   @Transactional
   public FeedDto create(UUID userId, FeedCreateRequest request) {
     validateUserExists(request.authorId());
