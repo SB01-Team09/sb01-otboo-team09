@@ -48,6 +48,20 @@ public class ClothesRepositoryQueryDSL {
                   .or(clothes.createdAt.eq(createdAt).and(clothes.id.lt(idAfter)))
           );
         }
+      } else {
+
+        if (sortDirection == SortDirection.ASCENDING) {
+
+          where.and(
+              clothes.name.gt(cursor)
+                  .or(clothes.name.eq(cursor).and(clothes.id.gt(idAfter)))
+          );
+        } else {
+          where.and(
+              clothes.name.lt(cursor)
+                  .or(clothes.name.eq(cursor).and(clothes.id.lt(idAfter)))
+          );
+        }
       }
     }
 
@@ -62,14 +76,14 @@ public class ClothesRepositoryQueryDSL {
   }
 
   private OrderSpecifier<?> getOrderSpecifier(String sortBy, SortDirection sortDirection) {
-    if (sortBy.equals("name")) {
-      return sortDirection.equals(SortDirection.ASCENDING)
-          ? clothes.name.asc()
-          : clothes.name.desc();
-    } else {
+    if (sortBy.equals("createdAt")) {
       return sortDirection.equals(SortDirection.ASCENDING)
           ? clothes.createdAt.asc()
           : clothes.createdAt.desc();
+    } else {
+      return sortDirection.equals(SortDirection.ASCENDING)
+          ? clothes.name.asc()
+          : clothes.name.desc();
     }
   }
 }

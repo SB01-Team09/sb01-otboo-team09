@@ -21,8 +21,8 @@ import org.springframework.stereotype.Repository;
 public class ClothesAttributeDefRepositoryQueryDSL {
 
   private final JPAQueryFactory queryFactory;
-  QClothesAttributeDef def = QClothesAttributeDef.clothesAttributeDef;
-  QSelectableValue value = QSelectableValue.selectableValue;
+  private final QClothesAttributeDef def = QClothesAttributeDef.clothesAttributeDef;
+  private final QSelectableValue value = QSelectableValue.selectableValue;
 
   // 속성 정의, 속성 값에 키워드가 있을 경우의 defId 찾기
   public List<UUID> findDefIdsByKeyword(String keyword) {

@@ -4,12 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 
 import com.part4.team09.otboo.module.common.entity.BaseEntity;
 import com.part4.team09.otboo.module.common.enums.SortDirection;
+import com.part4.team09.otboo.module.domain.clothes.assembler.ClothesAttributeDefDtoAssembler;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefCreateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefFindRequest;
@@ -23,7 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -49,11 +50,47 @@ class ClothesAttributeInfoServiceTest {
   @Mock
   private ClothesAttributeService clothesAttributeService;
 
+  @Mock
+  private ClothesAttributeDefDtoAssembler clothesAttributeDefDtoAssembler;
+
   @Spy
   private ClothesAttributeDefMapper clothesAttributeDefMapper;
 
   @Spy
   private ClothesAttributeDefDtoCursorResponseMapper clothesAttributeDefDtoCursorResponseMapper;
+
+  private ClothesAttributeDef def1;
+  private ClothesAttributeDef def2;
+  private SelectableValue value1;
+  private SelectableValue value2;
+  private SelectableValue value3;
+  private SelectableValue value4;
+  private SelectableValue value5;
+  private SelectableValue value6;
+
+  @BeforeEach
+  void setUp() {
+
+    def1 = ClothesAttributeDef.create("사이즈");
+    ReflectionTestUtils.setField(def1, "id", UUID.randomUUID());
+
+    value1 = SelectableValue.create(def1.getId(), "S");
+    value2 = SelectableValue.create(def1.getId(), "M");
+    value3 = SelectableValue.create(def1.getId(), "L");
+    ReflectionTestUtils.setField(value1, "id", UUID.randomUUID());
+    ReflectionTestUtils.setField(value2, "id", UUID.randomUUID());
+    ReflectionTestUtils.setField(value3, "id", UUID.randomUUID());
+
+    def2 = ClothesAttributeDef.create("색상");
+    ReflectionTestUtils.setField(def2, "id", UUID.randomUUID());
+
+    value4 = SelectableValue.create(def2.getId(), "레드");
+    value5 = SelectableValue.create(def2.getId(), "블랙");
+    value6 = SelectableValue.create(def2.getId(), "사파이어");
+    ReflectionTestUtils.setField(value4, "id", UUID.randomUUID());
+    ReflectionTestUtils.setField(value5, "id", UUID.randomUUID());
+    ReflectionTestUtils.setField(value6, "id", UUID.randomUUID());
+  }
 
   @Nested
   @DisplayName("의상 속성 생성")
@@ -64,27 +101,13 @@ class ClothesAttributeInfoServiceTest {
     void create_success() {
 
       // given
-      // 리퀘스트
-      ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest("사이즈",
-          List.of("S", "M", "L"));
+      ClothesAttributeDefCreateRequest request = new ClothesAttributeDefCreateRequest(def1.getName(),
+          List.of(value1.getItem(), value2.getItem(), value3.getItem()));
+      List<SelectableValue> selectableValues = List.of(value1, value2, value3);
 
-      // 정의 생성
-      ClothesAttributeDef def = ClothesAttributeDef.create(request.name());
-      // 속성값 생성
-      List<SelectableValue> selectableValues = request.selectableValues().stream()
-          .map(value -> SelectableValue.create(def.getId(), value))
-          .toList();
-      List<String> valueList = selectableValues.stream()
-          .map(SelectableValue::getItem)
-          .toList();
-      ClothesAttributeDefDto dto = new ClothesAttributeDefDto(def.getId(), def.getName(),
-          valueList);
-
-      given(clothesAttributeDefService.create(request.name())).willReturn(def);
-      given(selectableValueService.create(def.getId(), request.selectableValues())).willReturn(
+      given(clothesAttributeDefService.create(request.name())).willReturn(def1);
+      given(selectableValueService.create(def1.getId(), request.selectableValues())).willReturn(
           selectableValues);
-      given(clothesAttributeDefMapper.toDto(def.getId(), def.getName(),
-          valueList)).willReturn(dto);
 
       // when
       ClothesAttributeDefDto result = clothesAttributeInfoService.create(request);
@@ -94,10 +117,7 @@ class ClothesAttributeInfoServiceTest {
       assertEquals(result.name(), request.name());
       assertEquals(result.selectableValues(), request.selectableValues());
       then(clothesAttributeDefService).should().create(request.name());
-      then(selectableValueService).should().create(def.getId(), request.selectableValues());
-      then(clothesAttributeDefMapper).should().toDto(def.getId(), def.getName(),
-          selectableValues.stream().map(SelectableValue::getItem)
-              .toList());
+      then(selectableValueService).should().create(def1.getId(), request.selectableValues());
     }
   }
 
@@ -108,42 +128,22 @@ class ClothesAttributeInfoServiceTest {
     @Test
     @DisplayName("의상 속성 정의 조회 성공")
     void find_by_cursor_success() {
+
       // given
-      // def 생성
-      UUID defId1 = UUID.randomUUID();
-      UUID defId2 = UUID.randomUUID();
-      ClothesAttributeDef def1 = ClothesAttributeDef.create("사이즈");
-      ClothesAttributeDef def2 = ClothesAttributeDef.create("색상");
-      ReflectionTestUtils.setField(def1, "id", defId1);
-      ReflectionTestUtils.setField(def2, "id", defId2);
-
-      // selectableValue 생성
-      SelectableValue value1 = SelectableValue.create(defId1, "S");
-
       ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
           null, null, 2, "name", SortDirection.ASCENDING, "사이즈");
 
       // 키워드에 해당하는 defIds
       List<UUID> defIds = List.of(def1.getId());
+      given(clothesAttributeDefService.findIdsByKeyword(request.keywordLike())).willReturn(defIds);
 
       // 커서기반 페이지네이션 값
       List<ClothesAttributeDef> defs = List.of(def1);
-
-      // defId로 selectableValue 조회 값
-      List<SelectableValue> selectableValues = List.of(value1);
-
-      ClothesAttributeDefDto dto1 = new ClothesAttributeDefDto(defId1, def1.getName(), List.of(value1.getItem()));
-
-      ClothesAttributeDefDtoCursorResponse expectedResponse = new ClothesAttributeDefDtoCursorResponse(
-          List.of(dto1), null, null, false, defs.size(), "name", SortDirection.ASCENDING);
-
-      given(clothesAttributeDefService.findIdsByKeyword("사이즈")).willReturn(defIds);
       given(clothesAttributeDefService.findByCursor(defIds, request)).willReturn(defs);
-      given(selectableValueService.findAllByAttributeDefIdIn(List.of(defId1)))
-          .willReturn(selectableValues);
-      given(clothesAttributeDefMapper.toDto(defId1, "사이즈", List.of("S"))).willReturn(dto1);
-      given(clothesAttributeDefDtoCursorResponseMapper.toDto(List.of(dto1), null, null, false, defs.size(), "name", SortDirection.ASCENDING))
-          .willReturn(expectedResponse);
+
+      List<ClothesAttributeDefDto> data = List.of(clothesAttributeDefMapper.toDto(def1.getId(), def1.getName(),
+          List.of(value1.getItem(), value2.getItem(), value3.getItem())));
+      given(clothesAttributeDefDtoAssembler.assemble(defs)).willReturn(data);
 
       // when
       ClothesAttributeDefDtoCursorResponse result = clothesAttributeInfoService.findByCursor(request);
@@ -152,61 +152,29 @@ class ClothesAttributeInfoServiceTest {
       assertEquals(result.data().size(), 1);
       assertFalse(result.hasNext());
 
-      then(clothesAttributeDefService).should().findIdsByKeyword("사이즈");
+      then(clothesAttributeDefService).should().findIdsByKeyword(request.keywordLike());
       then(clothesAttributeDefService).should().findByCursor(defIds, request);
-      then(selectableValueService).should().findAllByAttributeDefIdIn(List.of(defId1));
-      then(clothesAttributeDefMapper).should().toDto(defId1, "사이즈", List.of("S"));
-      then(clothesAttributeDefDtoCursorResponseMapper).should().toDto(List.of(dto1), null, null, false, defs.size(), "name", SortDirection.ASCENDING);
+      then(clothesAttributeDefDtoAssembler).should().assemble(defs);
     }
 
     @Test
     @DisplayName("의상 속성 정의 조회 성공 - next가 존재")
     void find_by_cursor_success_exists_next() {
+
       // given
-      UUID defId1 = UUID.randomUUID();
-      UUID defId2 = UUID.randomUUID();
-
-      ClothesAttributeDef def1 = ClothesAttributeDef.create("사이즈");
-      ClothesAttributeDef def2 = ClothesAttributeDef.create("색상");
-      ReflectionTestUtils.setField(def1, "id", defId1);
-      ReflectionTestUtils.setField(def2, "id", defId2);
-
-      SelectableValue value1 = SelectableValue.create(defId1, "S");
-      SelectableValue value2 = SelectableValue.create(defId2, "M");
-      ReflectionTestUtils.setField(value1, "id", UUID.randomUUID());
-      ReflectionTestUtils.setField(value2, "id", UUID.randomUUID());
-
       ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
-          null, null, 1, "name", SortDirection.ASCENDING, "사이즈");
+          null, null, 1, "name", SortDirection.ASCENDING, "사");
 
-      List<UUID> defIds = List.of(defId1, defId2);
-
+      List<UUID> defIds = List.of(def1.getId(), def1.getId());
+      given(clothesAttributeDefService.findIdsByKeyword(request.keywordLike())).willReturn(defIds);
 
       List<ClothesAttributeDef> defs = List.of(def1, def2);
-
-
-      List<SelectableValue> selectableValues = List.of(value1, value2);
-
-      ClothesAttributeDefDto dto1 = new ClothesAttributeDefDto(defId1, def1.getName(), List.of(value1.getItem()));
-      ClothesAttributeDefDto dto2 = new ClothesAttributeDefDto(defId2, def2.getName(), List.of(value2.getItem()));
-
-      ClothesAttributeDefDtoCursorResponse expectedResponse = new ClothesAttributeDefDtoCursorResponse(
-          List.of(dto1),
-          def1.getName(),
-          def1.getId(),
-          true,
-          defIds.size(),
-          "name",
-          SortDirection.ASCENDING);
-
-      given(clothesAttributeDefService.findIdsByKeyword("사이즈")).willReturn(defIds);
       given(clothesAttributeDefService.findByCursor(defIds, request)).willReturn(defs);
-      given(selectableValueService.findAllByAttributeDefIdIn(anyList()))
-          .willReturn(selectableValues);
-      given(clothesAttributeDefMapper.toDto(defId1, "사이즈", List.of("S"))).willReturn(dto1);
-      given(clothesAttributeDefDtoCursorResponseMapper.toDto(
-          List.of(dto1), def1.getName(), def1.getId(), true, defIds.size(), "name", SortDirection.ASCENDING))
-          .willReturn(expectedResponse);
+
+      List<ClothesAttributeDefDto> data = List.of(clothesAttributeDefMapper.toDto(def1.getId(),
+          def1.getName(), List.of(value1.getItem(), value2.getItem(), value3.getItem())));
+      List<ClothesAttributeDef> pagedDefs = List.of(def1);
+      given(clothesAttributeDefDtoAssembler.assemble(pagedDefs)).willReturn(data);
 
       // when
       ClothesAttributeDefDtoCursorResponse result = clothesAttributeInfoService.findByCursor(request);
@@ -217,12 +185,9 @@ class ClothesAttributeInfoServiceTest {
       assertEquals(def1.getName(), result.nextCursor());
       assertEquals(def1.getId(), result.nextIdAfter());
 
-      then(clothesAttributeDefService).should().findIdsByKeyword("사이즈");
+      then(clothesAttributeDefService).should().findIdsByKeyword(request.keywordLike());
       then(clothesAttributeDefService).should().findByCursor(defIds, request);
-      then(selectableValueService).should().findAllByAttributeDefIdIn(List.of(defId1));
-      then(clothesAttributeDefMapper).should().toDto(defId1, "사이즈", List.of("S"));
-      then(clothesAttributeDefDtoCursorResponseMapper).should().toDto(
-          List.of(dto1), def1.getName(), def1.getId(), true, defIds.size(), "name", SortDirection.ASCENDING);
+      then(clothesAttributeDefDtoAssembler).should().assemble(pagedDefs);
     }
 
 
@@ -238,9 +203,6 @@ class ClothesAttributeInfoServiceTest {
       ClothesAttributeDefDtoCursorResponse expectedResponse = new ClothesAttributeDefDtoCursorResponse(
           List.of(), null, null, false, 0, "name", SortDirection.ASCENDING);
 
-      given(clothesAttributeDefDtoCursorResponseMapper.toDto(List.of(), null, null, false, 0, "name", SortDirection.ASCENDING))
-          .willReturn(expectedResponse);
-
       // when
       ClothesAttributeDefDtoCursorResponse result = clothesAttributeInfoService.findByCursor(request);
 
@@ -250,7 +212,6 @@ class ClothesAttributeInfoServiceTest {
       assertEquals(result.totalCount(), 0);
 
       then(clothesAttributeDefService).should().findIdsByKeyword("없음");
-      then(clothesAttributeDefDtoCursorResponseMapper).should().toDto(List.of(), null, null, false, 0, "name", SortDirection.ASCENDING);
     }
   }
 
@@ -263,47 +224,42 @@ class ClothesAttributeInfoServiceTest {
     void update_when_name_same() {
 
       // given
-      ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
-      List<SelectableValue> oldValues = Stream.of("S", "M", "L")
-          .map(value -> SelectableValue.create(def.getId(), value))
-          .toList();
-
-      ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("사이즈",
+      UUID defId = def1.getId();
+      ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest(def1.getName(),
           List.of("S", "M", "XL"));
 
-      Set<String> newValuesSet = new HashSet<>(request.selectableValues());
+      given(clothesAttributeDefService.findById(defId)).willReturn(def1);
 
+      List<SelectableValue> oldValues = List.of(value1, value2, value3);
+
+      Set<String> newValuesSet = new HashSet<>(request.selectableValues());
       List<UUID> valueIdsForDelete = oldValues.stream()
           .filter(oldValue -> !newValuesSet.contains(oldValue.getItem()))
           .map(BaseEntity::getId)
           .toList();
-
-      List<SelectableValue> newSelectableValues = List.of(oldValues.get(0), oldValues.get(1),
-          SelectableValue.create(def.getId(), "XL"));
-      List<String> newValues = List.of("S", "M", "XL");
-      ClothesAttributeDefDto dto = new ClothesAttributeDefDto(def.getId(), request.name(),
-          newValues);
-
-      given(clothesAttributeDefService.findById(def.getId())).willReturn(def);
-      given(selectableValueService.findAllByAttributeDefId(def.getId())).willReturn(oldValues);
-      given(selectableValueService.updateWhenNameSame(def.getId(), valueIdsForDelete,
+      System.out.println("valueIdsForDelete: " + valueIdsForDelete);
+      List<SelectableValue> newSelectableValues = List.of(SelectableValue.create(defId, "XL"));
+      given(selectableValueService.updateWhenNameSame(defId, valueIdsForDelete,
           request.selectableValues())).willReturn(newSelectableValues);
-      given(clothesAttributeDefMapper.toDto(def.getId(), request.name(), newValues)).willReturn(
-          dto);
+
+      List<SelectableValue> values = List.of(value1, value2, newSelectableValues.get(0));
+      given(selectableValueService.findAllByAttributeDefId(defId))
+          .willReturn(oldValues)    // 첫 호출 때 (delete 대상 판단용)
+          .willReturn(values);
 
       // when
-      ClothesAttributeDefDto result = clothesAttributeInfoService.update(def.getId(), request);
+      ClothesAttributeDefDto result = clothesAttributeInfoService.update(defId, request);
 
       // then
       assertNotNull(result);
-      assertEquals(result.selectableValues(), newSelectableValues.stream()
+      assertEquals(result.selectableValues(), values.stream()
           .map(SelectableValue::getItem)
           .toList());
-      then(clothesAttributeDefService).should().findById(def.getId());
-      then(selectableValueService).should().findAllByAttributeDefId(def.getId());
+      then(clothesAttributeDefService).should().findById(defId);
+      then(selectableValueService).should(times(2)).findAllByAttributeDefId(defId);
       then(selectableValueService).should()
-          .updateWhenNameSame(def.getId(), valueIdsForDelete, request.selectableValues());
-      then(clothesAttributeDefMapper).should().toDto(def.getId(), request.name(), newValues);
+          .updateWhenNameSame(defId, valueIdsForDelete, request.selectableValues());
+      then(clothesAttributeService).should().deleteBySelectableValueIdIn(valueIdsForDelete);
     }
 
     @Test
@@ -311,36 +267,39 @@ class ClothesAttributeInfoServiceTest {
     void update_when_name_changed() {
 
       // given
-      ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
-      List<SelectableValue> oldValues = Stream.of("S", "M", "L")
-          .map(value -> SelectableValue.create(def.getId(), value))
-          .toList();
-      ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("신축성",
-          List.of("없음", "조금 있음", "있음"));
-      ClothesAttributeDef updatedDef = ClothesAttributeDef.create(request.name());
-      List<SelectableValue> newSelectableValues = Stream.of("없음", "조금 있음", "있음")
-          .map(value -> SelectableValue.create(def.getId(), value))
-          .toList();
-      List<String> newValues = List.of("없음", "조금 있음", "있음");
-      ClothesAttributeDefDto dto = new ClothesAttributeDefDto(updatedDef.getId(), updatedDef.getName(), newValues);
+      UUID defId = def1.getId();
+      ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("newName",
+          List.of("S", "M", "XL"));
 
-      given(clothesAttributeDefService.findById(def.getId())).willReturn(def);
-      given(selectableValueService.findAllByAttributeDefId(def.getId())).willReturn(oldValues);
-      given(clothesAttributeDefService.update(def.getId(), request.name())).willReturn(updatedDef);
+      given(clothesAttributeDefService.findById(defId)).willReturn(def1);
+
+      List<SelectableValue> oldValues = List.of(value1, value2, value3);
+      given(selectableValueService.findAllByAttributeDefId(defId)).willReturn(oldValues);
+
+      ClothesAttributeDef updatedDef = ClothesAttributeDef.create(request.name());
+      ReflectionTestUtils.setField(updatedDef, "id", UUID.randomUUID());
+      given(clothesAttributeDefService.update(defId, request.name())).willReturn(updatedDef);
+
+      List<SelectableValue> newSelectableValues = List.of(
+          SelectableValue.create(defId, "S"),
+          SelectableValue.create(defId, "M"),
+          SelectableValue.create(defId, "XL")
+      );
       given(selectableValueService.updateWhenNameChanged(updatedDef.getId(), request.selectableValues()))
           .willReturn(newSelectableValues);
-      given(clothesAttributeDefMapper.toDto(updatedDef.getId(), request.name(), newValues)).willReturn(dto);
 
       // when
-      ClothesAttributeDefDto result = clothesAttributeInfoService.update(def.getId(), request);
+      ClothesAttributeDefDto result = clothesAttributeInfoService.update(defId, request);
 
       // then
       assertNotNull(result);
-      assertEquals(result.selectableValues(), newValues);
-      then(clothesAttributeDefService).should().findById(def.getId());
-      then(selectableValueService).should().findAllByAttributeDefId(def.getId());
+      assertEquals(request.selectableValues(), result.selectableValues());
+      then(clothesAttributeDefService).should().findById(defId);
+      then(selectableValueService).should().findAllByAttributeDefId(defId);
+      then(clothesAttributeDefService).should().update(defId, request.name());
+      then(clothesAttributeService).should()
+          .deleteBySelectableValueIdIn(oldValues.stream().map(BaseEntity::getId).toList());
       then(selectableValueService).should().updateWhenNameChanged(updatedDef.getId(), request.selectableValues());
-      then(clothesAttributeDefMapper).should().toDto(def.getId(), request.name(), newValues);
     }
   }
 
@@ -353,24 +312,25 @@ class ClothesAttributeInfoServiceTest {
     void delete_success() {
 
       // given
-      ClothesAttributeDef def = ClothesAttributeDef.create("사이즈");
-      SelectableValue selectableValue1 = SelectableValue.create(def.getId(), "S");
-      SelectableValue selectableValue2 = SelectableValue.create(def.getId(), "M");
-      List<SelectableValue> values = List.of(selectableValue1, selectableValue2);
-      List<UUID> valueIds = values.stream().map(BaseEntity::getId).toList();
+      UUID defId = def1.getId();
+      given(clothesAttributeDefService.findById(defId)).willReturn(def1);
 
-      given(clothesAttributeDefService.findById(def.getId())).willReturn(def);
-      given(selectableValueService.findAllByAttributeDefId(def.getId())).willReturn(values);
+      List<SelectableValue> values = List.of(value1, value2, value3);
+      given(selectableValueService.findAllByAttributeDefId(defId)).willReturn(values);
+
+      List<UUID> valueIds = values.stream()
+          .map(BaseEntity::getId)
+          .toList();
 
       // when
-      clothesAttributeInfoService.delete(def.getId());
+      clothesAttributeInfoService.delete(defId);
 
       // then
-      then(clothesAttributeDefService).should().findById(def.getId());
-      then(selectableValueService).should().findAllByAttributeDefId(def.getId());
+      then(clothesAttributeDefService).should().findById(defId);
+      then(selectableValueService).should().findAllByAttributeDefId(defId);
       then(clothesAttributeService).should().deleteBySelectableValueIdIn(valueIds);
       then(selectableValueService).should().deleteByIdIn(valueIds);
-      then(clothesAttributeDefService).should().delete(def.getId());
+      then(clothesAttributeDefService).should().delete(defId);
     }
   }
 }

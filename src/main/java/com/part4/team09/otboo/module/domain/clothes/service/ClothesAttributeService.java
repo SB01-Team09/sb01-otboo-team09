@@ -29,11 +29,7 @@ public class ClothesAttributeService {
       return List.of();
     }
 
-    clothesRepository.findById(clothesId)
-        .orElseThrow(() -> {
-          log.warn("의상이 존재하지 않습니다. id = {}", clothesId);
-          return ClothesNotFoundException.withId(clothesId);
-        });
+    validateClothesExists(clothesId);
 
     List<ClothesAttribute> clothesAttributes = selectedValueIds.stream()
         .map(selectedValueId -> ClothesAttribute.create(clothesId, selectedValueId))
@@ -52,11 +48,7 @@ public class ClothesAttributeService {
   public List<ClothesAttribute> findByClothesId(UUID clothesId) {
     log.debug("의상 속성 값 - 의상 연관 조회 시작: clothesId = {}", clothesId);
 
-    clothesRepository.findById(clothesId)
-        .orElseThrow(() -> {
-          log.warn("의상이 존재하지 않습니다. id = {}", clothesId);
-          return ClothesNotFoundException.withId(clothesId);
-        });
+    validateClothesExists(clothesId);
 
     List<ClothesAttribute> clothesAttributes = clothesAttributeRepository.findAllByClothesId(clothesId);
 
@@ -80,5 +72,12 @@ public class ClothesAttributeService {
     clothesAttributeRepository.deleteAllByClothesId(clothesId);
 
     log.debug("의상 속성 값 - 의상 연관 삭제 완료");
+  }
+
+  private void validateClothesExists(UUID clothesId) {
+    if (!clothesRepository.existsById(clothesId)) {
+      log.warn("의상이 존재하지 않습니다. id = {}", clothesId);
+      throw  ClothesNotFoundException.withId(clothesId);
+    }
   }
 }
