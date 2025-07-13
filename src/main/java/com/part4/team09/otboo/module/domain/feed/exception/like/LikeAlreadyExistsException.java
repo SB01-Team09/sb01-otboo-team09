@@ -7,7 +7,7 @@ import java.util.UUID;
 public class LikeAlreadyExistsException extends FeedException {
 
   public LikeAlreadyExistsException() {
-    super(FeedErrorCode.LIKE_NOT_FOUND);
+    super(FeedErrorCode.LIKE_ALREADY_EXISTS);
   }
 
   public static LikeAlreadyExistsException withId(UUID userId, UUID feedId) {
