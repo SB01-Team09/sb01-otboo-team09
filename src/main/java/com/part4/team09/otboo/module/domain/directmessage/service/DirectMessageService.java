@@ -5,10 +5,8 @@ import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageDto;
 import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.directmessage.entity.DirectMessage;
-import com.part4.team09.otboo.module.domain.directmessage.mapper.DirectMessageMapper;
+import com.part4.team09.otboo.module.domain.directmessage.mapper.DirectMessageDtoAssembler;
 import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessageRepositoryQueryDSL;
-import com.part4.team09.otboo.module.domain.user.dto.UserSummary;
-import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +23,14 @@ public class DirectMessageService {
 
     private final UserRepository userRepository;
     private final DirectMessageRepositoryQueryDSL directMessageRepositoryQueryDSL;
-    private final DirectMessageMapper directMessageMapper;
+    private final DirectMessageDtoAssembler directMessageDtoAssembler;
 
 
     // DM 목록 조회
     @Transactional(readOnly = true)
     public DirectMessageDtoCursorResponse getDirectMessages(UUID userId, CustomUserDetails currentUser, String cursor, UUID idAfter, int limit){
+        UUID currentUserId = currentUser.getId();
+
         // 예외처리
         if(!userRepository.existsById(userId)){
             throw UserNotFoundException.withId(userId);
@@ -39,18 +39,12 @@ public class DirectMessageService {
         // 쿼리
         // cursor을 LocalDateTime으로 디코딩
         LocalDateTime decodedCursor = decodeCursor(cursor);
-        List<DirectMessage> directMessages = directMessageRepositoryQueryDSL.getDirectMessages(userId, currentUser.getId(), decodedCursor, idAfter, limit+1);
-        int totalCount = directMessageRepositoryQueryDSL.countDirectMessages(userId, currentUser.getId());
+        List<DirectMessage> directMessages = directMessageRepositoryQueryDSL.getDirectMessages(userId, currentUserId, decodedCursor, idAfter, limit+1);
+        int totalCount = directMessageRepositoryQueryDSL.countDirectMessages(userId, currentUserId);
 
         // Dto 리스트로 변환
-        User sender = userRepository.findById(currentUser.getId())
-                .orElseThrow(() -> UserNotFoundException.withId(currentUser.getId()));
-        UserSummary senderSummary = new UserSummary(sender.getId(), sender.getName(), sender.getProfileImageUrl());
-        User receiver = userRepository.findById(userId)
-                .orElseThrow(() -> UserNotFoundException.withId(userId));
-        UserSummary receiverSummary = new UserSummary(receiver.getId(), receiver.getName(), receiver.getProfileImageUrl());
         List<DirectMessageDto> directMessageDtos = directMessages.stream()
-                .map(dm -> directMessageMapper.toDto(dm, senderSummary, receiverSummary))
+                .map(dm -> directMessageDtoAssembler.assemble(dm, userId, currentUserId))
                 .toList();
 
         // 반환
@@ -75,8 +69,6 @@ public class DirectMessageService {
         return new DirectMessageDtoCursorResponse(directMessageDtos, encodedNextCursor, nextIdAfter, hasNext, totalCount, "createdAt, id", SortDirection.ASCENDING);
 
     }
-
-
 
     // cursor 인코딩 로직 (LocalDateTime -> String)
     private String encodeCursor(LocalDateTime cursor) {
