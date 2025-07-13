@@ -14,13 +14,10 @@ import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.event.FeedCreatedEvent;
 import com.part4.team09.otboo.module.domain.feed.event.FeedDeletedEvent;
-import com.part4.team09.otboo.module.domain.feed.event.FeedUpdatedEvent;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
-import com.part4.team09.otboo.module.domain.follow.event.FollowCreatedEvent;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
-import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -145,7 +142,6 @@ class FeedServiceTest {
 
       given(feedRepository.findById(any())).willReturn(Optional.of(mockFeed));
       given(feedDtoAssembler.assemble(any(Feed.class), eq(userId))).willReturn(feedDto);
-      doNothing().when(eventPublisher).publishEvent(any(FeedUpdatedEvent.class));
 
       // when
       FeedDto result = feedService.update(feedId, userId, request);

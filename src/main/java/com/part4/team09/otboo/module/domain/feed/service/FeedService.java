@@ -8,7 +8,6 @@ import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.event.FeedCreatedEvent;
 import com.part4.team09.otboo.module.domain.feed.event.FeedDeletedEvent;
-import com.part4.team09.otboo.module.domain.feed.event.FeedUpdatedEvent;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
@@ -24,6 +23,7 @@ import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,13 +62,12 @@ public class FeedService {
     return feedDtoAssembler.assemble(savedFeed, userId);
   }
 
+  @CachePut(cacheNames="feeds", key="firstPage:createdAt")
   @PreAuthorize("@feedPermissionEvaluator.isFeedAuthor(principal.id, #feedId)")
   @Transactional
   public FeedDto update(UUID feedId, UUID userId, FeedUpdateRequest request) {
     Feed feed = getFeedOrThrow(feedId);
     feed.update(request.content());
-
-    eventPublisher.publishEvent(new FeedUpdatedEvent()); // 캐시 무효화 이벤트
 
     return feedDtoAssembler.assemble(feed, userId);
   }

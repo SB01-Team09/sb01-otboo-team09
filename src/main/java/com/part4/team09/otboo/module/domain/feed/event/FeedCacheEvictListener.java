@@ -23,29 +23,13 @@ public class FeedCacheEvictListener {
         Cache cache = cacheManager.getCache("feeds");
 
         if (cache != null) {
-            cache.evict("firstPage:createdAt");
+            cache.evict("firstPage:createdAt:  ");
             log.debug("캐시 무효화 완료");
         }else {
             log.debug("feeds 캐시를 찾을 수 없습니다.");
         }
 
         log.info("피드 등록시 캐시 무효화 이벤트 처리 완료");
-    }
-
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(FeedUpdatedEvent event){
-        log.info("피드 수정시 캐시 무효화 이벤트 처리 시작");
-
-        Cache cache = cacheManager.getCache("feeds");
-
-        if (cache != null) {
-            cache.evict("firstPage:createdAt");
-            log.debug("캐시 무효화 완료");
-        }else {
-            log.debug("feeds 캐시를 찾을 수 없습니다.");
-        }
-
-        log.info("피드 수정시 캐시 무효화 이벤트 처리 완료");
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
