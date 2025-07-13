@@ -1,0 +1,57 @@
+package com.part4.team09.otboo.module.domain.feed.repository;
+
+import com.part4.team09.otboo.module.domain.feed.entity.*;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@Repository
+@RequiredArgsConstructor
+public class CommentRepositoryQueryDSL {
+
+    private final JPAQueryFactory queryFactory;
+
+    QComment comment = QComment.comment;
+
+    // 댓글 목록 조회
+    public List<Comment> getComments(UUID feedId, String cursor, UUID idAfter, int limit) {
+        return queryFactory
+                .selectFrom(comment)
+                .where(
+                        cursorCondition(cursor, idAfter)
+                )
+                .orderBy(comment.createdAt.asc())
+                .limit(limit)
+                .fetch();
+    }
+
+    // 댓글 개수
+    public int countComments(UUID feedId){
+        Long count = queryFactory
+                .select(comment.count())
+                .from(comment)
+                .where(comment.feedId.eq(feedId))
+                .fetchOne();
+        return count != null ? Math.toIntExact(count) : 0;
+    }
+
+
+    private BooleanExpression cursorCondition(String cursor, UUID idAfter) {
+        if (cursor == null) return null;
+        LocalDateTime decodedCursor = LocalDateTime.parse(cursor);
+
+        BooleanExpression condition = comment.createdAt.gt(decodedCursor);
+
+        if (idAfter != null) {
+            condition = condition.or(
+                    comment.createdAt.eq(decodedCursor).and(comment.id.gt(idAfter))
+            );
+        }
+        return condition;
+    }
+}
