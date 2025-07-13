@@ -174,7 +174,7 @@ public class FollowService {
 
     // 팔로우 요약 정보 조회
     @Transactional(readOnly = true)
-    @Cacheable(value = "followSummary", key = "#userId.toString() + ':' + #loginUserId.toString()")
+    @Cacheable(value = "followSummary", key = "#userId.toString() + ':' + #currentUserId.toString()")
     public FollowSummaryDto getFollowSummary(UUID userId, UUID currentUserId){
         // 두 유저가 존재하지 않을 경우 각각 예외 처리
         if (!userRepository.existsById(userId)) {
