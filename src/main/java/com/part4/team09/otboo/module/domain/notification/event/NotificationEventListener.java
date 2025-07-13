@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.notification.event;
 
+import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateAllRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateRequest;
 import com.part4.team09.otboo.module.domain.notification.entity.Notification.Level;
 import com.part4.team09.otboo.module.domain.notification.service.NotificationService;
@@ -31,7 +32,23 @@ public class NotificationEventListener {
     notificationService.create(request);
   }
 
-  // TODO: 의상 속성 추가
+  @Async
+  @EventListener
+  public void handleClothesAttributeDefCreatedEvent(ClothesAttributeDefCreatedEvent event) {
+    String title = "새로운 의상 속성이 추가되었어요.";
+    String content = String.format("내 의상에 [%s] 속성을 추가해보세요.",
+        event.name());
+
+    NotificationCreateAllRequest request = new NotificationCreateAllRequest(
+        title,
+        content,
+        Level.INFO
+    );
+
+    notificationService.createAll(request);
+  }
+
+  // TODO: 의상 속성 변경
   // TODO: 내 피드에 좋아요 또는 댓글 등록
   // TODO: 팔로우한 사용자가 피드를 등록
   // TODO: 다른 사용자가 나를 팔로우
