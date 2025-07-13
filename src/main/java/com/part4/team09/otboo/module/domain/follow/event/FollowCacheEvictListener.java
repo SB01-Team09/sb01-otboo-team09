@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.follow.event;
 
+import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
@@ -14,6 +15,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class FollowCacheEvictListener {
 
     private final CacheManager cacheManager;
+    CustomUserDetails currentUser;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(FollowCreatedEvent event){
@@ -22,8 +24,8 @@ public class FollowCacheEvictListener {
         Cache cache = cacheManager.getCache("followSummary");
 
         if (cache != null) {
-            cache.evict(event.followeeId());
-            cache.evict(event.followerId());
+            cache.evict(event.followeeId().toString() + ":" + currentUser.getId().toString());
+            cache.evict(event.followerId().toString() + ":" + currentUser.getId().toString());
             log.debug("캐시 무효화 완료: followeeId = {}, followerId = {}", event.followeeId(), event.followerId());
         }else {
             log.debug("followSummary 캐시를 찾을 수 없습니다.");
@@ -39,8 +41,8 @@ public class FollowCacheEvictListener {
         Cache cache = cacheManager.getCache("followSummary");
 
         if (cache != null) {
-            cache.evict(event.followeeId());
-            cache.evict(event.followerId());
+            cache.evict(event.followeeId().toString() + ":" + currentUser.getId().toString());
+            cache.evict(event.followerId().toString() + ":" + currentUser.getId().toString());
             log.debug("캐시 무효화 완료: followeeId = {}, followerId = {}", event.followeeId(), event.followerId());
         }else {
             log.debug("followSummary 캐시를 찾을 수 없습니다.");
