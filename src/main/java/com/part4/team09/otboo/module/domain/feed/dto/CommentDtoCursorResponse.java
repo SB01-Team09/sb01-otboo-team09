@@ -1,7 +1,6 @@
 package com.part4.team09.otboo.module.domain.feed.dto;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
-import com.part4.team09.otboo.module.domain.user.dto.UserDto;
 
 import java.util.List;
 import java.util.UUID;
