@@ -24,7 +24,7 @@ public class NotificationEventListener {
         event.previousRole(), event.newRole());
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.userId(),
+        event.receiverId(),
         title,
         content,
         Level.INFO
@@ -70,7 +70,7 @@ public class NotificationEventListener {
     String content = event.feedContent();
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.userId(),
+        event.receiverId(),
         title,
         content,
         Level.INFO
@@ -111,7 +111,22 @@ public class NotificationEventListener {
     notificationService.createFollower(request);
   }
 
-  // TODO: 다른 사용자가 나를 팔로우
+  @Async
+  @EventListener
+  public void handleFollowedEvent(FollowedEvent event) {
+    String title = String.format("%s님이 나를 팔로우했어요.", event.followerName());
+    String content = "";
+
+    NotificationCreateRequest request = new NotificationCreateRequest(
+        event.receiverId(),
+        title,
+        content,
+        Level.INFO
+    );
+
+    notificationService.create(request);
+  }
+
   // TODO: DM 수신
   // TODO: 특별한 날씨 발생
 }
