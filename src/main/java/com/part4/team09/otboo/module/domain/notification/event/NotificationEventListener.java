@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.notification.event;
 
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateAllRequest;
+import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateFollowerRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateRequest;
 import com.part4.team09.otboo.module.domain.notification.entity.Notification.Level;
 import com.part4.team09.otboo.module.domain.notification.service.NotificationService;
@@ -94,7 +95,23 @@ public class NotificationEventListener {
     notificationService.create(request);
   }
 
-  // TODO: 팔로우한 사용자가 피드를 등록
+  @Async
+  @EventListener
+  public void handleFeedCreatedEvent(FeedCreatedEvent event) {
+    String title = String.format("%s님이 새로운 피드를 작성했어요.", event.authorName());
+    String content = event.content();
+
+    NotificationCreateFollowerRequest request = new NotificationCreateFollowerRequest(
+        event.authorId(),
+        title,
+        content,
+        Level.INFO
+    );
+
+    notificationService.createFollower(request);
+  }
+
   // TODO: 다른 사용자가 나를 팔로우
   // TODO: DM 수신
+  // TODO: 특별한 날씨 발생
 }
