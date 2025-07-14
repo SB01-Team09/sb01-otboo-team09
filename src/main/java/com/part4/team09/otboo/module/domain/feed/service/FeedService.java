@@ -40,6 +40,7 @@ public class FeedService {
   private final FeedRepositoryQueryDSL feedRepositoryQueryDSL;
 
   private final OotdService ootdService;
+
   private final CommentService commentService;
 
   private final UserRepository userRepository;

@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.feed.controller;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.domain.feed.dto.CommentDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
@@ -104,6 +105,21 @@ public class FeedController {
     return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(commentDto);
+  }
+
+  // 댓글 목록 조회
+  @GetMapping("/{feedId}/comments")
+  public ResponseEntity<CommentDtoCursorResponse> getComments(
+          @RequestParam UUID feedId,
+          @RequestParam(required = false) String cursor,
+          @RequestParam(required = false) UUID idAfter,
+          @RequestParam(defaultValue = "10") int limit
+  ){
+    CommentDtoCursorResponse response = commentService.getComments(feedId, cursor, idAfter, limit);
+
+    return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(response);
   }
 
   @PostMapping("/{feedId}/like")
