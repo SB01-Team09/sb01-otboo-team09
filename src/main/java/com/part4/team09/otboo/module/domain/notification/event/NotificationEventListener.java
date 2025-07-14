@@ -78,8 +78,21 @@ public class NotificationEventListener {
     notificationService.create(request);
   }
 
-  // TODO: 내 피드에 댓글 등록
+  @Async
+  @EventListener
+  public void handleFeedCommentedEvent(FeedCommentedEvent event) {
+    String title = String.format("%s님이 댓글을 달았어요.", event.username());
+    String content = event.content();
 
+    NotificationCreateRequest request = new NotificationCreateRequest(
+        event.userId(),
+        title,
+        content,
+        Level.INFO
+    );
+
+    notificationService.create(request);
+  }
 
   // TODO: 팔로우한 사용자가 피드를 등록
   // TODO: 다른 사용자가 나를 팔로우
