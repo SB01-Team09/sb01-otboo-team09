@@ -143,6 +143,7 @@ public class GlobalExceptionHandler {
     Cookie cookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME, "");
     cookie.setMaxAge(0);
     cookie.setHttpOnly(true);
+    cookie.setPath("/");
     response.addCookie(cookie);
 
     return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);
