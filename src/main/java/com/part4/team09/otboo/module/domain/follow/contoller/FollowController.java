@@ -71,7 +71,7 @@ public class FollowController {
                 .body(response);
     }
 
-    // 팔로우 요악 정보 조회
+    // 팔로우 요약 정보 조회
     @GetMapping("/summary")
     public ResponseEntity<FollowSummaryDto> getFollowSummary(@RequestParam UUID userId, @AuthenticationPrincipal CustomUserDetails currentUser){
 
