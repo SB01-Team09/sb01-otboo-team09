@@ -4,12 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
+import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
+import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.SelectableValueRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.custom.ClothesRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.recommendation.dto.ClothingOption;
+import com.part4.team09.otboo.module.domain.recommendation.dto.response.RecommendationClothesAttributeDto;
+import com.part4.team09.otboo.module.domain.recommendation.dto.response.RecommendationClothesDto;
+import com.part4.team09.otboo.module.domain.recommendation.dto.response.RecommendationDto;
 import com.part4.team09.otboo.module.domain.recommendation.external.LLMApiClient;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
@@ -42,9 +47,10 @@ public class RecommendationService {
   private final UserRepository userRepository;
   private final ClothesAttributeDefRepository clothesAttributeDefRepository;
   private final SelectableValueRepository selectableValueRepository;
+  private final ClothesAttributeRepository clothesAttributeRepository;
 
-  public String getRecommendations() {
-    UUID weatherId = UUID.fromString("47d61cc4-fcd0-40e2-ba1f-f2c697428085");
+  public RecommendationDto getRecommendations() {
+    UUID weatherId = UUID.fromString("1423a0a0-17cb-40ec-af4f-0562e7fa0c4a");
     UUID userId = UUID.fromString("f1b7659d-f990-4172-b7d0-c64ef4027ea5");
     String text = getText(weatherId, userId);
     String response = llmApiClient.getInfo(text);
@@ -52,7 +58,15 @@ public class RecommendationService {
     List<ClothingOption> clothingOptions = getOptions(response);
     List<Clothes> clothes =
       clothesRepositoryQueryDSL.findAllOrderedByAttributeScores(clothingOptions, 10);
-    return null;
+    List<RecommendationClothesDto> recommendationClothesDtos = clothes.stream()
+      .map(this::toRecommendationClothesDto)
+      .toList();
+
+    return new RecommendationDto(
+      weatherId,
+      userId,
+      recommendationClothesDtos
+    );
   }
 
   private String getText(UUID weatherId, UUID userId) {
@@ -134,45 +148,6 @@ public class RecommendationService {
   }
 
   private List<ClothingOption> getOptions(String response) {
-    String text = """
-      ```json
-      [
-        {
-          "attribute": "두께",
-          "values": [
-            "얇음",
-            "보통",
-            "두꺼움"
-          ]
-        },
-        {
-          "attribute": "색깔",
-          "values": [
-            "하얀색",
-            "파란색",
-            "빨간색"
-          ]
-        },
-        {
-          "attribute": "사이즈",
-          "values": [
-            "M",
-            "L",
-            "S",
-            "XL"
-          ]
-        },
-        {
-          "attribute": "촉감",
-          "values": [
-            "부드러움",
-            "뻣뻣함"
-          ]
-        }
-      ]
-      ```
-      """;
-
     String cleaned = response
       .replaceAll("(?i)```json\\s*", "")  // ```json 또는 ```JSON 제거
       .replaceAll("```", "")               // 닫는 ``` 제거
@@ -188,5 +163,48 @@ public class RecommendationService {
     }
     return list;
   }
+
+  private RecommendationClothesDto toRecommendationClothesDto(Clothes clothes) {
+    List<ClothesAttribute> clothesAttributes =
+      clothesAttributeRepository.findAllByClothesId(clothes.getId());
+
+    List<UUID> selectableValueIds = clothesAttributes.stream()
+      .map(ClothesAttribute::getSelectableValueId)
+      .toList();
+
+    List<RecommendationClothesAttributeDto> recommendationClothesAttributeDtos =
+      selectableValueIds.stream()
+        .map(this::toRecommendationClothesAttributeDto)
+        .toList();
+
+    return new RecommendationClothesDto(
+      clothes.getId(),
+      clothes.getName(),
+      clothes.getImageUrl(),
+      clothes.getType(),
+      recommendationClothesAttributeDtos
+    );
+  }
+
+  private RecommendationClothesAttributeDto toRecommendationClothesAttributeDto(
+    UUID selectableValueId) {
+    SelectableValue selectableValue = selectableValueRepository.findById(selectableValueId)
+      .orElseThrow();
+    ClothesAttributeDef clothesAttributeDef =
+      clothesAttributeDefRepository.findById(selectableValue.getAttributeDefId())
+        .orElseThrow();
+    List<String> selectableValues =
+      selectableValueRepository.findAllByAttributeDefId(clothesAttributeDef.getId()).stream()
+        .map(SelectableValue::getItem)
+        .toList();
+
+    return new RecommendationClothesAttributeDto(
+      clothesAttributeDef.getId(),
+      clothesAttributeDef.getName(),
+      selectableValues,
+      selectableValue.getItem()
+    );
+  }
+
 
 }
