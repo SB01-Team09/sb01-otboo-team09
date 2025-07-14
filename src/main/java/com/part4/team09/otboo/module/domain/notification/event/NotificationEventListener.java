@@ -127,6 +127,21 @@ public class NotificationEventListener {
     notificationService.create(request);
   }
 
-  // TODO: DM 수신
+  @Async
+  @EventListener
+  public void handleDirectMessageReceivedEvent(DirectMessageReceivedEvent event) {
+    String title = String.format("[DM] %s", event.senderName());
+    String content = event.content();
+
+    NotificationCreateRequest request = new NotificationCreateRequest(
+        event.receiverId(),
+        title,
+        content,
+        Level.INFO
+    );
+
+    notificationService.create(request);
+  }
+
   // TODO: 특별한 날씨 발생
 }
