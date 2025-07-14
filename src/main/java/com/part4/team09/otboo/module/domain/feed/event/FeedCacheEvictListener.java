@@ -1,6 +1,5 @@
 package com.part4.team09.otboo.module.domain.feed.event;
 
-import com.part4.team09.otboo.module.domain.follow.event.FollowCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
@@ -17,7 +16,7 @@ public class FeedCacheEvictListener {
     private final CacheManager cacheManager;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(FeedCreatedEvent event){
+    public void cacheEvictWhenFeedCreated(FeedCreatedEvent event){
         log.info("피드 등록시 캐시 무효화 이벤트 처리 시작");
 
         Cache cache = cacheManager.getCache("feeds");
@@ -33,7 +32,7 @@ public class FeedCacheEvictListener {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(FeedDeletedEvent event){
+    public void cacheEvictWhenFeedDeleted(FeedDeletedEvent event){
         log.info("피드 삭제시 캐시 무효화 이벤트 처리 시작");
 
         Cache cache = cacheManager.getCache("feeds");
