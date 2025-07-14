@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
-public class FeedServiceIntergrationTest {
+public class FeedServiceIntegrationTest {
 
     @Autowired
     UserRepository userRepository;
