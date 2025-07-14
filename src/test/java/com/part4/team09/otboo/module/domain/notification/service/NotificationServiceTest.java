@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateAllRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateFollowerRequest;
+import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateLocationRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateRequest;
 import com.part4.team09.otboo.module.domain.notification.entity.Notification.Level;
 import com.part4.team09.otboo.module.domain.notification.repository.NotificationRepository;
@@ -103,10 +104,10 @@ class NotificationServiceTest {
       List<UUID> followerIds = List.of(userId1, userId2);
 
       NotificationCreateFollowerRequest request = new NotificationCreateFollowerRequest(
-        authorId,
-        "title",
-        "content",
-        Level.INFO
+          authorId,
+          "title",
+          "content",
+          Level.INFO
       );
 
       given(followRepository.findFollowerIdsByFolloweeId(authorId)).willReturn(followerIds);
@@ -115,6 +116,36 @@ class NotificationServiceTest {
       notificationService.createFollower(request);
 
       // then
+      verify(notificationRepository).saveAll(any());
+    }
+  }
+
+  @Nested
+  @DisplayName("특정 지역에 알림 생성")
+  public class CreateLocationNotificationTest {
+
+    @Test
+    @DisplayName("특정 지역에 알림 생성 성공")
+    void create_location_notification_success() {
+      // given
+      String locationId = "1111051500";
+      UUID userId1 = UUID.randomUUID();
+      UUID userId2 = UUID.randomUUID();
+      List<UUID> userIdsInLocation = List.of(userId1, userId2);
+
+      NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
+          locationId,
+          "title",
+          "content",
+          Level.WARNING
+      );
+
+      given(userRepository.findUserIdsByLocationId(locationId)).willReturn(userIdsInLocation);
+
+      // when
+      notificationService.createLocation(request);
+
+      //then
       verify(notificationRepository).saveAll(any());
     }
   }
