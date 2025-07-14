@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.user.service;
 
+import com.part4.team09.otboo.module.domain.auth.service.AuthService;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
 import com.part4.team09.otboo.module.domain.file.service.FileStorage;
@@ -8,8 +9,13 @@ import com.part4.team09.otboo.module.domain.location.service.LocationService;
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDtoCursorResponse;
-import com.part4.team09.otboo.module.domain.user.dto.request.*;
+import com.part4.team09.otboo.module.domain.user.dto.request.PasswordUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest.LocationUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserListRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserRoleUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import com.part4.team09.otboo.module.domain.user.event.UserProfileUpdateEvent;
@@ -20,12 +26,10 @@ import com.part4.team09.otboo.module.domain.user.mapper.UserMapper;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepositoryQueryDSL;
 import jakarta.validation.Valid;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -43,6 +47,7 @@ public class UserService {
   private final PasswordEncoder passwordEncoder;
   private final UserMapper userMapper;
   private final LocationService locationService;
+  private final AuthService authService;
   private final FileStorage fileStorage;
   private final ApplicationEventPublisher eventPublisher;
   private final UserRepositoryQueryDSL userRepositoryQueryDSL;
@@ -158,7 +163,7 @@ public class UserService {
 
   // 계정 목록 조회
   @Transactional(readOnly = true)
-  public UserDtoCursorResponse getUsers(UserListRequest request){
+  public UserDtoCursorResponse getUsers(UserListRequest request) {
 
     List<User> pagedUserList = userRepositoryQueryDSL.getUsers(request);
     int totalCount = userRepositoryQueryDSL.countUsers(request);
@@ -171,8 +176,8 @@ public class UserService {
 
     // Dto 변환
     List<UserDto> pagedUserDtoList = pagedUserList.stream()
-            .map(user -> userMapper.toDto(user, null))
-            .collect(Collectors.toList());
+      .map(user -> userMapper.toDto(user, null))
+      .collect(Collectors.toList());
 
     // 다음 커서 생성
     String nextCursor = null;
@@ -185,17 +190,21 @@ public class UserService {
       nextIdAfter = lastUser.getId();
     }
 
-    return new UserDtoCursorResponse(pagedUserDtoList, nextCursor, nextIdAfter, hasNext, totalCount, request.sortBy(), request.sortDirection());
+    return new UserDtoCursorResponse(pagedUserDtoList, nextCursor, nextIdAfter, hasNext, totalCount,
+      request.sortBy(), request.sortDirection());
   }
 
   // 권한 변경
   @Transactional
   public UserDto changeRole(UUID id, UserRoleUpdateRequest request) {
     User user = findByIdOrThrow(id);
+    Role oldRole = user.getRole();
     Role newRole = request.role();
 
-    if (user.getRole() != newRole) {
+    if (oldRole != newRole) {
       user.changeRole(newRole);
+      authService.forceLogout(id);
+      log.info("{} -> {} 권한이 변경되었습니다. (userId: {})", oldRole, newRole, id);
     }
     return userMapper.toDto(user, null);
   }

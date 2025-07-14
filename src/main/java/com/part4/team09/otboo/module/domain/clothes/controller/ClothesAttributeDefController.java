@@ -34,8 +34,8 @@ public class ClothesAttributeDefController {
 
   // 의상 속성 정의 등록
   @PostMapping
-  ResponseEntity<ClothesAttributeDefDto> create(
-    @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
+  public ResponseEntity<ClothesAttributeDefDto> create(
+      @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
     log.info("의상 속성 정의 생성 요청");
 
     ClothesAttributeDefDto response = clothesAttributeInfoService.create(request);
@@ -46,7 +46,7 @@ public class ClothesAttributeDefController {
 
   // 의상 속성 정의 조회
   @GetMapping
-  ResponseEntity<ClothesAttributeDefDtoCursorResponse> findByCursor(
+  public ResponseEntity<ClothesAttributeDefDtoCursorResponse> findByCursor(
       @RequestParam(required = false) String cursor,
       @RequestParam(required = false) UUID idAfter,
       @RequestParam int limit,
@@ -59,7 +59,8 @@ public class ClothesAttributeDefController {
     ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
         cursor, idAfter, limit, sortBy, sortDirection, keywordLike);
 
-    ClothesAttributeDefDtoCursorResponse response = clothesAttributeInfoService.findByCursor(request);
+    ClothesAttributeDefDtoCursorResponse response = clothesAttributeInfoService.findByCursor(
+        request);
 
     log.info("의상 속성 정의 조회 응답: {}", HttpStatus.OK.value());
     return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -67,7 +68,8 @@ public class ClothesAttributeDefController {
 
   // 의상 속성 정의 수정
   @PatchMapping("/{definitionId}")
-  ResponseEntity<ClothesAttributeDefDto> update(@PathVariable UUID definitionId,
+  public ResponseEntity<ClothesAttributeDefDto> update(
+      @PathVariable UUID definitionId,
       @Valid @RequestBody ClothesAttributeDefUpdateRequest request) {
     log.info("의상 속성 정의 수정 요청");
 
@@ -79,7 +81,7 @@ public class ClothesAttributeDefController {
 
   // 의상 속성 정의 삭제
   @DeleteMapping("/{definitionId}")
-  ResponseEntity<Void> delete(@PathVariable UUID definitionId) {
+  public ResponseEntity<Void> delete(@PathVariable UUID definitionId) {
     log.info("의상 속성 정의 삭제 요청");
 
     clothesAttributeInfoService.delete(definitionId);

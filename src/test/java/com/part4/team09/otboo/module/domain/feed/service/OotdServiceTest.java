@@ -46,9 +46,11 @@ class OotdServiceTest {
       // given
       UUID feedId = UUID.randomUUID();
       UUID clothedId = UUID.randomUUID();
+      Clothes mockClothes = mock(Clothes.class);
       List<UUID> clothesIds = List.of(clothedId);
 
-      given(clothesRepository.countByIdIn(clothesIds)).willReturn(1);
+      given(clothesRepository.findAllById(clothesIds)).willReturn(List.of(mockClothes));
+      given(mockClothes.getId()).willReturn(clothedId);
 
       // when
       ootdService.create(feedId, clothesIds);

@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.clothes.exception.Clothes;
 
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesErrorCode;
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesException;
+import java.util.List;
 import java.util.UUID;
 
 public class ClothesNotFoundException extends ClothesException {
@@ -13,6 +14,12 @@ public class ClothesNotFoundException extends ClothesException {
   public static ClothesNotFoundException withId(UUID clothesId) {
     ClothesNotFoundException exception = new ClothesNotFoundException();
     exception.addDetail("clothesId", clothesId);
+    return exception;
+  }
+
+  public static ClothesNotFoundException withIds(List<UUID> clothesIds) {
+    ClothesNotFoundException exception = new ClothesNotFoundException();
+    exception.addDetail("clothesIds", clothesIds);
     return exception;
   }
 }

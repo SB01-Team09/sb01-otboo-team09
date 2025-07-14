@@ -27,7 +27,7 @@ public class SelectableValueService {
     log.debug("의상 속성 명 생성 시작: defId = {}, valuesSize = {}", defId, values.size());
 
     // id 검사
-    validateDefId(defId);
+    validateDefExists(defId);
 
     // 속성 값 생성
     List<SelectableValue> selectableValues = values.stream()
@@ -47,7 +47,7 @@ public class SelectableValueService {
 
     log.debug("의상 속성 정의 id로 속성 값 조회 시작: defId = {}", defId);
 
-    validateDefId(defId);
+    validateDefExists(defId);
 
     List<SelectableValue> response = selectableValueRepository.findAllByAttributeDefId(defId);
 
@@ -72,13 +72,24 @@ public class SelectableValueService {
     return response;
   }
 
+  @Transactional(readOnly = true)
+  public List<SelectableValue> findAllByIdIn(List<UUID> selectedValueIds) {
+    log.debug("의상 속성 값 조회 시작: selectedValueIdsSize = {}", selectedValueIds.size());
+
+    List<SelectableValue> selectableValues = selectableValueRepository.findAllById(selectedValueIds);
+
+    log.debug("의상 속성 값 조회 시작: selectableValuesSize = {}", selectableValues.size());
+
+    return selectableValues;
+  }
+
   public List<SelectableValue> updateWhenNameSame(UUID defId, List<UUID> valueIdsForDelete,
       List<String> newValues) {
 
     log.debug("의상 속성 명 수정(정의 명 수정 X) 시작: defId = {}, newValuesSize = {}", defId, newValues.size());
 
     // id 검사
-    validateDefId(defId);
+    validateDefExists(defId);
 
     // 삭제할 속성 삭제
     selectableValueRepository.deleteByIdIn(valueIdsForDelete);
@@ -105,7 +116,7 @@ public class SelectableValueService {
     log.debug("의상 속성 명 수정(정의 명 수정 O) 시작: defId = {}, newValuesSize = {}", defId, newValues.size());
 
     // id 검사
-    validateDefId(defId);
+    validateDefExists(defId);
 
     // 이전의 defId를 가진 속성 값 삭제
     selectableValueRepository.deleteAllByAttributeDefId(defId);
@@ -135,12 +146,11 @@ public class SelectableValueService {
   }
 
   // defId 유효성 검사
-  private void validateDefId(UUID defId) {
+  private void validateDefExists(UUID defId) {
 
     if (!clothesAttributeDefRepository.existsById(defId)) {
       log.warn("의상 속성 정의가 존재하지 않습니다. id = {}", defId);
       throw ClothesAttributeDefNotFoundException.withId(defId);
     }
   }
-
 }

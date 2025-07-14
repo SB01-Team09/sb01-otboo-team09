@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.follow.service;
 
+import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListRequest;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
@@ -60,6 +61,9 @@ class FollowServiceTest {
 
     @Mock
     private Cache cache;
+
+    @Mock
+    private CustomUserDetails currentUser;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -294,9 +298,6 @@ class FollowServiceTest {
 
         // when
         followService.deleteFollow(followId);
-
-        // 이벤트 수동 호출
-        followCacheEvictListener.handle(new FollowDeletedEvent(followeeId, followerId));
 
         // then
         verify(followRepository).existsById(followId);

@@ -4,19 +4,32 @@ import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDtoCursorResponse;
-import com.part4.team09.otboo.module.domain.user.dto.request.*;
+import com.part4.team09.otboo.module.domain.user.dto.request.PasswordUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserListRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserRoleUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.service.UserService;
 import jakarta.validation.Valid;
-import java.util.UUID;
-
 import jakarta.validation.constraints.Min;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
@@ -63,27 +76,29 @@ public class UserController {
     return ResponseEntity.noContent().build();
   }
 
-  // 계정 목록 조회
+  // 계정 목록 조회: 어드민 권한
+  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping
   public ResponseEntity<UserDtoCursorResponse> getUsers(
-          @RequestParam(required = false) String cursor,
-          @RequestParam(required = false) UUID idAfter,
-          @RequestParam(defaultValue = "20") @Min(value = 1, message = "limit은 0보다 커야합니다.") int limit,
-          @RequestParam(defaultValue = "email") String sortBy,
-          @RequestParam(defaultValue = "ASCENDING") SortDirection sortDirection,
-          @RequestParam(required = false) String emailLike,
-          @RequestParam(required = false) User.Role roleEqual,
-          @RequestParam(required = false) Boolean locked
-          ){
+    @RequestParam(required = false) String cursor,
+    @RequestParam(required = false) UUID idAfter,
+    @RequestParam(defaultValue = "20") @Min(value = 1, message = "limit은 0보다 커야합니다.") int limit,
+    @RequestParam(defaultValue = "email") String sortBy,
+    @RequestParam(defaultValue = "ASCENDING") SortDirection sortDirection,
+    @RequestParam(required = false) String emailLike,
+    @RequestParam(required = false) User.Role roleEqual,
+    @RequestParam(required = false) Boolean locked
+  ) {
 
-    UserListRequest request = new UserListRequest(cursor, idAfter, limit, sortBy, sortDirection, emailLike, roleEqual, locked);
+    UserListRequest request = new UserListRequest(cursor, idAfter, limit, sortBy, sortDirection,
+      emailLike, roleEqual, locked);
 
     UserDtoCursorResponse response = userService.getUsers(request);
     return ResponseEntity.ok(response);
   }
 
-
   // 유저 권한 변경: 어드민 권한
+  @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("/{userId}/role")
   public ResponseEntity<UserDto> changeRole(
     @PathVariable UUID userId,
@@ -94,6 +109,7 @@ public class UserController {
   }
 
   // 유저 잠금 상태 변경: 어드민 권한
+  @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("/{userId}/lock")
   public ResponseEntity<UserDto> changeLockStatus(
     @PathVariable UUID userId,

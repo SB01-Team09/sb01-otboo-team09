@@ -4,16 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.mock;
-
-import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
+import static org.mockito.Mockito.times;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
 import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class ClothesAttributeServiceTest {
@@ -34,6 +33,25 @@ class ClothesAttributeServiceTest {
   @Mock
   private ClothesRepository clothesRepository;
 
+  private UUID clothesId;
+  private UUID valueId1;
+  private UUID valueId2;
+  private ClothesAttribute clothesAttribute1;
+  private ClothesAttribute clothesAttribute2;
+
+  @BeforeEach
+  void setUp() {
+
+    clothesId = UUID.randomUUID();
+    valueId1 = UUID.randomUUID();
+    valueId2 = UUID.randomUUID();
+
+    clothesAttribute1 = ClothesAttribute.create(clothesId, valueId1);
+    clothesAttribute2 = ClothesAttribute.create(clothesId, valueId2);
+    ReflectionTestUtils.setField(clothesAttribute1, "id", UUID.randomUUID());
+    ReflectionTestUtils.setField(clothesAttribute2, "id", UUID.randomUUID());
+  }
+
   @Nested
   @DisplayName("의상 속성 값 - 의상 연관 생성")
   class Create {
@@ -41,64 +59,55 @@ class ClothesAttributeServiceTest {
     @Test
     @DisplayName("성공")
     void create_success() {
+
       // given
-      UUID clothesId = UUID.randomUUID();
-      UUID valueId1 = UUID.randomUUID();
-      UUID valueId2 = UUID.randomUUID();
-
       List<UUID> selectedValueIds = List.of(valueId1, valueId2);
+      given(clothesRepository.existsById(clothesId)).willReturn(true);
 
-      ClothesAttribute attr1 = ClothesAttribute.create(clothesId, valueId1);
-      ClothesAttribute attr2 = ClothesAttribute.create(clothesId, valueId2);
-
-      given(clothesRepository.findById(clothesId)).willReturn(Optional.of(mock(Clothes.class)));
-      given(clothesAttributeRepository.saveAll(anyList())).willReturn(List.of(attr1, attr2));
+      given(clothesAttributeRepository.saveAll(anyList()))
+          .willReturn(List.of(clothesAttribute1, clothesAttribute2));
 
       // when
       List<ClothesAttribute> result = clothesAttributeService.create(clothesId, selectedValueIds);
 
       // then
-      then(clothesRepository).should().findById(clothesId);
-      then(clothesAttributeRepository).should().saveAll(anyList());
-
       assertEquals(result.size(), 2);
-//      assertThat(result).extracting(ClothesAttribute::getClothesId).containsOnly(clothesId);
-//      assertThat(result).extracting(ClothesAttribute::getSelectableValueId)
-//          .containsExactlyInAnyOrder(valueId1, valueId2);
+
+      then(clothesRepository).should().existsById(clothesId);
+      then(clothesAttributeRepository).should().saveAll(anyList());
     }
 
     @Test
     @DisplayName("selectedValueIds가 비어있을 경우 빈 리스트 반환")
     void create_empty_selectedValueIds() {
+
       // given
-      UUID clothesId = UUID.randomUUID();
       List<UUID> selectedValueIds = List.of();
 
       // when
       List<ClothesAttribute> result = clothesAttributeService.create(clothesId, selectedValueIds);
 
       // then
-      then(clothesRepository).shouldHaveNoInteractions();
-      then(clothesAttributeRepository).shouldHaveNoInteractions();
-
       assertEquals(result, List.of());
+
+      then(clothesRepository).should(times(0)).existsById(clothesId);
     }
 
     @Test
     @DisplayName("의상 ID가 존재하지 않을 경우 예외 발생")
     void create_clothes_not_found() {
+
       // given
-      UUID clothesId = UUID.randomUUID();
       List<UUID> selectedValueIds = List.of(UUID.randomUUID());
 
-      given(clothesRepository.findById(clothesId)).willReturn(Optional.empty());
+      given(clothesRepository.existsById(clothesId)).willReturn(false);
 
       // when & then
       assertThrows(ClothesNotFoundException.class,
           () -> clothesAttributeService.create(clothesId, selectedValueIds));
 
-      then(clothesRepository).should().findById(clothesId);
-      then(clothesAttributeRepository).shouldHaveNoInteractions();
+      then(clothesRepository).should().existsById(clothesId);
+      then(clothesAttributeRepository).should(times(0)).saveAll(anyList());
     }
   }
 
