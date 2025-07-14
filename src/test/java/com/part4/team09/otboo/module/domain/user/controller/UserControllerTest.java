@@ -235,7 +235,7 @@ class UserControllerTest {
           .contentType(MediaType.APPLICATION_JSON)
           .content(objectMapper.writeValueAsString(request))
           .with(csrf()))
-        .andExpect(status().isOk())
+        .andExpect(status().isForbidden())
         .andDo(print());
     }
   }
