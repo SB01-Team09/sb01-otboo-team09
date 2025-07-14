@@ -31,7 +31,6 @@ public class NotificationService {
     notificationRepository.save(notification);
   }
 
-  // TODO: 테스트 작성
   @Transactional
   public void createAll(NotificationCreateAllRequest request) {
     List<UUID> allUserIds = userRepository.findAllIds();
