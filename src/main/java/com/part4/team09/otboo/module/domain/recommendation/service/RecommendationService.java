@@ -55,10 +55,14 @@ public class RecommendationService {
   private final ClothesAttributeRepository clothesAttributeRepository;
 
   public RecommendationDto getRecommendations(UUID weatherId, UUID userId) {
+    // 널씨, 유저 정보 추출
     String text = getText(weatherId, userId);
-    String response = llmApiClient.getInfo(text);
 
+    // llm을 통해 옷 속성간의 우선순위 도출
+    String response = llmApiClient.getInfo(text);
     List<ClothingOption> clothingOptions = getOptions(response);
+
+    // 우선순위를 통해 옷 조회 후 Dto 변환
     List<Clothes> clothes =
       clothesRepositoryQueryDSL.findAllOrderedByAttributeScores(clothingOptions, 10);
     List<RecommendationClothesDto> recommendationClothesDtos = clothes.stream()
@@ -146,8 +150,8 @@ public class RecommendationService {
   private List<ClothingOption> getOptions(String response) {
     String cleaned = response
       .replaceAll("(?i)```json\\s*", "")  // ```json 또는 ```JSON 제거
-      .replaceAll("```", "")               // 닫는 ``` 제거
-      .trim();                             // 양쪽 공백 제거
+      .replaceAll("```", "") // 닫는 ``` 제거
+      .trim(); // 양쪽 공백 제거
 
     ObjectMapper mapper = new ObjectMapper();
     List<ClothingOption> list = null;
