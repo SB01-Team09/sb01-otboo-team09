@@ -4,7 +4,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateAllRequest;
+import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateFollowerRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateRequest;
 import com.part4.team09.otboo.module.domain.notification.entity.Notification.Level;
 import com.part4.team09.otboo.module.domain.notification.repository.NotificationRepository;
@@ -27,6 +29,9 @@ class NotificationServiceTest {
 
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private FollowRepository followRepository;
 
   @InjectMocks
   private NotificationService notificationService;
@@ -76,9 +81,38 @@ class NotificationServiceTest {
 
       given(userRepository.findAllIds()).willReturn(allUserIds);
 
-
       // when
       notificationService.createAll(request);
+
+      // then
+      verify(notificationRepository).saveAll(any());
+    }
+  }
+
+  @Nested
+  @DisplayName("팔로워에게 알림 생성")
+  public class CreateFollowerNotificationTest {
+
+    @Test
+    @DisplayName("팔로워에게 알림 생성 성공")
+    void create_follower_notification_success() {
+      // given
+      UUID authorId = UUID.randomUUID();
+      UUID userId1 = UUID.randomUUID();
+      UUID userId2 = UUID.randomUUID();
+      List<UUID> followerIds = List.of(userId1, userId2);
+
+      NotificationCreateFollowerRequest request = new NotificationCreateFollowerRequest(
+        authorId,
+        "title",
+        "content",
+        Level.INFO
+      );
+
+      given(followRepository.findFollowerIdsByFolloweeId(authorId)).willReturn(followerIds);
+
+      // when
+      notificationService.createFollower(request);
 
       // then
       verify(notificationRepository).saveAll(any());
