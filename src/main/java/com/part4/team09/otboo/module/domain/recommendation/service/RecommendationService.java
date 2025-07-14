@@ -7,6 +7,8 @@ import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
+import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
+import com.part4.team09.otboo.module.domain.clothes.exception.SelectableValue.SelectableValueNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.SelectableValueRepository;
@@ -17,12 +19,15 @@ import com.part4.team09.otboo.module.domain.recommendation.dto.response.Recommen
 import com.part4.team09.otboo.module.domain.recommendation.dto.response.RecommendationDto;
 import com.part4.team09.otboo.module.domain.recommendation.external.LLMApiClient;
 import com.part4.team09.otboo.module.domain.user.entity.User;
+import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.weather.entity.Humidity;
 import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
 import com.part4.team09.otboo.module.domain.weather.entity.Temperature;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.part4.team09.otboo.module.domain.weather.entity.WindSpeed;
+import com.part4.team09.otboo.module.domain.weather.exception.WeatherErrorCode;
+import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundException;
 import com.part4.team09.otboo.module.domain.weather.repository.HumidityRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.PrecipitationRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.TemperatureRepository;
@@ -49,9 +54,7 @@ public class RecommendationService {
   private final SelectableValueRepository selectableValueRepository;
   private final ClothesAttributeRepository clothesAttributeRepository;
 
-  public RecommendationDto getRecommendations() {
-    UUID weatherId = UUID.fromString("1423a0a0-17cb-40ec-af4f-0562e7fa0c4a");
-    UUID userId = UUID.fromString("f1b7659d-f990-4172-b7d0-c64ef4027ea5");
+  public RecommendationDto getRecommendations(UUID weatherId, UUID userId) {
     String text = getText(weatherId, userId);
     String response = llmApiClient.getInfo(text);
 
@@ -71,28 +74,7 @@ public class RecommendationService {
 
   private String getText(UUID weatherId, UUID userId) {
     String weatherInfo = getWeatherInfo(weatherId, userId);
-
     String clotheInfo = getClotheInfo();
-
-//    String weatherInfo = "날씨 정보 \n"
-//      + "습도: " + 20 + "\n"
-//      + "강수 타입: " + PrecipitationType.NONE + "\n"
-//      + "강수량: " + 0 + "\n"
-//      + "강수 확률: " + 0 + "\n"
-//      + "최저 기온: " + 18 + "\n"
-//      + "최고 기온: " + 28 + "\n"
-//      + "현재 기온: " + 23 + "\n"
-//      + "풍속: " + 2 + "ms\n"
-//      + "바람 세기: " + AsWord.WEAK + "\n"
-//      + "하늘 상태: " + SkyStatus.CLEAR + "\n"
-//      + "더위 민감도: " + 1 + "(1~5)\n"
-//      + "성별: " + Gender.FEMALE + "\n\n";
-//
-//    String clotheInfo = "옷 속성 정보 \n"
-//      + "두께: 얇음, 보통, 두꺼움 \n"
-//      + "색깔: 하얀색, 빨간색, 파란색 \n"
-//      + "사이즈: S, M, L, XL \n"
-//      + "촉감: 뻣뻣함, 부드러움 \n\n";
 
     String prompt = "날씨 정보를 보고 옷 속성 정보 간의 순위를 매겨주고 옷 속성에서 선택할 수 있는 값들의 순위도 매겨줘. "
       + "다음 JSON 형식으로 응답해줘. JSON의 최상위 레벨은 배열(array)이고, 배열의 각 요소는 다음과 같은 형태의 객체여야 합니다:"
@@ -103,17 +85,31 @@ public class RecommendationService {
 
   private String getWeatherInfo(UUID weatherId, UUID userId) {
     Weather weather = weatherRepository.findById(weatherId)
-      .orElseThrow();
+      .orElseThrow(() ->
+        WeatherNotFoundException.withId(WeatherErrorCode.WEATHER_NOF_FOUND, weatherId));
+
     Humidity humidity = humidityRepository.findById(weather.getHumidityId())
-      .orElseThrow();
+      .orElseThrow(() ->
+        WeatherNotFoundException
+          .withId(WeatherErrorCode.HUMIDITY_NOF_FOUND, weather.getHumidityId()));
+
     Precipitation precipitation = precipitationRepository.findById(weather.getPrecipitationId())
-      .orElseThrow();
+      .orElseThrow(() ->
+        WeatherNotFoundException
+          .withId(WeatherErrorCode.PRECIPITATION_NOF_FOUND, weather.getPrecipitationId()));
+
     Temperature temperature = temperatureRepository.findById(weather.getTemperatureId())
-      .orElseThrow();
+      .orElseThrow(() ->
+        WeatherNotFoundException
+          .withId(WeatherErrorCode.TEMPERATURE_NOF_FOUND, weather.getTemperatureId()));
+
     WindSpeed windSpeed = windSpeedRepository.findById(weather.getWindSpeedId())
-      .orElseThrow();
+      .orElseThrow(() ->
+        WeatherNotFoundException
+          .withId(WeatherErrorCode.WINDSPEED_NOF_FOUND, weather.getWindSpeedId()));
+
     User user = userRepository.findById(userId)
-      .orElseThrow();
+      .orElseThrow(() -> UserNotFoundException.withId(userId));
 
     return "날씨 정보 \n"
       + "습도: " + humidity.getCurrent() + "\n"
@@ -189,10 +185,13 @@ public class RecommendationService {
   private RecommendationClothesAttributeDto toRecommendationClothesAttributeDto(
     UUID selectableValueId) {
     SelectableValue selectableValue = selectableValueRepository.findById(selectableValueId)
-      .orElseThrow();
+      .orElseThrow(() -> SelectableValueNotFoundException.withId(selectableValueId));
+
     ClothesAttributeDef clothesAttributeDef =
       clothesAttributeDefRepository.findById(selectableValue.getAttributeDefId())
-        .orElseThrow();
+        .orElseThrow(() ->
+          ClothesAttributeDefNotFoundException.withId(selectableValue.getAttributeDefId()));
+
     List<String> selectableValues =
       selectableValueRepository.findAllByAttributeDefId(clothesAttributeDef.getId()).stream()
         .map(SelectableValue::getItem)
@@ -205,6 +204,4 @@ public class RecommendationService {
       selectableValue.getItem()
     );
   }
-
-
 }
