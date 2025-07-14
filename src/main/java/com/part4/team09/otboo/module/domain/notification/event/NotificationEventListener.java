@@ -48,7 +48,22 @@ public class NotificationEventListener {
     notificationService.createAll(request);
   }
 
-  // TODO: 의상 속성 변경
+  @Async
+  @EventListener
+  public void handleClothesAttributeDefUpdatedEvent(ClothesAttributeDefUpdatedEvent event) {
+    String title = "의상 속성이 변경되었어요.";
+    String content = String.format("[%s] 속성을 확인해보세요.",
+        event.name());
+
+    NotificationCreateAllRequest request = new NotificationCreateAllRequest(
+        title,
+        content,
+        Level.INFO
+    );
+
+    notificationService.createAll(request);
+  }
+
   // TODO: 내 피드에 좋아요 또는 댓글 등록
   // TODO: 팔로우한 사용자가 피드를 등록
   // TODO: 다른 사용자가 나를 팔로우
