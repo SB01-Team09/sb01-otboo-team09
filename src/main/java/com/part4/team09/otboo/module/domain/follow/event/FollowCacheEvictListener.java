@@ -18,7 +18,7 @@ public class FollowCacheEvictListener {
     CustomUserDetails currentUser;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(FollowCreatedEvent event){
+    public void cacheEvictWhenFollowCreated(FollowCreatedEvent event){
         log.info("팔로우 등록시 캐시 무효화 이벤트 처리 시작: followeeId = {}, followerId = {}", event.followeeId(), event.followerId());
 
         Cache cache = cacheManager.getCache("followSummary");
@@ -35,7 +35,7 @@ public class FollowCacheEvictListener {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(FollowDeletedEvent event){
+    public void cacheEvictWhenFollowDeleted(FollowDeletedEvent event){
         log.info("팔로우 삭제시 캐시 무효화 이벤트 처리 시작: followeeId = {}, followerId = {}", event.followeeId(), event.followerId());
 
         Cache cache = cacheManager.getCache("followSummary");

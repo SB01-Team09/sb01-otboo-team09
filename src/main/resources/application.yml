@@ -29,6 +29,7 @@ spring:
     cache-names:
       - followSummary
       - comments
+      - feeds
     redis:
       enable-statistics: true          # size, TTL은 cacheConfig에서 지정
 

@@ -1,17 +1,24 @@
 package com.part4.team09.otboo.module.domain.feed.controller;
 
+import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDtoCursorResponse;
+import com.part4.team09.otboo.module.domain.feed.dto.FeedDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedListRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.service.CommentService;
 import com.part4.team09.otboo.module.domain.feed.service.FeedService;
 import com.part4.team09.otboo.module.domain.feed.service.LikeService;
+import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
+import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import jakarta.validation.Valid;
 import java.util.UUID;
+
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,6 +70,28 @@ public class FeedController {
     return ResponseEntity
         .status(HttpStatus.NO_CONTENT)
         .build();
+  }
+
+  // 피드 목록 조회
+  @GetMapping
+  public ResponseEntity<FeedDtoCursorResponse> getFeeds(
+          @AuthenticationPrincipal CustomUserDetails currentUser,
+          @RequestParam(required = false) String cursor,
+          @RequestParam(required = false) UUID idAfter,
+          @RequestParam(defaultValue = "20") @Min(value = 1, message = "limit은 0보다 커야합니다.") int limit,
+          @RequestParam(defaultValue = "createdAt") String sortBy,
+          @RequestParam(defaultValue = "DESCENDING") SortDirection sortDirection,
+          @RequestParam(required = false) String keywordLike,
+          @RequestParam(required = false) Weather.SkyStatus skyStatusEqual,
+          @RequestParam(required = false) Precipitation.PrecipitationType precipitationTypeEqual,
+          @RequestParam(required = false) UUID authorIdEqual){
+
+      FeedListRequest request = new FeedListRequest(cursor, idAfter, limit, sortBy, sortDirection, keywordLike, skyStatusEqual, precipitationTypeEqual, authorIdEqual);
+      FeedDtoCursorResponse response = feedService.getFeeds(currentUser.getId(), request);
+
+    return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(response);
   }
 
   @PreAuthorize("principal.id == #request.authorId")
