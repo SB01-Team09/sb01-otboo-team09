@@ -7,7 +7,6 @@ import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDe
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
-import com.part4.team09.otboo.module.domain.clothes.repository.custom.ClothesAttributeDefRepositoryQueryDSL;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -25,7 +24,6 @@ public class ClothesAttributeDefService {
   private static final Set<String> VALID_SORT_BY = Set.of("name", "createdAt");
 
   private final ClothesAttributeDefRepository clothesAttributeDefRepository;
-  private final ClothesAttributeDefRepositoryQueryDSL clothesAttributeDefRepositoryQueryDSL;
 
   // 의상 속성 정의 명 생성
   public ClothesAttributeDef create(String name) {
@@ -75,7 +73,7 @@ public class ClothesAttributeDefService {
       return defIds;
     }
 
-    defIds = clothesAttributeDefRepositoryQueryDSL.findDefIdsByKeyword(keyword);
+    defIds = clothesAttributeDefRepository.findDefIdsByKeyword(keyword);
     log.debug("의상 속성 키워드로 조회 완료: defIdsSize = {}", defIds.size());
     return defIds;
   }
@@ -102,7 +100,7 @@ public class ClothesAttributeDefService {
       return List.of();
     }
 
-    List<ClothesAttributeDef> defs = clothesAttributeDefRepositoryQueryDSL.findByCursor(defIds,
+    List<ClothesAttributeDef> defs = clothesAttributeDefRepository.findByCursor(defIds,
         request);
     log.debug("의상 속성 페이지네이션 완료: defsSize = {}", defs.size());
     return defs;
@@ -113,15 +111,15 @@ public class ClothesAttributeDefService {
   public List<ClothesAttributeDef> findAllByIds(List<UUID> defIds) {
 
     if (defIds == null || defIds.isEmpty()) {
-      log.debug("defIds가 비어있습니다. return = {}", List.of());
+      log.trace("defIds가 비어있습니다. return = {}", List.of());
       return List.of();
     }
 
-    log.debug("defIds로 def 리스트 조회 시작: defIdsSize = {}", defIds.size());
+    log.trace("defIds로 def 리스트 조회 시작: defIdsSize = {}", defIds.size());
     List<ClothesAttributeDef> clothesAttributeDefs = clothesAttributeDefRepository.findAllById(
         defIds);
 
-    log.debug("defIds로 def 리스트 조회 완료: clothesAttributeDefsSize = {}", clothesAttributeDefs.size());
+    log.trace("defIds로 def 리스트 조회 완료: clothesAttributeDefsSize = {}", clothesAttributeDefs.size());
     return clothesAttributeDefs;
   }
 

@@ -21,12 +21,9 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @EnableJpaAuditing
-@Import({QueryDslConfig.class, ClothesRepositoryQueryDSL.class})
+@Import({QueryDslConfig.class})
 @ActiveProfiles("test")
 class ClothesRepositoryQueryDSLTest {
-
-  @Autowired
-  private ClothesRepositoryQueryDSL clothesRepositoryQueryDSL;
 
   @Autowired
   private ClothesRepository clothesRepository;
@@ -72,7 +69,7 @@ class ClothesRepositoryQueryDSLTest {
       List<Clothes> clothes = List.of(clothes2, clothes3);
 
       // when
-      List<Clothes> result = clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<Clothes> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
@@ -95,7 +92,7 @@ class ClothesRepositoryQueryDSLTest {
       List<Clothes> clothes = List.of(clothes1);
 
       // when
-      List<Clothes> result = clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<Clothes> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
@@ -118,7 +115,7 @@ class ClothesRepositoryQueryDSLTest {
       List<Clothes> clothes = List.of(clothes3, clothes2);
 
       // when
-      List<Clothes> result = clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<Clothes> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
@@ -141,7 +138,7 @@ class ClothesRepositoryQueryDSLTest {
       List<Clothes> clothes = List.of(clothes3, clothes1);
 
       // when
-      List<Clothes> result = clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<Clothes> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
@@ -164,7 +161,7 @@ class ClothesRepositoryQueryDSLTest {
       List<Clothes> clothes = List.of(clothes1, clothes3, clothes2);
 
       // when
-      List<Clothes> result = clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<Clothes> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then

@@ -1,9 +1,10 @@
-package com.part4.team09.otboo.module.domain.clothes.repository.custom;
+package com.part4.team09.otboo.module.domain.clothes.repository.custom.impl;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
 import com.part4.team09.otboo.module.domain.clothes.entity.QClothes;
+import com.part4.team09.otboo.module.domain.clothes.repository.custom.CustomClothesRepository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -15,13 +16,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
-@Repository
 @RequiredArgsConstructor
-public class ClothesRepositoryQueryDSL {
+public class CustomClothesRepositoryImpl implements CustomClothesRepository {
 
   private final JPAQueryFactory queryFactory;
   private final QClothes clothes = QClothes.clothes;
 
+  @Override
   public List<Clothes> findByCursor(String cursor, UUID idAfter, int limit,
       ClothesType typeEqual, UUID ownerId, String sortBy, SortDirection sortDirection) {
 

@@ -30,7 +30,6 @@ import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithD
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesMapper;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
-import com.part4.team09.otboo.module.domain.clothes.repository.custom.ClothesRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.service.FileStorage;
@@ -76,9 +75,6 @@ class ClothesServiceTest {
 
   @Mock
   private OotdRepository ootdRepository;
-
-  @Mock
-  private ClothesRepositoryQueryDSL clothesRepositoryQueryDSL;
 
   @Mock
   private ClothesAttributeWithDefDtoAssembler clothesAttributeWithDefDtoAssembler;
@@ -320,7 +316,7 @@ class ClothesServiceTest {
       String sortBy = "createdAt";
       SortDirection sortDirection = SortDirection.DESCENDING;
       List<Clothes> clothesList = List.of(clothes1, clothes2);
-      given(clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, ClothesType.TOP, ownerId,
+      given(clothesRepository.findByCursor(cursor, idAfter, limit, ClothesType.TOP, ownerId,
           sortBy, sortDirection)).willReturn(clothesList);
 
       boolean hasNext = clothesList.size() > limit;
@@ -373,7 +369,7 @@ class ClothesServiceTest {
       assertEquals(result, response);
 
       then(userRepository).should().existsById(ownerId);
-      then(clothesRepositoryQueryDSL).should().findByCursor(cursor, idAfter, limit, ClothesType.TOP,
+      then(clothesRepository).should().findByCursor(cursor, idAfter, limit, ClothesType.TOP,
           ownerId, sortBy, sortDirection);
       then(clothesRepository).should().countByOwnerIdAndType(ownerId, ClothesType.TOP);
       then(clothesAttributeWithDefDtoAssembler).should().assemble(clothes1.getId());
@@ -396,7 +392,7 @@ class ClothesServiceTest {
       String sortBy = "createdAt";
       SortDirection sortDirection = SortDirection.DESCENDING;
       List<Clothes> clothesList = List.of(clothes1, clothes2);
-      given(clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, ClothesType.TOP, ownerId,
+      given(clothesRepository.findByCursor(cursor, idAfter, limit, ClothesType.TOP, ownerId,
           sortBy, sortDirection)).willReturn(clothesList);
 
       boolean hasNext = clothesList.size() > limit;
@@ -436,7 +432,7 @@ class ClothesServiceTest {
       assertEquals(result, response);
 
       then(userRepository).should().existsById(ownerId);
-      then(clothesRepositoryQueryDSL).should().findByCursor(cursor, idAfter, limit, ClothesType.TOP,
+      then(clothesRepository).should().findByCursor(cursor, idAfter, limit, ClothesType.TOP,
           ownerId, sortBy, sortDirection);
       then(clothesRepository).should().countByOwnerIdAndType(ownerId, ClothesType.TOP);
       then(clothesAttributeWithDefDtoAssembler).should().assemble(clothes1.getId());
@@ -459,7 +455,7 @@ class ClothesServiceTest {
       String sortBy = "createdAt";
       SortDirection sortDirection = SortDirection.DESCENDING;
       List<Clothes> clothesList = List.of();
-      given(clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit, typeEqual, ownerId,
+      given(clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual, ownerId,
           sortBy, sortDirection)).willReturn(clothesList);
 
       boolean hasNext = clothesList.size() > limit;
@@ -481,7 +477,7 @@ class ClothesServiceTest {
       assertEquals(result, response);
 
       then(userRepository).should().existsById(ownerId);
-      then(clothesRepositoryQueryDSL).should().findByCursor(cursor, idAfter, limit, typeEqual,
+      then(clothesRepository).should().findByCursor(cursor, idAfter, limit, typeEqual,
           ownerId, sortBy, sortDirection);
       then(clothesRepository).should().countByOwnerIdAndType(ownerId, typeEqual);
       then(clothesAttributeWithDefDtoAssembler).should(times(0)).assemble(any(UUID.class));
@@ -523,7 +519,7 @@ class ClothesServiceTest {
       assertThrows(UserNotFoundException.class, () -> clothesService.findByCursor(cursor, idAfter,
           limit, typeEqual, ownerId));
 
-      then(clothesRepositoryQueryDSL).should(times(0))
+      then(clothesRepository).should(times(0))
           .findByCursor(cursor, idAfter, limit, ClothesType.TOP, ownerId, sortBy, sortDirection);
     }
   }

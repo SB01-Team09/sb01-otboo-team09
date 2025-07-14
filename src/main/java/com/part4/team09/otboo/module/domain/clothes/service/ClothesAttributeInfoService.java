@@ -35,6 +35,7 @@ public class ClothesAttributeInfoService {
 
   private final ClothesAttributeDefMapper clothesAttributeDefMapper;
   private final ClothesAttributeDefDtoCursorResponseMapper clothesAttributeDefDtoCursorResponseMapper;
+
   private final ClothesAttributeDefDtoAssembler clothesAttributeDefDtoAssembler;
 
   // 의상 속성 정의 생성

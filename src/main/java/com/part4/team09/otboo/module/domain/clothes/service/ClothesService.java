@@ -17,11 +17,11 @@ import com.part4.team09.otboo.module.domain.clothes.exception.SelectableValue.Se
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesMapper;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
-import com.part4.team09.otboo.module.domain.clothes.repository.custom.ClothesRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
 import com.part4.team09.otboo.module.domain.file.service.FileStorage;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.List;
@@ -30,6 +30,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,18 +47,24 @@ public class ClothesService {
   private final ClothesRepository clothesRepository;
   private final UserRepository userRepository;
   private final OotdRepository ootdRepository;
-  private final ClothesRepositoryQueryDSL clothesRepositoryQueryDSL;
 
   private final ClothesMapper clothesMapper;
   private final ClothesDtoCursorResponseMapper clothesDtoCursorResponseMapper;
+
   private final ClothesAttributeWithDefDtoAssembler clothesAttributeWithDefDtoAssembler;
+
   private final FileStorage fileStorage;
 
-  public ClothesDto create(ClothesCreateRequest request, MultipartFile image) {
+  public ClothesDto create(UUID userId, ClothesCreateRequest request, MultipartFile image) {
 
     log.debug("의상 생성 시작: ownerId = {}, name = {}", request.ownerId(), request.name());
 
-    validateUserExists(request.ownerId());
+    if (!userId.equals(request.ownerId())) {
+      log.warn("사용자가 일치하지 않습니다.");
+      throw new AccessDeniedException("사용자가 일치하지 않습니다.");
+    }
+
+    getUserOrThrow(request.ownerId());
 
     String url = uploadClothesImage(image);
 
@@ -83,17 +90,22 @@ public class ClothesService {
   }
 
   @Transactional(readOnly = true)
-  public ClothesDtoCursorResponse findByCursor(String cursor, UUID idAfter, int limit,
+  public ClothesDtoCursorResponse findByCursor(UUID userId, String cursor, UUID idAfter, int limit,
       ClothesType typeEqual, UUID ownerId) {
     log.debug("의상 조회 시작: cursor = {}, idAfter = {}, limit = {}, typeEqual = {}, ownerId = {}",
         cursor, idAfter, limit, typeEqual, ownerId);
+
+    if (!userId.equals(ownerId)) {
+      log.warn("사용자가 일치하지 않습니다.");
+      throw new AccessDeniedException("사용자가 일치하지 않습니다.");
+    }
 
     if (limit <= 0) {
       log.warn("유효하지 않은 limit입니다.: limit = {}", limit);
       throw BadRequestException.withLimit(limit);
     }
 
-    validateUserExists(ownerId);
+    getUserOrThrow(ownerId);
 
     // 프로토타입 기준
     if (typeEqual == null) {
@@ -102,7 +114,7 @@ public class ClothesService {
     String sortBy = "createdAt";
     SortDirection sortDirection = SortDirection.DESCENDING;
 
-    List<Clothes> clothesList = clothesRepositoryQueryDSL.findByCursor(cursor, idAfter, limit,
+    List<Clothes> clothesList = clothesRepository.findByCursor(cursor, idAfter, limit,
         typeEqual,
         ownerId, sortBy, sortDirection);
 
@@ -130,19 +142,24 @@ public class ClothesService {
         nexIdAfter, hasNext, totalCount, sortBy, sortDirection);
 
     log.debug("의상 조회 완료: dataSize = {}, nexCursor = {}, nextIdAfter = {}, hasNext = {}, "
-            + "totalCount = {}, sortBy = {}, sortDirection = {}", data, nextCursor, nexIdAfter, hasNext,
+            + "totalCount = {}, sortBy = {}, sortDirection = {}", data.size(), nextCursor, nexIdAfter, hasNext,
         totalCount, sortBy, sortDirection);
     return response;
   }
 
-  public ClothesDto update(UUID clothesId, ClothesUpdateRequest request, MultipartFile image) {
+  public ClothesDto update(UUID userId, UUID clothesId, ClothesUpdateRequest request, MultipartFile image) {
 
     Clothes clothes = clothesRepository.findById(clothesId).orElseThrow(() -> {
       log.warn("의상이 존재하지 않습니다. id = {}", clothesId);
       return ClothesNotFoundException.withId(clothesId);
     });
 
-    validateUserExists(clothes.getOwnerId());
+    if (!userId.equals(clothes.getOwnerId())) {
+      log.warn("사용자가 일치하지 않습니다.");
+      throw new AccessDeniedException("사용자가 일치하지 않습니다.");
+    }
+
+    getUserOrThrow(clothes.getOwnerId());
 
     // 이미지가 새로 들어오면 수정
     if (image != null && !image.isEmpty()) {
@@ -186,7 +203,7 @@ public class ClothesService {
     return response;
   }
 
-  public void delete(UUID clothesId) {
+  public void delete(UUID userId, UUID clothesId) {
 
     log.debug("의상 삭제 시작: clothesId = {}", clothesId);
 
@@ -195,6 +212,13 @@ public class ClothesService {
       log.warn("의상을 찾을 수 없습니다. clothesId = {}", clothesId);
       return ClothesNotFoundException.withId(clothesId);
     });
+
+    if (!userId.equals(clothes.getOwnerId())) {
+      log.warn("사용자가 일치하지 않습니다.");
+      throw new AccessDeniedException("사용자가 일치하지 않습니다.");
+    }
+
+    getUserOrThrow(clothes.getOwnerId());
 
     // 2. ootd 삭제
     ootdRepository.deleteByClothesId(clothesId);
@@ -282,11 +306,12 @@ public class ClothesService {
     }
   }
 
-  private void validateUserExists(UUID userId) {
-    if (!userRepository.existsById(userId)) {
-      log.warn("사용자가 존재하지 않습니다. id = {}", userId);
-      throw UserNotFoundException.withId(userId);
-    }
+  private User getUserOrThrow(UUID userId) {
+    return userRepository.findById(userId)
+        .orElseThrow(() -> {
+          log.warn("사용자을 찾을 수 없습니다. userId = {}", userId);
+          return UserNotFoundException.withId(userId);
+        });
   }
 }
 
