@@ -295,9 +295,6 @@ class FollowServiceTest {
         // when
         followService.deleteFollow(followId);
 
-        // 이벤트 수동 호출
-        followCacheEvictListener.handle(new FollowDeletedEvent(followeeId, followerId));
-
         // then
         verify(followRepository).existsById(followId);
         verify(followRepository).deleteById(followId);
