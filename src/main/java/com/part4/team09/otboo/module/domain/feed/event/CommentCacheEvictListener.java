@@ -16,7 +16,7 @@ public class CommentCacheEvictListener {
     private final CacheManager cacheManager;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(CommentCreatedEvent event){
+    public void cacheEvictWhenCommentCreated(CommentCreatedEvent event){
         log.info("댓글 등록시 캐시 무효화 이벤트 처리 시작: feedId = {}", event.feedId());
 
         Cache cache = cacheManager.getCache("comments");
@@ -31,7 +31,7 @@ public class CommentCacheEvictListener {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(CommentDeletedEvent event){
+    public void cacheEvictWhenCommentDeleted(CommentDeletedEvent event){
         log.info("댓글 삭제시 캐시 무효화 이벤트 처리 시작: feedId = {}", event.feedId());
 
         Cache cache = cacheManager.getCache("comments");

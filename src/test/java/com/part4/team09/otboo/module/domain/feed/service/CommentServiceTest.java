@@ -15,7 +15,6 @@ import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundExce
 import com.part4.team09.otboo.module.domain.feed.mapper.CommentMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.CommentRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
-import com.part4.team09.otboo.module.domain.follow.event.FollowDeletedEvent;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
