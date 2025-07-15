@@ -4,9 +4,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.part4.team09.otboo.config.QueryDslConfig;
 import com.part4.team09.otboo.module.common.enums.SortDirection;
+import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesWithAttributesDto;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
+import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
+import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
+import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
+import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
+import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
+import com.part4.team09.otboo.module.domain.clothes.repository.SelectableValueRepository;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,13 +35,37 @@ class ClothesRepositoryQueryDSLTest {
   @Autowired
   private ClothesRepository clothesRepository;
 
+  @Autowired
+  private ClothesAttributeDefRepository clothesAttributeDefRepository;
+
+  @Autowired
+  private SelectableValueRepository selectableValueRepository;
+
+  @Autowired
+  private ClothesAttributeRepository clothesAttributeRepository;
+
   private UUID userId;
   private Clothes clothes1;
   private Clothes clothes2;
   private Clothes clothes3;
+  private SelectableValue def1Value1;
+  private SelectableValue def1Value2;
+  private SelectableValue def2Value3;
+  private SelectableValue def2Value4;
 
   @BeforeEach
   void setUp() throws InterruptedException {
+
+    ClothesAttributeDef def1 = ClothesAttributeDef.create("사이즈");
+    ClothesAttributeDef def2 = ClothesAttributeDef.create("색상");
+    clothesAttributeDefRepository.save(def1);
+    clothesAttributeDefRepository.save(def2);
+
+    def1Value1 = SelectableValue.create(def1.getId(), "S");
+    def1Value2 = SelectableValue.create(def1.getId(), "M");
+    def2Value3 = SelectableValue.create(def2.getId(), "레드");
+    def2Value4 = SelectableValue.create(def2.getId(), "블루");
+    selectableValueRepository.saveAll(List.of(def1Value1, def1Value2, def2Value3, def2Value4));
 
     userId = UUID.randomUUID();
 
@@ -47,6 +78,18 @@ class ClothesRepositoryQueryDSLTest {
     clothesRepository.save(clothes2);
     Thread.sleep(1000);
     clothesRepository.save(clothes3);
+
+    ClothesAttribute clothes1Attribute1 = ClothesAttribute.create(clothes1.getId(), def1Value1.getId());
+    ClothesAttribute clothes1Attribute3 = ClothesAttribute.create(clothes1.getId(), def2Value3.getId());
+
+    ClothesAttribute clothes2Attribute1 = ClothesAttribute.create(clothes2.getId(), def1Value1.getId());
+    ClothesAttribute clothes2Attribute4 = ClothesAttribute.create(clothes2.getId(), def2Value4.getId());
+
+    ClothesAttribute clothes3Attribute2 = ClothesAttribute.create(clothes3.getId(), def1Value2.getId());
+    ClothesAttribute clothes3Attribute4 = ClothesAttribute.create(clothes3.getId(), def2Value4.getId());
+    clothesAttributeRepository.saveAll(List.of(clothes1Attribute1, clothes1Attribute3,
+        clothes2Attribute1,
+        clothes2Attribute4, clothes3Attribute2, clothes3Attribute4));
   }
 
   @Nested
@@ -66,14 +109,24 @@ class ClothesRepositoryQueryDSLTest {
       String sortBy = "createdAt";
       SortDirection sortDirection = SortDirection.ASCENDING;
 
-      List<Clothes> clothes = List.of(clothes2, clothes3);
 
       // when
-      List<Clothes> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
-      assertEquals(result, clothes);
+      assertNotNull(result);
+      assertEquals(clothes2.getId(), result.get(0).clothesId());
+      assertEquals(def1Value1.getItem(), result.get(0).selectableValueItem());
+
+      assertEquals(clothes2.getId(), result.get(1).clothesId());
+      assertEquals(def2Value4.getItem(), result.get(1).selectableValueItem());
+
+      assertEquals(clothes3.getId(), result.get(2).clothesId());
+      assertEquals(def1Value2.getItem(), result.get(2).selectableValueItem());
+
+      assertEquals(clothes3.getId(), result.get(3).clothesId());
+      assertEquals(def2Value4.getItem(), result.get(3).selectableValueItem());
     }
 
     @Test
@@ -89,14 +142,17 @@ class ClothesRepositoryQueryDSLTest {
       String sortBy = "createdAt";
       SortDirection sortDirection = SortDirection.DESCENDING;
 
-      List<Clothes> clothes = List.of(clothes1);
-
       // when
-      List<Clothes> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
-      assertEquals(result, clothes);
+      assertNotNull(result);
+      assertEquals(clothes1.getId(), result.get(0).clothesId());
+      assertEquals(def1Value1.getItem(), result.get(0).selectableValueItem());
+
+      assertEquals(clothes1.getId(), result.get(1).clothesId());
+      assertEquals(def2Value3.getItem(), result.get(1).selectableValueItem());
     }
 
     @Test
@@ -112,14 +168,23 @@ class ClothesRepositoryQueryDSLTest {
       String sortBy = "name";
       SortDirection sortDirection = SortDirection.ASCENDING;
 
-      List<Clothes> clothes = List.of(clothes3, clothes2);
-
       // when
-      List<Clothes> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
-      assertEquals(result, clothes);
+      assertNotNull(result);
+      assertEquals(clothes3.getId(), result.get(0).clothesId());
+      assertEquals(def1Value2.getItem(), result.get(0).selectableValueItem());
+
+      assertEquals(clothes3.getId(), result.get(1).clothesId());
+      assertEquals(def2Value4.getItem(), result.get(1).selectableValueItem());
+
+      assertEquals(clothes2.getId(), result.get(2).clothesId());
+      assertEquals(def1Value1.getItem(), result.get(2).selectableValueItem());
+
+      assertEquals(clothes2.getId(), result.get(3).clothesId());
+      assertEquals(def2Value4.getItem(), result.get(3).selectableValueItem());
     }
 
     @Test
@@ -135,14 +200,23 @@ class ClothesRepositoryQueryDSLTest {
       String sortBy = "name";
       SortDirection sortDirection = SortDirection.DESCENDING;
 
-      List<Clothes> clothes = List.of(clothes3, clothes1);
-
       // when
-      List<Clothes> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
-      assertEquals(result, clothes);
+      assertNotNull(result);
+      assertEquals(clothes3.getId(), result.get(0).clothesId());
+      assertEquals(def1Value2.getItem(), result.get(0).selectableValueItem());
+
+      assertEquals(clothes3.getId(), result.get(1).clothesId());
+      assertEquals(def2Value4.getItem(), result.get(1).selectableValueItem());
+
+      assertEquals(clothes1.getId(), result.get(2).clothesId());
+      assertEquals(def1Value1.getItem(), result.get(2).selectableValueItem());
+
+      assertEquals(clothes1.getId(), result.get(3).clothesId());
+      assertEquals(def2Value3.getItem(), result.get(3).selectableValueItem());
     }
 
     @Test
@@ -158,14 +232,53 @@ class ClothesRepositoryQueryDSLTest {
       String sortBy = "name";
       SortDirection sortDirection = SortDirection.ASCENDING;
 
-      List<Clothes> clothes = List.of(clothes1, clothes3, clothes2);
-
       // when
-      List<Clothes> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
-      assertEquals(result, clothes);
+      assertNotNull(result);
+      assertEquals(clothes1.getId(), result.get(0).clothesId());
+      assertEquals(def1Value1.getItem(), result.get(0).selectableValueItem());
+
+      assertEquals(clothes1.getId(), result.get(1).clothesId());
+      assertEquals(def2Value3.getItem(), result.get(1).selectableValueItem());
+
+      assertEquals(clothes3.getId(), result.get(2).clothesId());
+      assertEquals(def1Value2.getItem(), result.get(2).selectableValueItem());
+
+      assertEquals(clothes3.getId(), result.get(3).clothesId());
+      assertEquals(def2Value4.getItem(), result.get(3).selectableValueItem());
+
+      assertEquals(clothes2.getId(), result.get(4).clothesId());
+      assertEquals(def1Value1.getItem(), result.get(4).selectableValueItem());
+
+      assertEquals(clothes2.getId(), result.get(5).clothesId());
+      assertEquals(def2Value4.getItem(), result.get(5).selectableValueItem());
+    }
+  }
+
+  @Nested
+  @DisplayName("의상 id로 조회")
+  class FindByClothesId {
+
+    @Test
+    @DisplayName("의상 조회 성공")
+    void find_by_clothes_id_success() {
+
+      // given
+      UUID clothesId = clothes1.getId();
+
+      // when
+      List<ClothesWithAttributesDto> result = clothesRepository.findByClothesId(clothesId);
+
+      // then
+      assertNotNull(result);
+      assertEquals(clothesId, result.get(0).clothesId());
+      assertEquals(def1Value1.getItem(), result.get(0).selectableValueItem());
+
+      assertEquals(clothesId, result.get(1).clothesId());
+      assertEquals(def2Value3.getItem(), result.get(1).selectableValueItem());
     }
   }
 }
