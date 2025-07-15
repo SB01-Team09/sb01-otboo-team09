@@ -80,50 +80,23 @@ public class RecommendationService {
   }
 
   public RecommendationDto getRecommendations(UUID weatherId, UUID userId) {
-    Weather weather = weatherRepository.findById(weatherId)
-      .orElseThrow(() ->
-        WeatherNotFoundException.withId(WeatherErrorCode.WEATHER_NOF_FOUND, weatherId));
+    Weather weather = getWeatherOrThrow(weatherId);
+    Humidity humidity = getHumidityOrThrow(weather.getHumidityId());
+    Temperature temperature = getTemperatureOrThrow(weather.getTemperatureId());
+    User user = getUserOrThrow(userId);
 
-    Humidity humidity = humidityRepository.findById(weather.getHumidityId())
-      .orElseThrow(() ->
-        WeatherNotFoundException
-          .withId(WeatherErrorCode.HUMIDITY_NOF_FOUND, weather.getHumidityId()));
+    // 체감 온도 도출
+    double adjustedFeelsLikeTemp = calculateAdjustedFeelsLikeTemp(
+      temperature.getCurrent(), humidity.getCurrent(), user.getTemperatureSensitivity()
+    );
 
-    Temperature temperature = temperatureRepository.findById(weather.getTemperatureId())
-      .orElseThrow(() ->
-        WeatherNotFoundException
-          .withId(WeatherErrorCode.TEMPERATURE_NOF_FOUND, weather.getTemperatureId()));
+    // 옷 두께 도출
+    String thickness = determineThickness(adjustedFeelsLikeTemp);
 
-    User user = userRepository.findById(userId)
-      .orElseThrow(() -> UserNotFoundException.withId(userId));
+    // 옷 두께를 기준으로 옷 목록 조회
+    List<Clothes> selectedClothes = getRandomRecommendedClothes(thickness);
 
-    double apparentTemp = getInSummer(temperature.getCurrent(), humidity.getCurrent());
-    double adjustedFeelsLikeTemp = apparentTemp
-      + (ThreadLocalRandom.current().nextDouble(0.5, 0.8)
-      * user.getTemperatureSensitivity());
-
-    String thickness = null;
-    if (adjustedFeelsLikeTemp >= 20) {
-      thickness = "얇음";
-    } else if (adjustedFeelsLikeTemp >= 10) {
-      thickness = "보통";
-    } else {
-      thickness = "두꺼움";
-    }
-
-    List<ClothingOption> clothingOptions = List.of(
-      new ClothingOption("두께", List.of(thickness)
-      ));
-
-    int limit = ThreadLocalRandom.current().nextInt(20, 30);
-    List<Clothes> clothes = clothesRepositoryQueryDSL.findAllOrderedByAttributeScores(
-      clothingOptions, limit);
-
-    List<Clothes> shuffled = new ArrayList<>(clothes);
-    Collections.shuffle(shuffled);
-    List<Clothes> limited = shuffled.stream().limit(10).toList();
-
-    List<RecommendationClothesDto> recommendationClothesDtos = limited.stream()
+    List<RecommendationClothesDto> recommendationClothesDtos = selectedClothes.stream()
       .map(this::toRecommendationClothesDto)
       .toList();
 
@@ -133,6 +106,42 @@ public class RecommendationService {
       recommendationClothesDtos
     );
   }
+
+  private double calculateAdjustedFeelsLikeTemp(double temp, double humidity, int sensitivity) {
+    // 채검 온도 계산
+    double apparentTemp = getInSummer(temp, humidity);
+    // 더위 민감도에 따라 보정
+    return apparentTemp + (ThreadLocalRandom.current().nextDouble(0.5, 0.8) * sensitivity);
+  }
+
+  private String determineThickness(double adjustedFeelsLikeTemp) {
+    if (adjustedFeelsLikeTemp >= 20) {
+      return "얇음";
+    } else if (adjustedFeelsLikeTemp >= 10) {
+      return "보통";
+    } else {
+      return "두꺼움";
+    }
+  }
+
+  private List<Clothes> getRandomRecommendedClothes(String thickness) {
+    List<ClothingOption> clothingOptions = List.of(
+      new ClothingOption("두께", List.of(thickness))
+    );
+
+    // 조회 목록 개수 랜덤 지정
+    int limit = ThreadLocalRandom.current().nextInt(20, 30);
+    List<Clothes> clothes = clothesRepositoryQueryDSL.findAllOrderedByAttributeScores(
+      clothingOptions, limit
+    );
+
+    // 조회 목록에서 랜덤으로 10개 추출
+    List<Clothes> shuffled = new ArrayList<>(clothes);
+    Collections.shuffle(shuffled);
+
+    return shuffled.stream().limit(10).toList();
+  }
+
 
   /**
    * 여름철 체감온도 (5월 ~ 9월)
@@ -164,32 +173,12 @@ public class RecommendationService {
   }
 
   private String getWeatherInfo(UUID weatherId, UUID userId) {
-    Weather weather = weatherRepository.findById(weatherId)
-      .orElseThrow(() ->
-        WeatherNotFoundException.withId(WeatherErrorCode.WEATHER_NOF_FOUND, weatherId));
-
-    Humidity humidity = humidityRepository.findById(weather.getHumidityId())
-      .orElseThrow(() ->
-        WeatherNotFoundException
-          .withId(WeatherErrorCode.HUMIDITY_NOF_FOUND, weather.getHumidityId()));
-
-    Precipitation precipitation = precipitationRepository.findById(weather.getPrecipitationId())
-      .orElseThrow(() ->
-        WeatherNotFoundException
-          .withId(WeatherErrorCode.PRECIPITATION_NOF_FOUND, weather.getPrecipitationId()));
-
-    Temperature temperature = temperatureRepository.findById(weather.getTemperatureId())
-      .orElseThrow(() ->
-        WeatherNotFoundException
-          .withId(WeatherErrorCode.TEMPERATURE_NOF_FOUND, weather.getTemperatureId()));
-
-    WindSpeed windSpeed = windSpeedRepository.findById(weather.getWindSpeedId())
-      .orElseThrow(() ->
-        WeatherNotFoundException
-          .withId(WeatherErrorCode.WINDSPEED_NOF_FOUND, weather.getWindSpeedId()));
-
-    User user = userRepository.findById(userId)
-      .orElseThrow(() -> UserNotFoundException.withId(userId));
+    Weather weather = getWeatherOrThrow(weatherId);
+    Humidity humidity = getHumidityOrThrow(weather.getHumidityId());
+    Precipitation precipitation = getPrecipitationOrThrow(weather.getPrecipitationId());
+    Temperature temperature = getTemperatureOrThrow(weather.getTemperatureId());
+    WindSpeed windSpeed = getWindSpeedOrThrow(weather.getWindSpeedId());
+    User user = getUserOrThrow(userId);
 
     return "날씨 정보 \n"
       + "습도: " + humidity.getCurrent() + "\n"
@@ -283,5 +272,44 @@ public class RecommendationService {
       selectableValues,
       selectableValue.getItem()
     );
+  }
+
+  private Weather getWeatherOrThrow(UUID weatherId) {
+    return weatherRepository.findById(weatherId)
+      .orElseThrow(() ->
+        WeatherNotFoundException.withId(WeatherErrorCode.WEATHER_NOF_FOUND, weatherId));
+  }
+
+  private Humidity getHumidityOrThrow(UUID humidityId) {
+    return humidityRepository.findById(humidityId)
+      .orElseThrow(() ->
+        WeatherNotFoundException
+          .withId(WeatherErrorCode.HUMIDITY_NOF_FOUND, humidityId));
+  }
+
+  private Temperature getTemperatureOrThrow(UUID temperatureId) {
+    return temperatureRepository.findById(temperatureId)
+      .orElseThrow(() ->
+        WeatherNotFoundException
+          .withId(WeatherErrorCode.TEMPERATURE_NOF_FOUND, temperatureId));
+  }
+
+  private User getUserOrThrow(UUID userId) {
+    return userRepository.findById(userId)
+      .orElseThrow(() -> UserNotFoundException.withId(userId));
+  }
+
+  private Precipitation getPrecipitationOrThrow(UUID precipitationId) {
+    return precipitationRepository.findById(precipitationId)
+      .orElseThrow(() ->
+        WeatherNotFoundException
+          .withId(WeatherErrorCode.PRECIPITATION_NOF_FOUND, precipitationId));
+  }
+
+  private WindSpeed getWindSpeedOrThrow(UUID windSpeedId) {
+    return windSpeedRepository.findById(windSpeedId)
+      .orElseThrow(() ->
+        WeatherNotFoundException
+          .withId(WeatherErrorCode.WINDSPEED_NOF_FOUND, windSpeedId));
   }
 }
