@@ -44,6 +44,9 @@ class FeedServiceTest {
   private FeedRepository feedRepository;
 
   @Mock
+  private FeedRepositoryQueryDSL feedRepositoryQueryDSL;
+
+  @Mock
   private FeedDtoAssembler feedDtoAssembler;
 
   @Mock
@@ -63,9 +66,6 @@ class FeedServiceTest {
 
   @Mock
   private ApplicationEventPublisher eventPublisher;
-
-  @Mock
-  private FeedRepositoryQueryDSL feedRepositoryQueryDSL;
 
   @InjectMocks
   private FeedService feedService;
