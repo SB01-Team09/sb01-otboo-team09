@@ -123,5 +123,4 @@ class FollowRepositoryQueryDSLTest {
         // then
         assertThat(count).isEqualTo(1);
     }
-
 }

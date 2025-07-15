@@ -85,7 +85,7 @@ public class FeedRepositoryQueryDSL {
 
     private BooleanExpression cursorCondition(String cursor, UUID idAfter, String sortBy, SortDirection sortDirection) {
 
-        if (cursor == null  | cursor.isBlank()) return null;
+        if (cursor == null || cursor.isBlank()) return null;
 
         if ("createdAt".equals(sortBy)) {
             LocalDateTime cursorTime = LocalDateTime.parse(cursor);
