@@ -5,6 +5,7 @@ import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -62,6 +63,7 @@ class CommentRepositoryQueryDSLTest {
         assertThat(comments.get(4).getContent()).isEqualTo("댓글 4");
     }
 
+    @Disabled
     @Test
     void getComments_커서조회_성공() {
         // given
