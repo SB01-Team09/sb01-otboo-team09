@@ -23,7 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @EnableJpaAuditing
-@Import({QueryDslConfig.class})
+@Import(QueryDslConfig.class)
 @ActiveProfiles("test")
 class ClothesAttributeDefRepositoryQueryDSLTest {
 
