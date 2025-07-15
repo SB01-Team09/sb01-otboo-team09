@@ -23,6 +23,7 @@ public class CommentRepositoryQueryDSL {
         return queryFactory
                 .selectFrom(comment)
                 .where(
+                        comment.feedId.eq(feedId),
                         cursorCondition(cursor, idAfter)
                 )
                 .orderBy(comment.createdAt.asc())
@@ -42,7 +43,7 @@ public class CommentRepositoryQueryDSL {
 
 
     private BooleanExpression cursorCondition(String cursor, UUID idAfter) {
-        if (cursor == null) return null;
+        if (cursor == null || cursor.isBlank()) return null;
         LocalDateTime decodedCursor = LocalDateTime.parse(cursor);
 
         BooleanExpression condition = comment.createdAt.gt(decodedCursor);
