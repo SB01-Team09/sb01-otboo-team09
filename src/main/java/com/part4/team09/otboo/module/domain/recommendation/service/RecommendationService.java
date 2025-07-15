@@ -33,8 +33,11 @@ import com.part4.team09.otboo.module.domain.weather.repository.PrecipitationRepo
 import com.part4.team09.otboo.module.domain.weather.repository.TemperatureRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.WindSpeedRepository;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -54,7 +57,7 @@ public class RecommendationService {
   private final SelectableValueRepository selectableValueRepository;
   private final ClothesAttributeRepository clothesAttributeRepository;
 
-  public RecommendationDto getRecommendations(UUID weatherId, UUID userId) {
+  public RecommendationDto getRecommendationsByLLM(UUID weatherId, UUID userId) {
     // 널씨, 유저 정보 추출
     String text = getText(weatherId, userId);
 
@@ -74,6 +77,79 @@ public class RecommendationService {
       userId,
       recommendationClothesDtos
     );
+  }
+
+  public RecommendationDto getRecommendations(UUID weatherId, UUID userId) {
+    Weather weather = weatherRepository.findById(weatherId)
+      .orElseThrow(() ->
+        WeatherNotFoundException.withId(WeatherErrorCode.WEATHER_NOF_FOUND, weatherId));
+
+    Humidity humidity = humidityRepository.findById(weather.getHumidityId())
+      .orElseThrow(() ->
+        WeatherNotFoundException
+          .withId(WeatherErrorCode.HUMIDITY_NOF_FOUND, weather.getHumidityId()));
+
+    Temperature temperature = temperatureRepository.findById(weather.getTemperatureId())
+      .orElseThrow(() ->
+        WeatherNotFoundException
+          .withId(WeatherErrorCode.TEMPERATURE_NOF_FOUND, weather.getTemperatureId()));
+
+    User user = userRepository.findById(userId)
+      .orElseThrow(() -> UserNotFoundException.withId(userId));
+
+    double apparentTemp = getInSummer(temperature.getCurrent(), humidity.getCurrent());
+    double adjustedFeelsLikeTemp = apparentTemp
+      + (ThreadLocalRandom.current().nextDouble(0.5, 0.8)
+      * user.getTemperatureSensitivity());
+
+    String thickness = null;
+    if (adjustedFeelsLikeTemp >= 20) {
+      thickness = "얇음";
+    } else if (adjustedFeelsLikeTemp >= 10) {
+      thickness = "보통";
+    } else {
+      thickness = "두꺼움";
+    }
+
+    List<ClothingOption> clothingOptions = List.of(
+      new ClothingOption("두께", List.of(thickness)
+      ));
+
+    int limit = ThreadLocalRandom.current().nextInt(20, 30);
+    List<Clothes> clothes = clothesRepositoryQueryDSL.findAllOrderedByAttributeScores(
+      clothingOptions, limit);
+
+    List<Clothes> shuffled = new ArrayList<>(clothes);
+    Collections.shuffle(shuffled);
+    List<Clothes> limited = shuffled.stream().limit(10).toList();
+
+    List<RecommendationClothesDto> recommendationClothesDtos = limited.stream()
+      .map(this::toRecommendationClothesDto)
+      .toList();
+
+    return new RecommendationDto(
+      weatherId,
+      userId,
+      recommendationClothesDtos
+    );
+  }
+
+  /**
+   * 여름철 체감온도 (5월 ~ 9월)
+   *
+   * @param ta 기온
+   * @param rh 상대습도
+   */
+  private double getInSummer(double ta, double rh) {
+    double tw = getTw(ta, rh);
+    return -0.2442 + (0.55399 * tw) + (0.45535 * ta) - (0.0022 * Math.pow(tw, 2.0)) + (0.00278 * tw
+      * ta) + 3.0;
+  }
+
+  private double getTw(double ta, double rh) {
+    return ta * Math.atan(0.151977 * Math.pow(rh + 8.313659, 0.5)) +
+      Math.atan(ta + rh) - Math.atan(rh - 1.67633) +
+      (0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh)) - 4.686035;
   }
 
   private String getText(UUID weatherId, UUID userId) {
