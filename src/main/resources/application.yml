@@ -66,3 +66,6 @@ management:
   info:
     env:
       enabled: true
+
+sse:
+  timeout: 300_000
