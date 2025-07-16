@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.follow.repository;
 
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,4 +26,6 @@ public interface FollowRepository extends JpaRepository<Follow, UUID> {
     @Query("SELECT f.id FROM Follow f WHERE f.followeeId = :followeeId AND f.followerId = :followerId")
     UUID followedByMeId(@Param("followeeId") UUID userId, @Param("followerId") UUID loginUserId);
 
+    @Query("SELECT f.followerId FROM Follow f WHERE f.followeeId = :followeeId")
+    List<UUID> findFollowerIdsByFolloweeId(UUID followeeId);
 }
