@@ -1,6 +1,8 @@
 package com.part4.team09.otboo.module.domain.notification.sse;
 
+import com.part4.team09.otboo.module.domain.notification.dto.NotificationDto;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,4 +36,23 @@ public class SseService {
     return sseEmitter;
   }
 
+  public void send(NotificationDto notificationDto) {
+    UUID receiverId = notificationDto.receiverId();
+    List<SseEmitter> emitters = sseEmitterRepository.findByReceiverId(receiverId);
+
+    emitters.forEach(emitter -> {
+      try {
+        emitter.send(SseEmitter.event()
+            .id(notificationDto.id().toString())
+            .name("notifications")
+            .data(notificationDto));
+      } catch (IOException e) {
+        sseEmitterRepository.delete(receiverId, emitter);
+      }
+    });
+  }
+
+  public void sendToUsers(List<NotificationDto> notificationDtos) {
+    notificationDtos.forEach(this::send);
+  }
 }

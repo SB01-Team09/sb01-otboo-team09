@@ -1,16 +1,23 @@
 package com.part4.team09.otboo.module.domain.notification.service;
 
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
+import com.part4.team09.otboo.module.domain.notification.dto.NotificationDto;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateAllRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateFollowerRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateLocationRequest;
+import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateMultipleRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateRequest;
 import com.part4.team09.otboo.module.domain.notification.entity.Notification;
+import com.part4.team09.otboo.module.domain.notification.event.NotificationCreatedEvent;
+import com.part4.team09.otboo.module.domain.notification.event.NotificationCreatedMultipleEvent;
+import com.part4.team09.otboo.module.domain.notification.mapper.NotificationMapper;
 import com.part4.team09.otboo.module.domain.notification.repository.NotificationRepository;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,59 +26,75 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationService {
 
   private final NotificationRepository notificationRepository;
+  private final NotificationMapper notificationMapper;
 
   private final UserRepository userRepository;
   private final FollowRepository followRepository;
 
+  private final ApplicationEventPublisher eventPublisher;
+
   @Transactional
   public void create(NotificationCreateRequest request) {
+    UUID receiverId = request.receiverId();
+
     Notification notification = Notification.create(
-        request.receiverId(),
+        receiverId,
         request.title(),
         request.content(),
         request.level()
     );
 
-    notificationRepository.save(notification);
+    Notification savedNotification = notificationRepository.save(notification);
+
+    eventPublisher.publishEvent(
+        new NotificationCreatedEvent(notificationMapper.toDto(savedNotification))
+    );
   }
 
   @Transactional
   public void createAll(NotificationCreateAllRequest request) {
     List<UUID> allUserIds = userRepository.findAllIds();
 
-    List<Notification> notifications = allUserIds.stream()
-        .map(id -> Notification.create(
-            id,
+    createMultiple(
+        allUserIds,
+        new NotificationCreateMultipleRequest(
             request.title(),
             request.content(),
             request.level()
-        ))
-        .toList();
-
-    notificationRepository.saveAll(notifications);
+        )
+    );
   }
 
   @Transactional
   public void createFollower(NotificationCreateFollowerRequest request) {
     List<UUID> followerIds = followRepository.findFollowerIdsByFolloweeId(request.authorId());
 
-    List<Notification> notifications = followerIds.stream()
-        .map(id -> Notification.create(
-            id,
+    createMultiple(
+        followerIds,
+        new NotificationCreateMultipleRequest(
             request.title(),
             request.content(),
             request.level()
-        ))
-        .toList();
-
-    notificationRepository.saveAll(notifications);
+        )
+    );
   }
 
   @Transactional
   public void createLocation(NotificationCreateLocationRequest request) {
     List<UUID> userIdsInLocation = userRepository.findUserIdsByLocationId(request.locationId());
 
-    List<Notification> notifications = userIdsInLocation.stream()
+    createMultiple(
+        userIdsInLocation,
+        new NotificationCreateMultipleRequest(
+            request.title(),
+            request.content(),
+            request.level()
+        )
+    );
+  }
+
+  private void createMultiple(List<UUID> receiverIds, NotificationCreateMultipleRequest request) {
+    List<Notification> notifications = receiverIds.stream()
         .map(id -> Notification.create(
             id,
             request.title(),
@@ -80,6 +103,14 @@ public class NotificationService {
         ))
         .toList();
 
-    notificationRepository.saveAll(notifications);
+    List<Notification> savedNotifications = notificationRepository.saveAll(notifications);
+
+    eventPublisher.publishEvent(
+        new NotificationCreatedMultipleEvent(
+            savedNotifications.stream()
+                .map(notificationMapper::toDto)
+                .toList()
+        )
+    );
   }
 }

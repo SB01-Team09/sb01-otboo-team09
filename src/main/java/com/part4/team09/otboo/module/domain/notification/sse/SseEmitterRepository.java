@@ -22,8 +22,8 @@ public class SseEmitterRepository {
     return sseEmitter;
   }
 
-  public Optional<List<SseEmitter>> findByReceiverId(UUID receiverId) {
-    return Optional.ofNullable(data.get(receiverId));
+  public List<SseEmitter> findByReceiverId(UUID receiverId) {
+    return data.getOrDefault(receiverId, List.of());
   }
 
   public List<SseEmitter> findAllByReceiverIdsIn(Collection<UUID> receiverIds) {
