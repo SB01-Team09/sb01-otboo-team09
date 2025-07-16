@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,6 +96,7 @@ public class NotificationService {
     );
   }
 
+  @PreAuthorize("@notificationPermissionEvaluator.isNotificationReceiver(principal.id, #notificationId)")
   @Transactional
   public void delete(UUID notificationId) {
     validateNotificationExists(notificationId);
