@@ -39,9 +39,13 @@ public class LocationService {
     return locationApiClient.getLocationCode(longitude, latitude);
   }
 
+  public Location getLocationOrThrow(String locationId) {
+    return locationRepository.findById(locationId)
+      .orElseThrow(() -> LocationNotFoundException.withNameAndId("location", locationId));
+  }
+
   public WeatherAPILocation getLocation(String id) {
-    Location location = locationRepository.findById(id)
-      .orElseThrow(() -> LocationNotFoundException.withNameAndId("location", id));
+    Location location = getLocationOrThrow(id);
 
     Sido sido = sidoRepository.findById(location.getSidoId())
       .orElseThrow(() -> LocationNotFoundException.withNameAndId("sido", location.getSidoId()));

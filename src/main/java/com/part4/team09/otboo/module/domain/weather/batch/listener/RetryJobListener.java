@@ -1,6 +1,6 @@
 package com.part4.team09.otboo.module.domain.weather.batch.listener;
 
-import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
+import com.part4.team09.otboo.module.domain.location.repository.CoordinateRepository;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ public class RetryJobListener implements JobExecutionListener {
 
   private final JobLauncher jobLauncher;
   private final JobRegistry jobRegistry;
-  private final LocationRepository locationRepository;
+  private final CoordinateRepository coordinateRepository;
 
   @Override
   public void afterJob(JobExecution jobExecution) {
@@ -28,8 +28,9 @@ public class RetryJobListener implements JobExecutionListener {
       return;
     }
 
-    boolean hasRetryTargets = locationRepository.existsLocationNotInWeather(
-      LocalDate.now().atStartOfDay());
+    // TODO: 고쳐야 함
+    boolean hasRetryTargets =
+      coordinateRepository.existsCoordinateNotInWeather(LocalDate.now().atStartOfDay());
 
     if (!hasRetryTargets) {
       log.info("Retry 대상이 없으므로 retryJob은 실행하지 않습니다.");
