@@ -1,7 +1,7 @@
 package com.part4.team09.otboo.module.domain.notification.service;
 
+import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
-import com.part4.team09.otboo.module.domain.notification.dto.NotificationDto;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateAllRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateFollowerRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateLocationRequest;
@@ -10,12 +10,14 @@ import com.part4.team09.otboo.module.domain.notification.dto.request.Notificatio
 import com.part4.team09.otboo.module.domain.notification.entity.Notification;
 import com.part4.team09.otboo.module.domain.notification.event.NotificationCreatedEvent;
 import com.part4.team09.otboo.module.domain.notification.event.NotificationCreatedMultipleEvent;
+import com.part4.team09.otboo.module.domain.notification.exception.NotificationNotFoundException;
 import com.part4.team09.otboo.module.domain.notification.mapper.NotificationMapper;
 import com.part4.team09.otboo.module.domain.notification.repository.NotificationRepository;
+import com.part4.team09.otboo.module.domain.user.entity.User;
+import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -93,6 +95,13 @@ public class NotificationService {
     );
   }
 
+  @Transactional
+  public void delete(UUID notificationId) {
+    validateNotificationExists(notificationId);
+
+    notificationRepository.deleteById(notificationId);
+  }
+
   private void createMultiple(List<UUID> receiverIds, NotificationCreateMultipleRequest request) {
     List<Notification> notifications = receiverIds.stream()
         .map(id -> Notification.create(
@@ -112,5 +121,11 @@ public class NotificationService {
                 .toList()
         )
     );
+  }
+
+  private void validateNotificationExists(UUID notificationId) {
+    if (!notificationRepository.existsById(notificationId)) {
+      throw NotificationNotFoundException.withId(notificationId);
+    }
   }
 }

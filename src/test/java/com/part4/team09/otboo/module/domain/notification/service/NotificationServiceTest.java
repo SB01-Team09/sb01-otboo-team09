@@ -157,4 +157,25 @@ class NotificationServiceTest {
       verify(notificationRepository).saveAll(any());
     }
   }
+
+  @Nested
+  @DisplayName("알림 삭제")
+  public class DeleteNotificationTest {
+
+    @Test
+    @DisplayName("알림 삭제 성공")
+    void delete_notification_success() {
+      // given
+      UUID notificationId = UUID.randomUUID();
+
+      given(notificationRepository.existsById(notificationId)).willReturn(true);
+
+      // when
+      notificationService.delete(notificationId);
+
+      // then
+      verify(notificationRepository).deleteById(notificationId);
+
+    }
+  }
 }
