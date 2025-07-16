@@ -104,7 +104,7 @@ public class NotificationEventListener {
     String content = event.content();
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.userId(),
+        event.receiverId(),
         title,
         content,
         Level.INFO
