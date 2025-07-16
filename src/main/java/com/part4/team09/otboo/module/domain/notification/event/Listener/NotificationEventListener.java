@@ -29,6 +29,7 @@ public class NotificationEventListener {
 
   private final NotificationService notificationService;
 
+  // 권한 변경
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleRoleChangedEvent(RoleChangedEvent event) {
@@ -46,6 +47,7 @@ public class NotificationEventListener {
     notificationService.create(request);
   }
 
+  // 의상 속성 추가
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleClothesAttributeDefCreatedEvent(ClothesAttributeDefCreatedEvent event) {
@@ -61,6 +63,7 @@ public class NotificationEventListener {
     notificationService.createAll(request);
   }
 
+  // 의상 속성 변경
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleClothesAttributeDefUpdatedEvent(ClothesAttributeDefUpdatedEvent event) {
@@ -76,6 +79,7 @@ public class NotificationEventListener {
     notificationService.createAll(request);
   }
 
+  // 내 피드에 좋아요
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleFeedLikedEvent(FeedLikedEvent event) {
@@ -92,6 +96,7 @@ public class NotificationEventListener {
     notificationService.create(request);
   }
 
+  // 내 피드에 댓글 등록
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleFeedCommentedEvent(FeedCommentedEvent event) {
@@ -108,6 +113,7 @@ public class NotificationEventListener {
     notificationService.create(request);
   }
 
+  // 팔로우한 사용자가 피드 등록
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleFeedCreatedEvent(FeedCreatedEvent event) {
@@ -124,6 +130,7 @@ public class NotificationEventListener {
     notificationService.createFollower(request);
   }
 
+  // 다른 사용자가 나를 팔로우
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleFollowedEvent(FollowedEvent event) {
@@ -140,6 +147,7 @@ public class NotificationEventListener {
     notificationService.create(request);
   }
 
+  // DM 수신
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleDirectMessageReceivedEvent(DirectMessageReceivedEvent event) {
