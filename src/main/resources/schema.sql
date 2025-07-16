@@ -69,15 +69,21 @@ CREATE TABLE notifications
     level       VARCHAR(50)              NOT NULL
 );
 
+CREATE TABLE coordinates
+(
+    id         UUID PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    x          INTEGER,
+    y          INTEGER
+);
+
 CREATE TABLE dongs
 (
     id         UUID PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     dong_name  VARCHAR(50)              NOT NULL,
     latitude   DOUBLE PRECISION,
-    longitude  DOUBLE PRECISION,
-    x          INTEGER,
-    y INTEGER
+    longitude DOUBLE PRECISION
 );
 
 CREATE TABLE gus
@@ -96,11 +102,12 @@ CREATE TABLE sidos
 
 CREATE TABLE locations
 (
-    id         VARCHAR(10) PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    sido_id    UUID                     NOT NULL,
-    gu_id      UUID                     NOT NULL,
-    dong_id    UUID                     NOT NULL,
+    id            VARCHAR(10) PRIMARY KEY,
+    created_at    TIMESTAMP WITH TIME ZONE NOT NULL,
+    sido_id       UUID                     NOT NULL,
+    gu_id         UUID                     NOT NULL,
+    dong_id       UUID                     NOT NULL,
+    coordinate_id UUID                     NOT NULL,
 
     CONSTRAINT UK_SidoGuDong UNIQUE (sido_id, gu_id, dong_id)
 );

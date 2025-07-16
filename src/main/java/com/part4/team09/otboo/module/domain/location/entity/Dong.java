@@ -23,21 +23,13 @@ public class Dong extends BaseEntity {
   @Column(nullable = false)
   private double longitude;
 
-  @Column(nullable = false)
-  private int x;
-
-  @Column(nullable = false)
-  private int y;
-
-  public static Dong create(String dongName, double latitude, double longitude, int x, int y) {
-    return new Dong(dongName, latitude, longitude, x, y);
+  public static Dong create(String dongName, double latitude, double longitude) {
+    return new Dong(dongName, latitude, longitude);
   }
 
-  private Dong(String dongName, double latitude, double longitude, int x, int y) {
+  private Dong(String dongName, double latitude, double longitude) {
     this.dongName = dongName;
     this.latitude = latitude;
     this.longitude = longitude;
-    this.x = x;
-    this.y = y;
   }
 }
