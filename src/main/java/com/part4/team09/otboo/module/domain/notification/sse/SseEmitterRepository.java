@@ -3,7 +3,6 @@ package com.part4.team09.otboo.module.domain.notification.sse;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -24,14 +23,6 @@ public class SseEmitterRepository {
 
   public List<SseEmitter> findByReceiverId(UUID receiverId) {
     return data.getOrDefault(receiverId, List.of());
-  }
-
-  public List<SseEmitter> findAllByReceiverIdsIn(Collection<UUID> receiverIds) {
-    return data.entrySet().stream()
-        .filter(entry -> receiverIds.contains(entry.getKey()))
-        .map(Map.Entry::getValue)
-        .flatMap(Collection::stream)
-        .toList();
   }
 
   public List<SseEmitter> findAll() {

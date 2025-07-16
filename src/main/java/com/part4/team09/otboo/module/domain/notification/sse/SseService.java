@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -54,5 +55,19 @@ public class SseService {
 
   public void sendToUsers(List<NotificationDto> notificationDtos) {
     notificationDtos.forEach(this::send);
+  }
+
+  @Scheduled(cron = "0 */30 * * * *")
+  public void cleanUp() {
+    sseEmitterRepository.findAll()
+        .forEach(emitter -> {
+          try {
+            emitter.send(SseEmitter.event()
+                .name("ping")
+                .data("keep-alive"));
+          } catch (IOException e) {
+            emitter.completeWithError(e);
+          }
+        });
   }
 }
