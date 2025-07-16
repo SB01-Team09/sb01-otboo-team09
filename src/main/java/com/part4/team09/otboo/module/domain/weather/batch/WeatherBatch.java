@@ -1,7 +1,7 @@
 package com.part4.team09.otboo.module.domain.weather.batch;
 
 import com.part4.team09.otboo.module.common.monitoring.BatchMonitoringListener;
-import com.part4.team09.otboo.module.domain.location.entity.Location;
+import com.part4.team09.otboo.module.domain.location.entity.Coordinate;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
 import com.part4.team09.otboo.module.domain.weather.batch.listener.RetryJobListener;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
@@ -54,16 +54,16 @@ public class WeatherBatch {
 
   @Bean
   public WeatherReader weatherReader() {
-    return new WeatherReader(locationReader(), weatherApiClient, dongRepository, weatherRepository,
-      weatherCache);
+    return new WeatherReader(coordinateReader(), weatherApiClient);
   }
 
   @Bean
-  public JpaPagingItemReader<Location> locationReader() {
-    JpaPagingItemReader<Location> reader = new JpaPagingItemReader<>();
+  public JpaPagingItemReader<Coordinate> coordinateReader() {
+    JpaPagingItemReader<Coordinate> reader = new JpaPagingItemReader<>();
     reader.setEntityManagerFactory(entityManagerFactory);
-    reader.setQueryString("SELECT l FROM Location l");
-    reader.setPageSize(10);
+    reader.setQueryString("SELECT c FROM Coordinate c");
+    reader.setPageSize(50);
+    reader.setSaveState(false);
     return reader;
   }
 

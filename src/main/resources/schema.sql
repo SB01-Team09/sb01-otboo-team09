@@ -154,7 +154,7 @@ CREATE TABLE weathers
     forecasted_at    TIMESTAMP WITH TIME ZONE NOT NULL,
     forecast_at      TIMESTAMP WITH TIME ZONE NOT NULL,
     sky_status       VARCHAR(50)              NOT NULL,
-    location_id      VARCHAR(10)              NOT NULL,
+    coordinate_id UUID NOT NULL,
     precipitation_id UUID                     NOT NULL,
     humidity_id      UUID                     NOT NULL,
     temperature_id   UUID                     NOT NULL,

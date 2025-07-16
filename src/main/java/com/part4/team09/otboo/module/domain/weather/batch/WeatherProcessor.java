@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.weather.batch;
 
+import com.part4.team09.otboo.module.domain.location.entity.Coordinate;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherApiResponse.Response.Body.Items.Item;
@@ -42,10 +43,9 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, List<Weat
       for (int i = currentIndex; i < endIndex; i++) {
         extractForecastData(items.get(i), context);
 
-        context.x = data.x();
-        context.y = data.y();
+        context.coordinate = data.coordinate();
       }
-      weatherDatas.add(context.toWeatherData(data.locationId()));
+      weatherDatas.add(context.toWeatherData());
       currentIndex = endIndex;
       endIndex = Math.min(currentIndex + CHUNK_SIZE, items.size());
     }
@@ -149,10 +149,9 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, List<Weat
     LocalDateTime forecastedAt = null;
     SkyStatus skyStatus = null;
 
-    int x = 0;
-    int y = 0;
+    Coordinate coordinate = null;
 
-    WeatherData toWeatherData(String locationId) {
+    WeatherData toWeatherData() {
       return new WeatherData(
         Humidity.create(currentHumidity, comparedToDayBeforeHumidity),
         Precipitation.create(precipitationType, precipitationAmount, precipitationProbability),
@@ -162,9 +161,7 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, List<Weat
         forecastedAt,
         forecastAt,
         skyStatus,
-        locationId,
-        x,
-        y
+        coordinate
       );
     }
   }
