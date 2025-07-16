@@ -10,6 +10,7 @@ import com.part4.team09.otboo.module.domain.notification.dto.request.Notificatio
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateLocationRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateRequest;
 import com.part4.team09.otboo.module.domain.notification.entity.Notification.Level;
+import com.part4.team09.otboo.module.domain.notification.mapper.NotificationMapper;
 import com.part4.team09.otboo.module.domain.notification.repository.NotificationRepository;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
@@ -29,10 +31,16 @@ class NotificationServiceTest {
   private NotificationRepository notificationRepository;
 
   @Mock
+  private NotificationMapper notificationMapper;
+
+  @Mock
   private UserRepository userRepository;
 
   @Mock
   private FollowRepository followRepository;
+
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks
   private NotificationService notificationService;
