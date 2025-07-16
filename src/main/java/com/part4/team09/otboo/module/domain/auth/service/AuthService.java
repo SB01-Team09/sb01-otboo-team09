@@ -9,6 +9,7 @@ import com.part4.team09.otboo.module.domain.auth.dto.ResetPasswordRequest;
 import com.part4.team09.otboo.module.domain.auth.exception.AccountLockedException;
 import com.part4.team09.otboo.module.domain.auth.exception.InvalidTokenException;
 import com.part4.team09.otboo.module.domain.auth.mapper.AuthUserMapper;
+import com.part4.team09.otboo.module.domain.mail.service.EmailService;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.UUID;
