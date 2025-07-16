@@ -1,12 +1,14 @@
 package com.part4.team09.otboo.module.domain.location.service;
 
 import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
+import com.part4.team09.otboo.module.domain.location.entity.Coordinate;
 import com.part4.team09.otboo.module.domain.location.entity.Dong;
 import com.part4.team09.otboo.module.domain.location.entity.Gu;
 import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.entity.Sido;
 import com.part4.team09.otboo.module.domain.location.exception.LocationNotFoundException;
 import com.part4.team09.otboo.module.domain.location.external.LocationApiClient;
+import com.part4.team09.otboo.module.domain.location.repository.CoordinateRepository;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
 import com.part4.team09.otboo.module.domain.location.repository.GuRepository;
 import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
@@ -23,6 +25,7 @@ public class LocationService {
   private final SidoRepository sidoRepository;
   private final GuRepository guRepository;
   private final DongRepository dongRepository;
+  private final CoordinateRepository coordinateRepository;
   private final LocationApiClient locationApiClient;
 
   // longitude 경도 <-> 기상청 y, 카카오 x 127.xxx
@@ -49,11 +52,15 @@ public class LocationService {
     Dong dong = dongRepository.findById(location.getDongId())
       .orElseThrow(() -> LocationNotFoundException.withNameAndId("dong", location.getDongId()));
 
+    Coordinate coordinate = coordinateRepository.findById(location.getCoordinateId())
+      .orElseThrow(
+        () -> LocationNotFoundException.withNameAndId("coordinate", location.getCoordinateId()));
+
     return new WeatherAPILocation(
       dong.getLatitude(),
       dong.getLongitude(),
-      dong.getX(),
-      dong.getY(),
+      coordinate.getX(),
+      coordinate.getY(),
       List.of(sido.getSidoName(), gu.getGuName(), dong.getDongName())
     );
   }
