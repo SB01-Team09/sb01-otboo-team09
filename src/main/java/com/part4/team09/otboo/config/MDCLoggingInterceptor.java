@@ -22,12 +22,17 @@ public class MDCLoggingInterceptor implements HandlerInterceptor {
     String requestId = UUID.randomUUID().toString().replaceAll("-", "");
 
     // MDC에 컨텍스트 정보 추가
-    MDC.put(REQUEST_ID, requestId);
-    MDC.put(REQUEST_METHOD, request.getMethod());
-    MDC.put(REQUEST_URI, request.getRequestURI());
+    MDC.put("requestId", requestId);
+    MDC.put("requestMethod", request.getMethod());
+    MDC.put("requestUrl", request.getRequestURI());
+    String clientIp = request.getHeader("X-Forwarded-For");
+    if (clientIp == null || clientIp.isBlank()) {
+      clientIp = request.getRemoteAddr();
+    }
+    MDC.put("clientIp", clientIp);
 
     // 응답 헤더에 요청 ID 추가
-    response.setHeader(REQUEST_ID_HEADER, requestId);
+    response.setHeader("Discodeit-Request-ID", requestId);
 
     log.debug("Request started");
     return true;

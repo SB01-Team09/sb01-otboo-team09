@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface LikeRepository extends JpaRepository<Like, UUID> {
 
+  int countByFeedId(UUID feedId);
+
   boolean existsByUserIdAndFeedId(UUID userId, UUID feedId);
   Optional<Like> findByUserIdAndFeedId(UUID userId, UUID feedId);
 

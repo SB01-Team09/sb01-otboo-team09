@@ -23,12 +23,9 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @EnableJpaAuditing
-@Import({QueryDslConfig.class, ClothesAttributeDefRepositoryQueryDSL.class})
+@Import(QueryDslConfig.class)
 @ActiveProfiles("test")
 class ClothesAttributeDefRepositoryQueryDSLTest {
-
-  @Autowired
-  private ClothesAttributeDefRepositoryQueryDSL clothesAttributeDefRepositoryQueryDSL;
 
   @Autowired
   private ClothesAttributeDefRepository clothesAttributeDefRepository;
@@ -58,7 +55,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
     selectableValueRepository.save(SelectableValue.create(def2.getId(), "레드"));
 
     // when
-    List<UUID> result = clothesAttributeDefRepositoryQueryDSL.findDefIdsByKeyword("레드");
+    List<UUID> result = clothesAttributeDefRepository.findDefIdsByKeyword("레드");
 
     // then
     assertEquals(result.get(0), def2.getId());
@@ -82,7 +79,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
       List<ClothesAttributeDef> defs = List.of(def2, def3);
 
       // when
-      List<ClothesAttributeDef> result = clothesAttributeDefRepositoryQueryDSL.findByCursor(ids, request);
+      List<ClothesAttributeDef> result = clothesAttributeDefRepository.findByCursor(ids, request);
 
       // then
       assertEquals(result, defs);
@@ -102,7 +99,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
       List<ClothesAttributeDef> defs = List.of(def1);
 
       // when
-      List<ClothesAttributeDef> result = clothesAttributeDefRepositoryQueryDSL.findByCursor(ids, request);
+      List<ClothesAttributeDef> result = clothesAttributeDefRepository.findByCursor(ids, request);
 
       // then
       assertEquals(result, defs);
@@ -122,7 +119,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
       List<ClothesAttributeDef> defs = List.of(def2, def3);
 
       // when
-      List<ClothesAttributeDef> result = clothesAttributeDefRepositoryQueryDSL.findByCursor(ids, request);
+      List<ClothesAttributeDef> result = clothesAttributeDefRepository.findByCursor(ids, request);
 
       // then
       assertEquals(result, defs);
@@ -142,7 +139,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
       List<ClothesAttributeDef> defs = List.of(def1);
 
       // when
-      List<ClothesAttributeDef> result = clothesAttributeDefRepositoryQueryDSL.findByCursor(ids, request);
+      List<ClothesAttributeDef> result = clothesAttributeDefRepository.findByCursor(ids, request);
 
       // then
       assertEquals(result, defs);
@@ -162,7 +159,7 @@ class ClothesAttributeDefRepositoryQueryDSLTest {
       List<ClothesAttributeDef> defs = List.of(def1, def2);
 
       // when
-      List<ClothesAttributeDef> result = clothesAttributeDefRepositoryQueryDSL.findByCursor(ids, request);
+      List<ClothesAttributeDef> result = clothesAttributeDefRepository.findByCursor(ids, request);
 
       // then
       assertEquals(result, defs);
