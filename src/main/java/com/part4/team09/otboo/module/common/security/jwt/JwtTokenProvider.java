@@ -111,9 +111,9 @@ public class JwtTokenProvider {
       ? tempPassword.tempPasswordExpiresAt().toString()
       : "";
 
-    log.info("임시 비밀번호 생성: {}", tempPassword.isUsed());
-    log.info("refresh token 생성 시간: {}", LocalDateTime.ofInstant(now, ZoneId.systemDefault()));
-    log.info("refresh token 만료 시간: {}", LocalDateTime.ofInstant(expiry, ZoneId.systemDefault()));
+    log.debug("임시 비밀번호 생성: {}", tempPassword.isUsed());
+    log.debug("refresh token 생성 시간: {}", LocalDateTime.ofInstant(now, ZoneId.systemDefault()));
+    log.debug("refresh token 만료 시간: {}", LocalDateTime.ofInstant(expiry, ZoneId.systemDefault()));
 
     Map<String, Object> claims = new HashMap<>();
     claims.put("type", "refresh");

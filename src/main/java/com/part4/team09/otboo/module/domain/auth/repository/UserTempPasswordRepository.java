@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserTempPasswordRepository extends JpaRepository<UserTempPassword, UUID> {
 
   Optional<UserTempPassword> findByUserId(UUID userId);
+
+  void deleteByUserId(UUID uuid);
 }

@@ -1,10 +1,10 @@
 package com.part4.team09.otboo.module.common.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.part4.team09.otboo.module.common.security.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
+import com.part4.team09.otboo.module.common.util.CookieUtil;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
 import jakarta.servlet.ServletException;
@@ -45,10 +45,7 @@ public class JsonLoginSuccessHandler implements AuthenticationSuccessHandler {
     GeneratedToken generatedToken = jwtTokenProvider.generateToken(authUserDto, tempPasswordMeta);
 
     // 쿠키 생성 (refresh token)
-    Cookie refreshTokenCookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME,
-      generatedToken.refreshToken());
-    refreshTokenCookie.setHttpOnly(true);
-    refreshTokenCookie.setPath("/");
+    Cookie refreshTokenCookie = CookieUtil.createRefreshTokenCookie(generatedToken.refreshToken());
     response.addCookie(refreshTokenCookie);
 
     // 응답 설정

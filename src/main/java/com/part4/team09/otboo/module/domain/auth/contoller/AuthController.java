@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.auth.contoller;
 
 import com.part4.team09.otboo.module.common.security.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
+import com.part4.team09.otboo.module.common.util.CookieUtil;
 import com.part4.team09.otboo.module.domain.auth.dto.ResetPasswordRequest;
 import com.part4.team09.otboo.module.domain.auth.exception.AuthenticationRequiredException;
 import com.part4.team09.otboo.module.domain.auth.exception.MissingRefreshTokenException;
@@ -59,12 +60,11 @@ public class AuthController {
     if (refreshToken == null || refreshToken.isBlank()) {
       throw MissingRefreshTokenException.noDetail();
     }
-
     GeneratedToken generatedToken = authService.refreshTokens(refreshToken);
 
-    Cookie refreshCookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME,
-      generatedToken.refreshToken());
+    Cookie refreshCookie = CookieUtil.createRefreshTokenCookie(generatedToken.refreshToken());
     response.addCookie(refreshCookie);
+
     return ResponseEntity.ok(generatedToken.accessToken());
   }
 

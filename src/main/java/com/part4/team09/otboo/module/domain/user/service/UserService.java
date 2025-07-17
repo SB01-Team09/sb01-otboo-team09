@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.user.service;
 
+import com.part4.team09.otboo.module.domain.auth.repository.UserTempPasswordRepository;
 import com.part4.team09.otboo.module.domain.auth.service.AuthService;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
@@ -44,6 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserService {
 
   private final UserRepository userRepository;
+  private final UserTempPasswordRepository userTempPasswordRepository;
   private final PasswordEncoder passwordEncoder;
   private final UserMapper userMapper;
   private final LocationService locationService;
@@ -159,6 +161,9 @@ public class UserService {
 
     String encodedPassword = passwordEncoder.encode(rawPassword);
     user.changePassword(encodedPassword);
+
+    // 임시 비밀번호 제거
+    userTempPasswordRepository.deleteByUserId(id);
   }
 
   // 계정 목록 조회
