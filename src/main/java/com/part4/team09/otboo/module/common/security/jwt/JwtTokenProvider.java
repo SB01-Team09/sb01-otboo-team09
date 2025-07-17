@@ -17,12 +17,17 @@ import com.part4.team09.otboo.module.common.security.exception.InvalidJwtSignatu
 import com.part4.team09.otboo.module.common.security.exception.JwtAuthenticationException;
 import com.part4.team09.otboo.module.common.security.exception.JwtExpiredException;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
+import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -31,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
 
 /**
  * JWT 필터로부터 인증 요청을 받아 실질적인 인증 수행
@@ -62,54 +66,78 @@ public class JwtTokenProvider {
 
   // 토큰 생성
   @Transactional
-  public GeneratedToken generateToken(AuthUserDto authUserDto) {
+  public GeneratedToken generateToken(AuthUserDto authUserDto, TempPasswordMetadata tempPassword) {
 
-    String accessToken = generateAccessToken(authUserDto);
-    String refreshToken = generateRefreshToken(authUserDto);
+    String accessToken = generateAccessToken(authUserDto, tempPassword);
+    String refreshToken = generateRefreshToken(authUserDto, tempPassword);
 
     saveOrUpdateAuthToken(authUserDto.userId(), accessToken, refreshToken);
-
     return new GeneratedToken(accessToken, refreshToken);
   }
 
-  // access 토큰 발행
-  public String generateAccessToken(AuthUserDto authUserDto) {
+  // access 토큰 구성
+  public String generateAccessToken(AuthUserDto authUserDto, TempPasswordMetadata tempPassword) {
 
     Instant now = Instant.now();
+
     Instant expiry = now.plusSeconds(jwtProperty.getAccessToken().getValiditySeconds());
 
-    JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-      .issuer(jwtProperty.getIssuer())
-      .subject(authUserDto.email())
-      .issueTime(Date.from(now))
-      .expirationTime(Date.from(expiry))
-      .jwtID(UUID.randomUUID().toString())
-      .claim("type", "access")
-      .claim("userId", authUserDto.userId())
-      .claim("name", authUserDto.name())
-      .claim("email", authUserDto.email())
-      .claim("role", authUserDto.role())
-      .build();
+    String tempPasswordExpiresAtStr = tempPassword.isUsed()
+      ? tempPassword.tempPasswordExpiresAt().toString()
+      : "";
 
-    return createSignedToken(jwtClaimsSet);
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("type", "access");
+    claims.put("userId", authUserDto.userId());
+    claims.put("name", authUserDto.name());
+    claims.put("email", authUserDto.email());
+    claims.put("role", authUserDto.role());
+    claims.put("isTempPassword", tempPassword.isUsed());
+    claims.put("tempPasswordExpiresAt", tempPasswordExpiresAtStr);
+
+    return generateToken(authUserDto.email(), expiry, claims);
   }
 
-  // refresh 토큰 발행
-  public String generateRefreshToken(AuthUserDto authUserDto) {
+  // refresh 토큰 구성
+  public String generateRefreshToken(AuthUserDto authUserDto, TempPasswordMetadata tempPassword) {
 
     Instant now = Instant.now();
-    Instant expiry = now.plusSeconds(jwtProperty.getRefreshToken().getValiditySeconds());
 
-    JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+    Instant expiry = tempPassword.isUsed()
+      ? tempPassword.expiresAtAsInstant()
+      : now.plusSeconds(jwtProperty.getRefreshToken().getValiditySeconds());
+
+    String tempPasswordExpiresAtStr = tempPassword.isUsed()
+      ? tempPassword.tempPasswordExpiresAt().toString()
+      : "";
+
+    log.info("임시 비밀번호 생성: {}", tempPassword.isUsed());
+    log.info("refresh token 생성 시간: {}", LocalDateTime.ofInstant(now, ZoneId.systemDefault()));
+    log.info("refresh token 만료 시간: {}", LocalDateTime.ofInstant(expiry, ZoneId.systemDefault()));
+
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("type", "refresh");
+    claims.put("isTempPassword", tempPassword.isUsed());
+    claims.put("tempPasswordExpiresAt", tempPasswordExpiresAtStr);
+
+    return generateToken(authUserDto.email(), expiry, claims);
+  }
+
+  // 토큰 생성
+  public String generateToken(String subject, Instant expiresAt, Map<String, Object> claims) {
+
+    Instant now = Instant.now();
+
+    JWTClaimsSet.Builder jwtClaimsSet = new JWTClaimsSet.Builder()
       .issuer(jwtProperty.getIssuer())
-      .subject(authUserDto.email())
+      .subject(subject)
       .issueTime(Date.from(now))
-      .expirationTime(Date.from(expiry))
-      .jwtID(UUID.randomUUID().toString())
-      .claim("type", "refresh")
-      .build();
+      .expirationTime(Date.from(expiresAt))
+      .jwtID(UUID.randomUUID().toString());
 
-    return createSignedToken(jwtClaimsSet);
+    claims.forEach(jwtClaimsSet::claim);
+
+    return createSignedToken(jwtClaimsSet.build());
   }
 
   // 동시 로그인 제한 및 유효성 검증
@@ -181,6 +209,21 @@ public class JwtTokenProvider {
   public String getSubjectFromToken(String token) throws AuthenticationException {
     JWTClaimsSet claimsSet = parseToken(token);
     return claimsSet.getSubject();
+  }
+
+  // 클레임에서 임시 비밀번호 정보 추출
+  public TempPasswordMetadata getTempPasswordMetaDataFromToken(String token) {
+    try {
+      JWTClaimsSet claimsSet = parseToken(token);
+      boolean isUsed = claimsSet.getBooleanClaim("isTempPassword");
+      String expiresAtStr = claimsSet.getStringClaim("tempPasswordExpiresAt");
+      LocalDateTime expiresAt = expiresAtStr.isBlank() ? null : LocalDateTime.parse(expiresAtStr);
+
+      return new TempPasswordMetadata(isUsed, expiresAt);
+
+    } catch (ParseException e) {
+      throw new InvalidJwtFormatException("JWT 형식이 잘못되었습니다.");
+    }
   }
 
   // 무효화

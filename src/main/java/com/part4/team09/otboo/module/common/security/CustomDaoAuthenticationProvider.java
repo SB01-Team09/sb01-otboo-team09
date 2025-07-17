@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.common.security;
 
+import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
 import com.part4.team09.otboo.module.domain.auth.entity.UserTempPassword;
 import com.part4.team09.otboo.module.domain.auth.repository.UserTempPasswordRepository;
 import java.time.LocalDateTime;
@@ -46,12 +47,16 @@ public class CustomDaoAuthenticationProvider extends DaoAuthenticationProvider {
       // 만료된 경우, 임시 비밀번호 데이터 삭제
       if (tempPassword.isExpired(LocalDateTime.now())) {
         tempPasswordRepository.delete(tempPassword);
+
       } else if (getPasswordEncoder().matches(requestPassword,
         tempPassword.getTemporaryPassword())) {
+
         // 임시 비밀번호 로그인 성공
         Map<String, Object> details = new HashMap<>();
-        details.put("isTempPassword", true);
+        TempPasswordMetadata metadata = new TempPasswordMetadata(true, tempPassword.getExpiresAt());
+        details.put("tempPassword", metadata);
         authentication.setDetails(details);
+
         log.info("임시 비밀번호 로그인 성공");
         return;
       }
@@ -63,7 +68,8 @@ public class CustomDaoAuthenticationProvider extends DaoAuthenticationProvider {
     }
 
     Map<String, Object> details = new HashMap<>();
-    details.put("isTempPassword", false);
+    TempPasswordMetadata metadata = TempPasswordMetadata.notUsed();
+    details.put("tempPassword", metadata);
     authentication.setDetails(details);
   }
 }

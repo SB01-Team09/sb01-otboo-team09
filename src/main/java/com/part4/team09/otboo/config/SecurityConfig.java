@@ -119,6 +119,7 @@ public class SecurityConfig {
     return authenticationConfiguration.getAuthenticationManager();
   }
 
+  // 인증 커스텀
   @Bean
   public AuthenticationProvider customDaoAuthenticationProvider(PasswordEncoder passwordEncoder) {
     return new CustomDaoAuthenticationProvider(
