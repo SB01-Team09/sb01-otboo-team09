@@ -24,7 +24,7 @@ public class CommentRepositoryQueryDSL {
                 .selectFrom(comment)
                 .where(
                   comment.feedId.eq(feedId),
-                        cursorCondition(cursor, idAfter)
+                  cursorCondition(cursor, idAfter)
                 )
                 .orderBy(comment.createdAt.asc())
                 .limit(limit)

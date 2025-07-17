@@ -72,8 +72,8 @@ public class ClothesService {
     // 연관 생성
     if (!request.attributes().isEmpty()) {
       createClothesAttributes(request.attributes(), savedClothes.getId());
-      List<ClothesWithAttributesDto> clothesWithAttributesDtos = clothesRepository.findByClothesId(
-        savedClothes.getId());
+      List<ClothesWithAttributesDto> clothesWithAttributesDtos =
+        clothesRepository.findByClothesId(savedClothes.getId());
       List<SelectableValue> selectableValues = selectableValueService.findAll();
       response = clothesDtoAssembler.assemble(clothesWithAttributesDtos, selectableValues);
     } else {

@@ -37,8 +37,8 @@ public class ClothesController {
   @PostMapping
   public ResponseEntity<ClothesDto> create(
     @AuthenticationPrincipal CustomUserDetails userDetails,
-      @RequestPart("request") @Valid ClothesCreateRequest request,
-      @RequestPart(value = "image", required = false) MultipartFile image
+    @RequestPart("request") @Valid ClothesCreateRequest request,
+    @RequestPart(value = "image", required = false) MultipartFile image
   ) {
     log.info("의상 생성 요청: name = {}, type = {}, attributeSize = {}, imageIsNull = {}",
       request.name(), request.type(), request.attributes().size(), image == null);
@@ -55,11 +55,11 @@ public class ClothesController {
   @GetMapping
   public ResponseEntity<ClothesDtoCursorResponse> findByCursor(
     @AuthenticationPrincipal CustomUserDetails userDetails,
-      @RequestParam(required = false) String cursor,
-      @RequestParam(required = false) UUID idAfter,
-      @RequestParam int limit,
-      @RequestParam(required = false) ClothesType typeEqual,
-      @RequestParam UUID ownerId
+    @RequestParam(required = false) String cursor,
+    @RequestParam(required = false) UUID idAfter,
+    @RequestParam int limit,
+    @RequestParam(required = false) ClothesType typeEqual,
+    @RequestParam UUID ownerId
   ) {
     log.info("의상 조회 요청: cursor = {}, idAfter = {}, limit = {}, typeEqual = {}",
       cursor, idAfter, limit, typeEqual);
@@ -80,9 +80,9 @@ public class ClothesController {
   @PatchMapping("/{clothesId}")
   public ResponseEntity<ClothesDto> update(
     @AuthenticationPrincipal CustomUserDetails userDetails,
-      @PathVariable UUID clothesId,
-      @RequestPart("request") @Valid ClothesUpdateRequest request,
-      @RequestPart(value = "image", required = false) MultipartFile image
+    @PathVariable UUID clothesId,
+    @RequestPart("request") @Valid ClothesUpdateRequest request,
+    @RequestPart(value = "image", required = false) MultipartFile image
   ) {
     log.info("의상 수정 요청: name = {}, type = {}, attributeSize = {}, imageIsNull = {}",
       request.name(), request.type(), request.attributes().size(), image == null);
