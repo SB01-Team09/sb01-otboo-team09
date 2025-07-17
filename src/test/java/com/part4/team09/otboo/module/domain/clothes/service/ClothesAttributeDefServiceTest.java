@@ -16,7 +16,6 @@ import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDe
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
-import com.part4.team09.otboo.module.domain.clothes.repository.custom.ClothesAttributeDefRepositoryQueryDSL;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,9 +37,6 @@ class ClothesAttributeDefServiceTest {
 
   @Mock
   private ClothesAttributeDefRepository clothesAttributeDefRepository;
-
-  @Mock
-  private ClothesAttributeDefRepositoryQueryDSL clothesAttributeDefRepositoryQueryDSL;
 
   private ClothesAttributeDef def1;
 
@@ -138,7 +134,7 @@ class ClothesAttributeDefServiceTest {
       String keyword = "사이즈";
       List<UUID> defIds = List.of(def1.getId());
 
-      given(clothesAttributeDefRepositoryQueryDSL.findDefIdsByKeyword(keyword)).willReturn(defIds);
+      given(clothesAttributeDefRepository.findDefIdsByKeyword(keyword)).willReturn(defIds);
 
       // when
       List<UUID> result = clothesAttributeDefService.findIdsByKeyword(keyword);
@@ -146,7 +142,7 @@ class ClothesAttributeDefServiceTest {
       // then
       assertEquals(result, defIds);
       then(clothesAttributeDefRepository).should(times(0)).findAll();
-      then(clothesAttributeDefRepositoryQueryDSL).should().findDefIdsByKeyword(keyword);
+      then(clothesAttributeDefRepository).should().findDefIdsByKeyword(keyword);
     }
 
     @Test
@@ -165,7 +161,7 @@ class ClothesAttributeDefServiceTest {
       // then
       assertEquals(result, defs.stream().map(BaseEntity::getId).toList());
       then(clothesAttributeDefRepository).should().findAll();
-      then(clothesAttributeDefRepositoryQueryDSL).should(times(0)).findDefIdsByKeyword(keyword);
+      then(clothesAttributeDefRepository).should(times(0)).findDefIdsByKeyword(keyword);
     }
 
     @Test
@@ -184,7 +180,7 @@ class ClothesAttributeDefServiceTest {
       // then
       assertEquals(result, defs.stream().map(BaseEntity::getId).toList());
       then(clothesAttributeDefRepository).should().findAll();
-      then(clothesAttributeDefRepositoryQueryDSL).should(times(0)).findDefIdsByKeyword(keyword);
+      then(clothesAttributeDefRepository).should(times(0)).findDefIdsByKeyword(keyword);
     }
   }
 
@@ -202,14 +198,14 @@ class ClothesAttributeDefServiceTest {
           "name", SortDirection.ASCENDING, "사이즈");
       List<ClothesAttributeDef> defs = List.of(def1);
 
-      given(clothesAttributeDefRepositoryQueryDSL.findByCursor(defIds, request)).willReturn(
+      given(clothesAttributeDefRepository.findByCursor(defIds, request)).willReturn(
           defs);
       // when
       List<ClothesAttributeDef> result = clothesAttributeDefService.findByCursor(defIds, request);
 
       // then
       assertEquals(result, defs);
-      then(clothesAttributeDefRepositoryQueryDSL).should().findByCursor(defIds, request);
+      then(clothesAttributeDefRepository).should().findByCursor(defIds, request);
     }
 
     @Test
@@ -227,7 +223,7 @@ class ClothesAttributeDefServiceTest {
 
       // then
       assertEquals(result, defs);
-      then(clothesAttributeDefRepositoryQueryDSL).should(times(0)).findByCursor(defIds, request);
+      then(clothesAttributeDefRepository).should(times(0)).findByCursor(defIds, request);
 
     }
 
@@ -242,7 +238,7 @@ class ClothesAttributeDefServiceTest {
 
       // when, then
       assertThrows(BadRequestException.class, () -> clothesAttributeDefService.findByCursor(defIds, request));
-      then(clothesAttributeDefRepositoryQueryDSL).should(times(0)).findByCursor(defIds, request);
+      then(clothesAttributeDefRepository).should(times(0)).findByCursor(defIds, request);
 
     }
 
@@ -257,7 +253,7 @@ class ClothesAttributeDefServiceTest {
 
       // when, then
       assertThrows(BadRequestException.class, () -> clothesAttributeDefService.findByCursor(defIds, request));
-      then(clothesAttributeDefRepositoryQueryDSL).should(times(0)).findByCursor(defIds, request);
+      then(clothesAttributeDefRepository).should(times(0)).findByCursor(defIds, request);
     }
   }
 

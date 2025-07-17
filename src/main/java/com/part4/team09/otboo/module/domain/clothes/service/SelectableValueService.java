@@ -83,6 +83,14 @@ public class SelectableValueService {
     return selectableValues;
   }
 
+  @Transactional(readOnly = true)
+  public List<SelectableValue> findAll() {
+
+    List<SelectableValue> selectableValues = selectableValueRepository.findAll();
+
+    return selectableValues;
+  }
+
   public List<SelectableValue> updateWhenNameSame(UUID defId, List<UUID> valueIdsForDelete,
       List<String> newValues) {
 

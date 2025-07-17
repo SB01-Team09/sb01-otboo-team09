@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+// TODO: 제거 예정
 @Component
 @RequiredArgsConstructor
 public class ClothesAttributeWithDefDtoAssembler {
@@ -30,39 +31,44 @@ public class ClothesAttributeWithDefDtoAssembler {
     // 옷과 연관된 속성 값 id 엔티티
     List<ClothesAttribute> attributes = clothesAttributeService.findByClothesId(clothesId);
 
-    // 선택한 속성 값 id
-    List<UUID> selectedValueIds = attributes.stream()
+    if (attributes.isEmpty()) {
+
+      return List.of();
+    } else {
+      // 선택한 속성 값 id
+      List<UUID> selectedValueIds = attributes.stream()
         .map(ClothesAttribute::getSelectableValueId)
         .toList();
 
-    // 선택한 속성 값
-    List<SelectableValue> selectedValues = selectableValueService.findAllByIdIn(selectedValueIds);
+      // 선택한 속성 값
+      List<SelectableValue> selectedValues = selectableValueService.findAllByIdIn(selectedValueIds);
 
-    // defId : valueName - 선택한 속성 값 이름
-    Map<UUID, String> selectedValueNames = selectedValues.stream()
+      // defId : valueName - 선택한 속성 값 이름
+      Map<UUID, String> selectedValueNames = selectedValues.stream()
         .collect(Collectors.toMap(SelectableValue::getAttributeDefId, SelectableValue::getItem));
 
-    // 선택한 속성 정의 id
-    List<UUID> defIds = selectedValues.stream()
+      // 선택한 속성 정의 id
+      List<UUID> defIds = selectedValues.stream()
         .map(SelectableValue::getAttributeDefId)
         .toList();
 
-    // 속성 정의 id의 모든 속성 값
-    Map<UUID, List<SelectableValue>> selectableValues = selectableValueService.findAllByAttributeDefIdIn(
-            defIds).stream()
+      // 속성 정의 id의 모든 속성 값
+      Map<UUID, List<SelectableValue>> selectableValues = selectableValueService.findAllByAttributeDefIdIn(
+          defIds).stream()
         .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
 
-    // 선택한 속성 정의
-    List<ClothesAttributeDef> defs = clothesAttributeDefService.findAllByIds(defIds);
+      // 선택한 속성 정의
+      List<ClothesAttributeDef> defs = clothesAttributeDefService.findAllByIds(defIds);
 
-    return defs.stream()
+      return defs.stream()
         .map(def -> clothesAttributeWithDefMapper.toDto(
-            def.getId(),
-            def.getName(),
-            selectableValues.get(def.getId()).stream()
-                .map(SelectableValue::getItem)
-                .toList(),
-            selectedValueNames.get(def.getId())))
+          def.getId(),
+          def.getName(),
+          selectableValues.get(def.getId()).stream()
+            .map(SelectableValue::getItem)
+            .toList(),
+          selectedValueNames.get(def.getId())))
         .toList();
+    }
   }
 }

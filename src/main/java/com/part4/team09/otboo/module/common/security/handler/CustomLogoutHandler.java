@@ -46,6 +46,7 @@ public class CustomLogoutHandler implements LogoutHandler {
     Cookie refreshTokenCookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME, "");
     refreshTokenCookie.setMaxAge(0);
     refreshTokenCookie.setHttpOnly(true);
+    refreshTokenCookie.setPath("/");
     response.addCookie(refreshTokenCookie);
   }
 }

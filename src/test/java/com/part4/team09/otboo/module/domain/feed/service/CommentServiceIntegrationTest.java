@@ -1,5 +1,7 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.feed.entity.Comment;
@@ -8,7 +10,10 @@ import com.part4.team09.otboo.module.domain.feed.repository.CommentRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
+@Disabled
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")

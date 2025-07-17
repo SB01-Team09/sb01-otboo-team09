@@ -12,12 +12,11 @@ import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -55,6 +54,7 @@ public class FeedRepositoryQueryDSL {
         Long count = queryFactory
                 .select(feed.count())
                 .from(feed)
+          .join(ootd).on(feed.id.eq(ootd.feedId)) // feed, ootd 조인
                 .join(weather).on(feed.weatherId.eq(weather.id)) // feed, weather 조인
                 .join(precipitation).on(weather.precipitationId.eq(precipitation.id)) // weather, precipitation 조인
                 .where(
@@ -84,61 +84,56 @@ public class FeedRepositoryQueryDSL {
 
     private BooleanExpression cursorCondition(String cursor, UUID idAfter, String sortBy, SortDirection sortDirection) {
 
-        if (cursor == null) return null;
+      if (cursor == null || cursor.isBlank()) {
+        return null;
+      }
 
-        if (sortBy.equals("createdAt")) {
-            if (sortDirection.equals("DESCENDING")) {
-                BooleanExpression condition = feed.createdAt.lt(LocalDateTime.parse(cursor));
+      if ("createdAt".equals(sortBy)) {
+        LocalDateTime cursorTime = LocalDateTime.parse(cursor);
+        if (SortDirection.DESCENDING.equals(sortDirection)) {
+          BooleanExpression condition = feed.createdAt.lt(cursorTime);
                 if (idAfter != null) {
-                    condition = condition.or(
-                            feed.createdAt.eq(LocalDateTime.parse(cursor))
-                                    .and(feed.id.lt(idAfter))
-                    );
+                  condition = feed.createdAt.lt(cursorTime)
+                    .or(feed.createdAt.eq(cursorTime).and(feed.id.lt(idAfter)));
                 }
                 return condition;
-            } else if (sortDirection.equals("ASCENDING")) {
-                BooleanExpression condition = feed.createdAt.gt(LocalDateTime.parse(cursor));
+        } else if (SortDirection.ASCENDING.equals(sortDirection)) {
+          BooleanExpression condition = feed.createdAt.gt(cursorTime);
                 if (idAfter != null) {
-                    condition = condition.or(
-                            feed.createdAt.eq(LocalDateTime.parse(cursor))
-                                    .and(feed.id.gt(idAfter))
-                    );
+                  condition = feed.createdAt.gt(cursorTime)
+                    .or(feed.createdAt.eq(cursorTime).and(feed.id.gt(idAfter)));
                 }
                 return condition;
             }
         }
-
-        if (sortBy.equals("likeCount")) {
-            if (sortDirection.equals("DESCENDING")) {
-                BooleanExpression condition = feed.likeCount.lt(Integer.parseInt(cursor));
+      if ("likeCount".equals(sortBy)) {
+        int cursorLikeCount = Integer.parseInt(cursor);
+        if (SortDirection.DESCENDING.equals(sortDirection)) {
                 if (idAfter != null) {
-                    condition = condition.or(
-                            feed.likeCount.eq(Integer.parseInt(cursor))
-                                    .and(feed.id.lt(idAfter))
-                    );
+                  return feed.likeCount.lt(cursorLikeCount)
+                    .or(feed.likeCount.eq(cursorLikeCount).and(feed.id.lt(idAfter)));
+                } else {
+                  return feed.likeCount.lt(cursorLikeCount);
                 }
-                return condition;
-            } else if (sortDirection.equals("ASCENDING")) {
-                BooleanExpression condition = feed.likeCount.lt(Integer.parseInt(cursor));
+        } else if (SortDirection.ASCENDING.equals(sortDirection)) {
                 if (idAfter != null) {
-                    condition = condition.or(
-                            feed.likeCount.eq(Integer.parseInt(cursor))
-                                    .and(feed.id.lt(idAfter))
-                    );
+                  return feed.likeCount.gt(cursorLikeCount)
+                    .or(feed.likeCount.eq(cursorLikeCount).and(feed.id.gt(idAfter)));
+                } else {
+                  return feed.likeCount.gt(cursorLikeCount);
                 }
-                return condition;
             }
         }
         return null;
     }
 
     private OrderSpecifier<?> getSortOrder(String sortBy, SortDirection sortDirection) {
-        if (sortBy.equals("createdAt")) {
-        return sortDirection.equals(SortDirection.DESCENDING)
+      if ("createdAt".equals(sortBy)) {
+        return SortDirection.DESCENDING.equals(sortDirection)
                     ? feed.createdAt.desc()
                     : feed.createdAt.asc();
-        } else if (sortBy.equals("likeCount")) {
-            return sortDirection.equals(SortDirection.DESCENDING)
+      } else if ("likeCount".equals(sortBy)) {
+        return SortDirection.DESCENDING.equals(sortDirection)
                     ? feed.likeCount.desc()
                     : feed.likeCount.asc();
         }

@@ -56,6 +56,7 @@ public class UserController {
   }
 
   // 프로필 수정
+  @PreAuthorize("principal.id == #userId")
   @PatchMapping("/{userId}/profiles")
   public ResponseEntity<ProfileDto> updateProfile(
     @PathVariable UUID userId,
@@ -67,6 +68,7 @@ public class UserController {
   }
 
   // 비밀번호 변경
+  @PreAuthorize("principal.id == #userId")
   @PatchMapping("/{userId}/password")
   public ResponseEntity<Void> updatePassword(
     @PathVariable UUID userId,

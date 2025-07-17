@@ -1,14 +1,14 @@
 package com.part4.team09.otboo.module.domain.feed.repository;
 
-import com.part4.team09.otboo.module.domain.feed.entity.*;
+import com.part4.team09.otboo.module.domain.feed.entity.Comment;
+import com.part4.team09.otboo.module.domain.feed.entity.QComment;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -23,6 +23,7 @@ public class CommentRepositoryQueryDSL {
         return queryFactory
                 .selectFrom(comment)
                 .where(
+                  comment.feedId.eq(feedId),
                         cursorCondition(cursor, idAfter)
                 )
                 .orderBy(comment.createdAt.asc())
@@ -42,7 +43,9 @@ public class CommentRepositoryQueryDSL {
 
 
     private BooleanExpression cursorCondition(String cursor, UUID idAfter) {
-        if (cursor == null) return null;
+      if (cursor == null || cursor.isBlank()) {
+        return null;
+      }
         LocalDateTime decodedCursor = LocalDateTime.parse(cursor);
 
         BooleanExpression condition = comment.createdAt.gt(decodedCursor);

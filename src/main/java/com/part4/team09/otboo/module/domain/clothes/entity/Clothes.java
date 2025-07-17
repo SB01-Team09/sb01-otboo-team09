@@ -49,12 +49,13 @@ public class Clothes extends BaseUpdatableEntity {
     return new Clothes(ownerId, name, type, imageUrl);
   }
 
-  public void updateName(String name) {
-    this.name = name;
-  }
-
-  public void updateType( ClothesType type) {
-    this.type = type;
+  public void updateNameAndType(String name, ClothesType type) {
+    if (name != null) {
+      this.name = name;
+    }
+    if (type != null) {
+      this.type = type;
+    }
   }
 
   public void updateImageUrl(String imageUrl) {

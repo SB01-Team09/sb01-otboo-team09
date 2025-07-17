@@ -1,18 +1,17 @@
 package com.part4.team09.otboo.module.domain.follow.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListRequest;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
@@ -123,5 +122,4 @@ class FollowRepositoryQueryDSLTest {
         // then
         assertThat(count).isEqualTo(1);
     }
-
 }

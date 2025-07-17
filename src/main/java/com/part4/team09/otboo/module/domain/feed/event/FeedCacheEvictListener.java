@@ -22,7 +22,7 @@ public class FeedCacheEvictListener {
         Cache cache = cacheManager.getCache("feeds");
 
         if (cache != null) {
-            cache.evict("firstPage:createdAt:  ");
+          cache.evict("firstPage:createdAt");
             log.debug("캐시 무효화 완료");
         }else {
             log.debug("feeds 캐시를 찾을 수 없습니다.");
