@@ -2,10 +2,12 @@ package com.part4.team09.otboo.module.domain.weather.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
+import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.service.LocationService;
 import com.part4.team09.otboo.module.domain.weather.dto.response.HumidityDto;
 import com.part4.team09.otboo.module.domain.weather.dto.response.PrecipitationDto;
@@ -68,7 +70,7 @@ class WeatherServiceTest {
     int x = 60;
     int y = 127;
 
-    WeatherAPILocation location = new WeatherAPILocation(
+    WeatherAPILocation weatherAPILocation = new WeatherAPILocation(
       latitude,
       longitude,
       x,
@@ -95,16 +97,21 @@ class WeatherServiceTest {
     ReflectionTestUtils.setField(windSpeed, "id", windSpeedId);
 
     String locationId = "1111051500";
+    UUID coordinateId = UUID.randomUUID();
+    Location location = mock(Location.class);
+    when(location.getCoordinateId()).thenReturn(coordinateId);
+
     LocalDateTime forecastAt = LocalDate.now().atTime(12, 0);
     LocalDateTime forecastedAt = LocalDate.now().atTime(12, 0);
 
     SkyStatus skyStatus = SkyStatus.CLEAR;
 
+
     Weather weather = Weather.create(
       forecastAt,
       forecastedAt,
       skyStatus,
-      locationId,
+      coordinateId,
       precipitation.getId(),
       humidity.getId(),
       temperature.getId(),
@@ -122,7 +129,7 @@ class WeatherServiceTest {
       weatherId,
       forecastedAt,
       forecastAt,
-      location,
+      weatherAPILocation,
       skyStatus,
       precipitationDto,
       humidityDto,
@@ -131,8 +138,10 @@ class WeatherServiceTest {
     );
 
     when(locationService.getLocationCodeByCoordinates(longitude, latitude)).thenReturn(locationId);
-    when(locationService.getLocation(locationId)).thenReturn(location);
-    when(weatherRepository.findByLocationIdAndForecastAtGreaterThanEqual(locationId, forecastAt))
+    when(locationService.getLocation(locationId)).thenReturn(weatherAPILocation);
+    when(locationService.getLocationOrThrow(locationId)).thenReturn(location);
+    when(
+      weatherRepository.findByCoordinateIdAndForecastAtGreaterThanEqual(coordinateId, forecastAt))
       .thenReturn(List.of(weather));
     when(humidityRepository.findById(any())).thenReturn(Optional.of(humidity));
     when(precipitationRepository.findById(any())).thenReturn(Optional.of(precipitation));
@@ -147,6 +156,7 @@ class WeatherServiceTest {
     assertThat(result.get(0)).isEqualTo(expectedDto);
 
     verify(locationService).getLocationCodeByCoordinates(longitude, latitude);
-    verify(weatherRepository).findByLocationIdAndForecastAtGreaterThanEqual(locationId, forecastAt);
+    verify(weatherRepository).findByCoordinateIdAndForecastAtGreaterThanEqual(coordinateId,
+      forecastAt);
   }
 }

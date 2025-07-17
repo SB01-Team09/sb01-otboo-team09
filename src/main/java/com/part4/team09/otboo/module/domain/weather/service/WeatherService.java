@@ -35,8 +35,6 @@ public class WeatherService {
   private final WindSpeedRepository windSpeedRepository;
   private final WeatherMapper weatherMapper;
 
-
-  // TODO: 고쳐야 함
   public final List<WeatherDto> getWeather(double longitude, double latitude) {
     // 지역 정보 조회 및 dto 변환
     String locationId = locationService.getLocationCodeByCoordinates(longitude, latitude);
@@ -82,5 +80,4 @@ public class WeatherService {
 
     return weatherDtos;
   }
-
 }
