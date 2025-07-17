@@ -42,9 +42,9 @@ class NotificationControllerTest {
 
       // when & then
       mockMvc.perform(delete("/api/notifications/{notificationId}", notificationId)
-              .contentType(MediaType.APPLICATION_JSON)
-              .with(csrf()))
-          .andExpect(status().isNoContent());
+          .contentType(MediaType.APPLICATION_JSON)
+          .with(csrf()))
+        .andExpect(status().isNoContent());
     }
   }
 }

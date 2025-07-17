@@ -44,9 +44,9 @@ public class SseService {
     emitters.forEach(emitter -> {
       try {
         emitter.send(SseEmitter.event()
-            .id(notificationDto.id().toString())
-            .name("notifications")
-            .data(notificationDto));
+          .id(notificationDto.id().toString())
+          .name("notifications")
+          .data(notificationDto));
       } catch (IOException e) {
         sseEmitterRepository.delete(receiverId, emitter);
       }
@@ -60,14 +60,14 @@ public class SseService {
   @Scheduled(cron = "0 */30 * * * *")
   public void cleanUp() {
     sseEmitterRepository.findAll()
-        .forEach(emitter -> {
-          try {
-            emitter.send(SseEmitter.event()
-                .name("ping")
-                .data("keep-alive"));
-          } catch (IOException e) {
-            emitter.completeWithError(e);
-          }
-        });
+      .forEach(emitter -> {
+        try {
+          emitter.send(SseEmitter.event()
+            .name("ping")
+            .data("keep-alive"));
+        } catch (IOException e) {
+          emitter.completeWithError(e);
+        }
+      });
   }
 }

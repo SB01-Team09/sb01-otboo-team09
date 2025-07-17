@@ -27,8 +27,8 @@ public class SseEmitterRepository {
 
   public List<SseEmitter> findAll() {
     return data.values().stream()
-        .flatMap(Collection::stream)
-        .toList();
+      .flatMap(Collection::stream)
+      .toList();
   }
 
   public void delete(UUID receiverId, SseEmitter sseEmitter) {

@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.clothes.repository.custom;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.part4.team09.otboo.config.QueryDslConfig;
 import com.part4.team09.otboo.module.common.enums.SortDirection;

@@ -77,9 +77,9 @@ public class ClothesAttributeService {
 
   private Clothes getClothesOrThrow(UUID clothesId) {
     return clothesRepository.findById(clothesId)
-        .orElseThrow(() -> {
-          log.warn("의상을 찾을 수 없습니다. clothesId = {}", clothesId);
-          return ClothesNotFoundException.withId(clothesId);
-        });
+      .orElseThrow(() -> {
+        log.warn("의상을 찾을 수 없습니다. clothesId = {}", clothesId);
+        return ClothesNotFoundException.withId(clothesId);
+      });
   }
 }

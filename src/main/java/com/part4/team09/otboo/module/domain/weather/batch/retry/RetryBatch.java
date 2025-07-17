@@ -55,8 +55,7 @@ public class RetryBatch {
 
   @Bean
   public WeatherReader retryWeatherReader() {
-    return new WeatherReader(failedLocationReader, weatherApiClient, dongRepository,
-      weatherRepository, weatherCache);
+    return new WeatherReader(failedLocationReader, weatherApiClient);
   }
 
   @Bean("retryJob")

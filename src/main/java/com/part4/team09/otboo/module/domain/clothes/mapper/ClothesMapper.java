@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class ClothesMapper {
 
   public ClothesDto toDto(UUID id, UUID ownerId, String name, String imageUrl, ClothesType type,
-      LocalDateTime createdAt, List<ClothesAttributeWithDefDto> attributes) {
+    LocalDateTime createdAt, List<ClothesAttributeWithDefDto> attributes) {
 
     return new ClothesDto(id, ownerId, name, imageUrl, type, createdAt, attributes);
   }

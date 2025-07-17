@@ -28,7 +28,7 @@ public class Weather extends BaseEntity {
   private SkyStatus skyStatus;
 
   @Column(nullable = false)
-  private String locationId;
+  private UUID coordinateId;
 
   @Column(nullable = false)
   private UUID precipitationId;
@@ -57,19 +57,20 @@ public class Weather extends BaseEntity {
   }
 
   public static Weather create(LocalDateTime forecastAt, LocalDateTime forecastedAt, SkyStatus skyStatus,
-    String locationId, UUID precipitationId, UUID humidityId, UUID temperatureId,
+    UUID coordinateId, UUID precipitationId, UUID humidityId, UUID temperatureId,
     UUID windSpeedId) {
-    return new Weather(forecastAt, forecastedAt, skyStatus, locationId, precipitationId, humidityId,
+    return new Weather(forecastAt, forecastedAt, skyStatus, coordinateId, precipitationId,
+      humidityId,
         temperatureId, windSpeedId);
   }
 
   private Weather (LocalDateTime forecastAt, LocalDateTime forecastedAt, SkyStatus skyStatus,
-    String locationId, UUID precipitationId, UUID humidityId, UUID temperatureId,
+    UUID coordinateId, UUID precipitationId, UUID humidityId, UUID temperatureId,
     UUID windSpeedId) {
     this.forecastAt = forecastAt;
     this.forecastedAt = forecastedAt;
     this.skyStatus = skyStatus;
-    this.locationId = locationId;
+    this.coordinateId = coordinateId;
     this.precipitationId = precipitationId;
     this.humidityId = humidityId;
     this.temperatureId = temperatureId;
@@ -88,8 +89,8 @@ public class Weather extends BaseEntity {
     this.skyStatus = skyStatus;
   }
 
-  public void updateLocationId(String locationId) {
-    this.locationId = locationId;
+  public void updateLocationId(UUID coordinateId) {
+    this.coordinateId = coordinateId;
   }
 
   public void updatePrecipitationId(UUID precipitationId) {

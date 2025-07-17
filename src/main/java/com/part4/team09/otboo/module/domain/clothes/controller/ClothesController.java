@@ -36,67 +36,69 @@ public class ClothesController {
   // 의상 생성
   @PostMapping
   public ResponseEntity<ClothesDto> create(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
-      @RequestPart("request") @Valid ClothesCreateRequest request,
-      @RequestPart(value = "image", required = false) MultipartFile image
+    @AuthenticationPrincipal CustomUserDetails userDetails,
+    @RequestPart("request") @Valid ClothesCreateRequest request,
+    @RequestPart(value = "image", required = false) MultipartFile image
   ) {
     log.info("의상 생성 요청: name = {}, type = {}, attributeSize = {}, imageIsNull = {}",
-        request.name(), request.type(), request.attributes().size(), image == null);
+      request.name(), request.type(), request.attributes().size(), image == null);
 
     UUID userId = userDetails.getId();
     ClothesDto response = clothesService.create(userId, request, image);
 
     log.info("의상 생성 응답: name = {}, type = {}, attributeSize = {}, imageUrl = {}",
-        response.name(), response.type(), response.attributes().size(), response.imageUrl());
+      response.name(), response.type(), response.attributes().size(), response.imageUrl());
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   // 의상 조회
   @GetMapping
   public ResponseEntity<ClothesDtoCursorResponse> findByCursor(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
-      @RequestParam(required = false) String cursor,
-      @RequestParam(required = false) UUID idAfter,
-      @RequestParam int limit,
-      @RequestParam(required = false) ClothesType typeEqual,
-      @RequestParam UUID ownerId
+    @AuthenticationPrincipal CustomUserDetails userDetails,
+    @RequestParam(required = false) String cursor,
+    @RequestParam(required = false) UUID idAfter,
+    @RequestParam int limit,
+    @RequestParam(required = false) ClothesType typeEqual,
+    @RequestParam UUID ownerId
   ) {
     log.info("의상 조회 요청: cursor = {}, idAfter = {}, limit = {}, typeEqual = {}",
-        cursor, idAfter, limit, typeEqual);
+      cursor, idAfter, limit, typeEqual);
 
     UUID userId = userDetails.getId();
     ClothesDtoCursorResponse response = clothesService.findByCursor(userId, cursor, idAfter, limit,
-        typeEqual, ownerId);
+      typeEqual, ownerId);
 
     log.info("의상 조회 응답: clothesListSize = {}, nextCursor = {}, nextIdAfter = {}, hasNext = {}, "
-        + "totalCount = {}, sortBy = {}, sortDirection = {}", response.data().size(), response.nextCursor(),
-        response.nextIdAfter(), response.hasNext(), response.totalCount(), response.sortBy(), response.sortDirection());
+        + "totalCount = {}, sortBy = {}, sortDirection = {}", response.data().size(),
+      response.nextCursor(),
+      response.nextIdAfter(), response.hasNext(), response.totalCount(), response.sortBy(),
+      response.sortDirection());
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   // 의상 수정
   @PatchMapping("/{clothesId}")
   public ResponseEntity<ClothesDto> update(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
-      @PathVariable UUID clothesId,
-      @RequestPart("request") @Valid ClothesUpdateRequest request,
-      @RequestPart(value = "image", required = false) MultipartFile image
+    @AuthenticationPrincipal CustomUserDetails userDetails,
+    @PathVariable UUID clothesId,
+    @RequestPart("request") @Valid ClothesUpdateRequest request,
+    @RequestPart(value = "image", required = false) MultipartFile image
   ) {
     log.info("의상 수정 요청: name = {}, type = {}, attributeSize = {}, imageIsNull = {}",
-        request.name(), request.type(), request.attributes().size(), image == null);
+      request.name(), request.type(), request.attributes().size(), image == null);
 
     UUID userId = userDetails.getId();
     ClothesDto response = clothesService.update(userId, clothesId, request, image);
 
     log.info("의상 수정 응답: name = {}, type = {}, attributeSize = {}, imageUrl = {}",
-        response.name(), response.type(), response.attributes().size(), response.imageUrl());
+      response.name(), response.type(), response.attributes().size(), response.imageUrl());
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   @DeleteMapping("/{clothesId}")
   public ResponseEntity<Void> delete(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
-      @PathVariable UUID clothesId) {
+    @AuthenticationPrincipal CustomUserDetails userDetails,
+    @PathVariable UUID clothesId) {
     log.info("의상 삭제 요청");
 
     UUID userId = userDetails.getId();

@@ -82,6 +82,7 @@ public class SelectableValueService {
 
     return selectableValues;
   }
+
   @Transactional(readOnly = true)
   public List<SelectableValue> findAll() {
 

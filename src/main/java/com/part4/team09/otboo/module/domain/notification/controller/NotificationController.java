@@ -22,7 +22,7 @@ public class NotificationController {
     notificationService.delete(notificationId);
 
     return ResponseEntity
-        .status(HttpStatus.NO_CONTENT)
-        .build();
+      .status(HttpStatus.NO_CONTENT)
+      .build();
   }
 }

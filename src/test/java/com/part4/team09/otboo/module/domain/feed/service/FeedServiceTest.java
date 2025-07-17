@@ -4,17 +4,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
-import com.part4.team09.otboo.module.domain.feed.dto.FeedDtoCursorResponse;
-import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.dto.FeedDtoCursorResponse;
+import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedListRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
-import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.event.FeedCreatedEvent;
 import com.part4.team09.otboo.module.domain.feed.event.FeedDeletedEvent;
@@ -168,21 +170,22 @@ class FeedServiceTest {
     void get_feeds_ootds_included() {
       // given
       UUID userId = UUID.randomUUID();
-      FeedListRequest request = new FeedListRequest(null, null, 10, "createdAt", SortDirection.DESCENDING, null, null, null, null);
+      FeedListRequest request = new FeedListRequest(null, null, 10, "createdAt",
+        SortDirection.DESCENDING, null, null, null, null);
 
       UUID clothesId = UUID.randomUUID();
       OotdDto ootdDto = new OotdDto(clothesId, "상의", null, Clothes.ClothesType.TOP, null);
       FeedDto feedDto = new FeedDto(
-              UUID.randomUUID(),
-              LocalDateTime.now(),
-              LocalDateTime.now(),
-              mock(AuthorDto.class),
-              mock(WeatherSummaryDto.class),
-              List.of(ootdDto),
-              "내용",
-              5,
-              3,
-              false
+        UUID.randomUUID(),
+        LocalDateTime.now(),
+        LocalDateTime.now(),
+        mock(AuthorDto.class),
+        mock(WeatherSummaryDto.class),
+        List.of(ootdDto),
+        "내용",
+        5,
+        3,
+        false
       );
 
       Feed feed = mock(Feed.class);
@@ -207,15 +210,15 @@ class FeedServiceTest {
       // given
       UUID userId = UUID.randomUUID();
       FeedListRequest request = new FeedListRequest(
-              null,
-              null,
-              2,
-              "createdAt",
-              SortDirection.DESCENDING,
-              null,
-              null,
-              null,
-              null
+        null,
+        null,
+        2,
+        "createdAt",
+        SortDirection.DESCENDING,
+        null,
+        null,
+        null,
+        null
       );
 
       Feed feed1 = mock(Feed.class);
@@ -223,8 +226,10 @@ class FeedServiceTest {
 
       List<Feed> feedEntities = List.of(feed1, feed2);
       List<FeedDto> feedDtos = List.of(
-              new FeedDto(UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(), mock(AuthorDto.class), mock(WeatherSummaryDto.class), List.of(), "content1", 3, 1, false),
-              new FeedDto(UUID.randomUUID(), LocalDateTime.now().minusMinutes(1), LocalDateTime.now(), mock(AuthorDto.class), mock(WeatherSummaryDto.class), List.of(), "content2", 1, 2, false)
+        new FeedDto(UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(),
+          mock(AuthorDto.class), mock(WeatherSummaryDto.class), List.of(), "content1", 3, 1, false),
+        new FeedDto(UUID.randomUUID(), LocalDateTime.now().minusMinutes(1), LocalDateTime.now(),
+          mock(AuthorDto.class), mock(WeatherSummaryDto.class), List.of(), "content2", 1, 2, false)
       );
 
       given(feedRepositoryQueryDSL.getFeeds(request)).willReturn(feedEntities);
@@ -251,15 +256,18 @@ class FeedServiceTest {
     void get_feeds_hasNext_true() {
       // given
       UUID userId = UUID.randomUUID();
-      FeedListRequest request = new FeedListRequest(null, null, 1, "likeCount", SortDirection.ASCENDING, null, null, null, null);
+      FeedListRequest request = new FeedListRequest(null, null, 1, "likeCount",
+        SortDirection.ASCENDING, null, null, null, null);
 
       Feed feed1 = mock(Feed.class);
       Feed feed2 = mock(Feed.class);
 
       List<Feed> feedEntities = List.of(feed1, feed2); // 2개를 넘겨 limit보다 많음
       List<FeedDto> feedDtos = List.of(
-              new FeedDto(UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(), mock(AuthorDto.class), mock(WeatherSummaryDto.class), List.of(), "content1", 5, 0, false),
-              new FeedDto(UUID.randomUUID(), LocalDateTime.now().minusHours(1), LocalDateTime.now(), mock(AuthorDto.class), mock(WeatherSummaryDto.class), List.of(), "content2", 4, 0, false)
+        new FeedDto(UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(),
+          mock(AuthorDto.class), mock(WeatherSummaryDto.class), List.of(), "content1", 5, 0, false),
+        new FeedDto(UUID.randomUUID(), LocalDateTime.now().minusHours(1), LocalDateTime.now(),
+          mock(AuthorDto.class), mock(WeatherSummaryDto.class), List.of(), "content2", 4, 0, false)
       );
 
       given(feedRepositoryQueryDSL.getFeeds(request)).willReturn(feedEntities);

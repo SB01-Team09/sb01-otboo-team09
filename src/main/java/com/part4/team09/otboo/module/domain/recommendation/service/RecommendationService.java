@@ -58,7 +58,7 @@ public class RecommendationService {
   private final ClothesAttributeRepository clothesAttributeRepository;
 
   public RecommendationDto getRecommendationsByLLM(UUID weatherId, UUID userId) {
-    // 널씨, 유저 정보 추출
+    // 날씨, 유저 정보 추출
     String text = getText(weatherId, userId);
 
     // llm을 통해 옷 속성간의 우선순위 도출

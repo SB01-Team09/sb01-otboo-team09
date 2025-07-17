@@ -35,13 +35,13 @@ public class NotificationEventListener {
   public void handleRoleChangedEvent(RoleChangedEvent event) {
     String title = "내 권한이 변경되었어요.";
     String content = String.format("내 권한이 [%s]에서 [%s](으)로 변경되었어요.",
-        event.previousRole(), event.newRole());
+      event.previousRole(), event.newRole());
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.receiverId(),
-        title,
-        content,
-        Level.INFO
+      event.receiverId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.create(request);
@@ -55,9 +55,9 @@ public class NotificationEventListener {
     String content = String.format("내 의상에 [%s] 속성을 추가해보세요.", event.name());
 
     NotificationCreateAllRequest request = new NotificationCreateAllRequest(
-        title,
-        content,
-        Level.INFO
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.createAll(request);
@@ -71,9 +71,9 @@ public class NotificationEventListener {
     String content = String.format("[%s] 속성을 확인해보세요.", event.name());
 
     NotificationCreateAllRequest request = new NotificationCreateAllRequest(
-        title,
-        content,
-        Level.INFO
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.createAll(request);
@@ -87,10 +87,10 @@ public class NotificationEventListener {
     String content = event.feedContent();
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.receiverId(),
-        title,
-        content,
-        Level.INFO
+      event.receiverId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.create(request);
@@ -104,10 +104,10 @@ public class NotificationEventListener {
     String content = event.content();
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.receiverId(),
-        title,
-        content,
-        Level.INFO
+      event.receiverId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.create(request);
@@ -121,10 +121,10 @@ public class NotificationEventListener {
     String content = event.content();
 
     NotificationCreateFollowerRequest request = new NotificationCreateFollowerRequest(
-        event.authorId(),
-        title,
-        content,
-        Level.INFO
+      event.authorId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.createFollower(request);
@@ -138,10 +138,10 @@ public class NotificationEventListener {
     String content = "";
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.receiverId(),
-        title,
-        content,
-        Level.INFO
+      event.receiverId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.create(request);
@@ -155,10 +155,10 @@ public class NotificationEventListener {
     String content = event.content();
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.receiverId(),
-        title,
-        content,
-        Level.INFO
+      event.receiverId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.create(request);
@@ -172,10 +172,10 @@ public class NotificationEventListener {
     String content = "외출 시 옷차림에 유의하세요.";
 
     NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
-        event.locationId(),
-        title,
-        content,
-        Level.WARNING
+      event.locationId(),
+      title,
+      content,
+      Level.WARNING
     );
 
     notificationService.createLocation(request);
@@ -189,10 +189,10 @@ public class NotificationEventListener {
     String content = "외출 시 옷차림에 유의하세요.";
 
     NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
-        event.locationId(),
-        title,
-        content,
-        Level.WARNING
+      event.locationId(),
+      title,
+      content,
+      Level.WARNING
     );
 
     notificationService.createLocation(request);
@@ -206,10 +206,10 @@ public class NotificationEventListener {
     String content = "우산을 챙기세요.";
 
     NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
-        event.locationId(),
-        title,
-        content,
-        Level.WARNING
+      event.locationId(),
+      title,
+      content,
+      Level.WARNING
     );
 
     notificationService.createLocation(request);
