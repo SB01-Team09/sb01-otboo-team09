@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface CustomClothesRepository {
 
   List<ClothesWithAttributesDto> findByCursor(String cursor, UUID idAfter, int limit,
-      ClothesType typeEqual, UUID ownerId, String sortBy, SortDirection sortDirection);
+    ClothesType typeEqual, UUID ownerId, String sortBy, SortDirection sortDirection);
 
   List<ClothesWithAttributesDto> findByClothesId(UUID clothesId);
 }

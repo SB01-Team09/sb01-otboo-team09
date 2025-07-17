@@ -35,7 +35,7 @@ public class ClothesAttributeDefController {
   // 의상 속성 정의 등록
   @PostMapping
   public ResponseEntity<ClothesAttributeDefDto> create(
-      @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
+    @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
     log.info("의상 속성 정의 생성 요청");
 
     ClothesAttributeDefDto response = clothesAttributeInfoService.create(request);
@@ -56,7 +56,7 @@ public class ClothesAttributeDefController {
   ) {
     log.info("의상 속성 정의 조회 요청: cursor = {}, idAfter = {}, limit = {}, sortBy = {}, "
         + "sortDirection = {}, keywordLike = {}", cursor, idAfter, limit, sortBy, sortDirection,
-        keywordLike);
+      keywordLike);
 
     ClothesAttributeDefFindRequest request = new ClothesAttributeDefFindRequest(
         cursor, idAfter, limit, sortBy, sortDirection, keywordLike);
@@ -65,8 +65,9 @@ public class ClothesAttributeDefController {
         request);
 
     log.info("의상 속성 정의 조회 응답: defListSize = {}, nexCursor = {}, hasNext = {}, totalCount = {}, "
-        + "sortBy = {}, sortDirection = {}", response.data().size(), response.nextCursor(), response.hasNext(),
-        response.totalCount(), response.sortBy(), response.sortDirection());
+        + "sortBy = {}, sortDirection = {}", response.data().size(), response.nextCursor(),
+      response.hasNext(),
+      response.totalCount(), response.sortBy(), response.sortDirection());
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 

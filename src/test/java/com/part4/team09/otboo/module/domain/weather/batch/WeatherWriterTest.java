@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.part4.team09.otboo.config.AppConfig;
 import com.part4.team09.otboo.config.MeterRegistryTestConfig;
 import com.part4.team09.otboo.config.QueryDslConfig;
+import com.part4.team09.otboo.module.domain.location.entity.Coordinate;
+import com.part4.team09.otboo.module.domain.location.repository.CoordinateRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.entity.Humidity;
 import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
@@ -22,6 +24,7 @@ import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository
 import com.part4.team09.otboo.module.domain.weather.repository.WindSpeedRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.item.Chunk;
@@ -29,10 +32,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({WeatherCache.class, WeatherWriter.class, MeterRegistryTestConfig.class, AppConfig.class, QueryDslConfig.class})
+@Import({WeatherWriter.class, MeterRegistryTestConfig.class, AppConfig.class,
+  QueryDslConfig.class})
 class WeatherWriterTest {
 
   @Autowired
@@ -51,7 +56,7 @@ class WeatherWriterTest {
   private WeatherRepository weatherRepository;
 
   @Autowired
-  private WeatherCache weatherCache;
+  private CoordinateRepository coordinateRepository;
 
   @Autowired
   private WeatherWriter weatherWriter;
@@ -75,13 +80,15 @@ class WeatherWriterTest {
     LocalDateTime forecastedAt = LocalDateTime.now();
     LocalDateTime forecastAt = LocalDateTime.now();
     SkyStatus skyStatus = SkyStatus.CLEAR;
-    String locationId = "1111111111";
     int x = 60;
     int y = 127;
+    Coordinate coordinate = Coordinate.create(x, y);
+    UUID coordinateId = UUID.randomUUID();
+    ReflectionTestUtils.setField(coordinate, "id", coordinateId);
 
     WeatherData weatherData = new WeatherData(
       humidity, precipitation, temperature, windSpeed, forecastedAt, forecastAt, skyStatus,
-      locationId, x, y
+      coordinate
     );
 
     List<WeatherData> weatherList = List.of(weatherData);
@@ -98,7 +105,6 @@ class WeatherWriterTest {
     assertNotNull(precipitationRepository.findById(weathers.get(0).getPrecipitationId()));
     assertNotNull(temperatureRepository.findById(weathers.get(0).getTemperatureId()));
     assertNotNull(windSpeedRepository.findById(weathers.get(0).getWindSpeedId()));
-    assertNotNull(weatherCache.getData(x, y));
   }
 
   //  @Test
@@ -114,13 +120,15 @@ class WeatherWriterTest {
     Temperature temperature = Temperature.create(21, 6.0, 20, 34);
     WindSpeed windSpeed = WindSpeed.create(2.0, AsWord.STRONG);
     SkyStatus skyStatus = SkyStatus.CLOUDY;
-    String locationId = "1111111112";
     int x = 60;
     int y = 127;
+    Coordinate coordinate = Coordinate.create(x, y);
+    UUID coordinateId = UUID.randomUUID();
+    ReflectionTestUtils.setField(coordinate, "id", coordinateId);
 
     WeatherData weatherData = new WeatherData(
       humidity, precipitation, temperature, windSpeed, forecastedAt, forecastAt, skyStatus,
-      locationId, x, y
+      coordinate
     );
 
     List<WeatherData> weatherList = List.of(weatherData);
@@ -140,7 +148,6 @@ class WeatherWriterTest {
     assertNotNull(precipitationRepository.findById(weathers.get(0).getPrecipitationId()));
     assertNotNull(temperatureRepository.findById(weathers.get(0).getTemperatureId()));
     assertNotNull(windSpeedRepository.findById(weathers.get(0).getWindSpeedId()));
-    assertNotNull(weatherCache.getData(x, y));
   }
 
   private void setUp(LocalDateTime forecastedAt, LocalDateTime forecastAt) {
@@ -149,16 +156,17 @@ class WeatherWriterTest {
     Temperature temperature = Temperature.create(23, 5.0, 18, 31);
     WindSpeed windSpeed = WindSpeed.create(1.0, AsWord.MODERATE);
     SkyStatus skyStatus = SkyStatus.CLEAR;
-    String locationId = "1111111112";
     int x = 60;
     int y = 127;
+    Coordinate coordinate = Coordinate.create(x, y);
 
     Humidity savedHumidity = humidityRepository.save(humidity);
     Precipitation savedPrecipitation = precipitationRepository.save(precipitation);
     Temperature savedTemperature = temperatureRepository.save(temperature);
     WindSpeed savedWindSpeed = windSpeedRepository.save(windSpeed);
+    Coordinate savedCoordinate = coordinateRepository.save(coordinate);
     weatherRepository.save(Weather.create(
-      forecastAt, forecastedAt, skyStatus, locationId,
+      forecastAt, forecastedAt, skyStatus, savedCoordinate.getId(),
       savedPrecipitation.getId(), savedHumidity.getId(), savedTemperature.getId(),
       savedWindSpeed.getId()
     ));

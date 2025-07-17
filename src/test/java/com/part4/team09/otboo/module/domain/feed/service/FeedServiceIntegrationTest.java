@@ -1,5 +1,7 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
@@ -12,9 +14,19 @@ import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import com.part4.team09.otboo.module.domain.weather.entity.*;
-import com.part4.team09.otboo.module.domain.weather.repository.*;
+import com.part4.team09.otboo.module.domain.weather.entity.Humidity;
+import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
+import com.part4.team09.otboo.module.domain.weather.entity.Temperature;
+import com.part4.team09.otboo.module.domain.weather.entity.Weather;
+import com.part4.team09.otboo.module.domain.weather.entity.WindSpeed;
+import com.part4.team09.otboo.module.domain.weather.repository.HumidityRepository;
+import com.part4.team09.otboo.module.domain.weather.repository.PrecipitationRepository;
+import com.part4.team09.otboo.module.domain.weather.repository.TemperatureRepository;
+import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
+import com.part4.team09.otboo.module.domain.weather.repository.WindSpeedRepository;
 import jakarta.persistence.EntityManager;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,10 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Disabled
 @SpringBootTest
@@ -88,7 +96,7 @@ public class FeedServiceIntegrationTest {
                 LocalDateTime.now().plusHours(3),
                 LocalDateTime.now(),
                 Weather.SkyStatus.CLOUDY,
-                "LOCATION-001",
+          UUID.randomUUID(),
                 precipitation.getId(),
                 humidity.getId(),
                 temperature.getId(), // temperatureId

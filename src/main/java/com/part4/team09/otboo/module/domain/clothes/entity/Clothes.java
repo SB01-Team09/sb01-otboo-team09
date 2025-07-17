@@ -50,8 +50,12 @@ public class Clothes extends BaseUpdatableEntity {
   }
 
   public void updateNameAndType(String name, ClothesType type) {
-    if (name != null) this.name = name;
-    if (type != null) this.type = type;
+    if (name != null) {
+      this.name = name;
+    }
+    if (type != null) {
+      this.type = type;
+    }
   }
 
   public void updateImageUrl(String imageUrl) {

@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.weather.dto;
 
+import com.part4.team09.otboo.module.domain.location.entity.Coordinate;
 import com.part4.team09.otboo.module.domain.weather.entity.Humidity;
 import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
 import com.part4.team09.otboo.module.domain.weather.entity.Temperature;
@@ -15,9 +16,7 @@ public record WeatherData(
   LocalDateTime forecastedAt,
   LocalDateTime forecastAt,
   SkyStatus skyStatus,
-  String locationId,
-  int x,
-  int y
+  Coordinate coordinate
 ) {
 
 }

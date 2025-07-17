@@ -56,10 +56,10 @@ class NotificationServiceTest {
       UUID receiverId = UUID.randomUUID();
 
       NotificationCreateRequest request = new NotificationCreateRequest(
-          receiverId,
-          "title",
-          "content",
-          Level.INFO
+        receiverId,
+        "title",
+        "content",
+        Level.INFO
       );
 
       // when
@@ -83,9 +83,9 @@ class NotificationServiceTest {
       List<UUID> allUserIds = List.of(userId1, userId2);
 
       NotificationCreateAllRequest request = new NotificationCreateAllRequest(
-          "title",
-          "content",
-          Level.INFO
+        "title",
+        "content",
+        Level.INFO
       );
 
       given(userRepository.findAllIds()).willReturn(allUserIds);
@@ -112,10 +112,10 @@ class NotificationServiceTest {
       List<UUID> followerIds = List.of(userId1, userId2);
 
       NotificationCreateFollowerRequest request = new NotificationCreateFollowerRequest(
-          authorId,
-          "title",
-          "content",
-          Level.INFO
+        authorId,
+        "title",
+        "content",
+        Level.INFO
       );
 
       given(followRepository.findFollowerIdsByFolloweeId(authorId)).willReturn(followerIds);
@@ -142,10 +142,10 @@ class NotificationServiceTest {
       List<UUID> userIdsInLocation = List.of(userId1, userId2);
 
       NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
-          locationId,
-          "title",
-          "content",
-          Level.WARNING
+        locationId,
+        "title",
+        "content",
+        Level.WARNING
       );
 
       given(userRepository.findUserIdsByLocationId(locationId)).willReturn(userIdsInLocation);
