@@ -24,6 +24,8 @@ public class CustomLogoutHandler implements LogoutHandler {
   public void logout(HttpServletRequest request, HttpServletResponse response,
     Authentication authentication) {
 
+    log.info("왜 로그아웃 진입?");
+
     extractRefreshTokenFromRequest(request)
       .ifPresent(refreshToken -> {
         String userEmail = jwtTokenProvider.getSubjectFromToken(refreshToken);

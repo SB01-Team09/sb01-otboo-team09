@@ -46,4 +46,8 @@ public class UserTempPassword extends BaseEntity {
     this.issuedAt = issuedAt;
     this.expiresAt = expiresAt;
   }
+
+  public boolean isExpired(LocalDateTime now) {
+    return now.isAfter(this.expiresAt);
+  }
 }
