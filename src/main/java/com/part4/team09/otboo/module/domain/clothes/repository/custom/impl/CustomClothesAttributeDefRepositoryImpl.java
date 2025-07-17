@@ -1,10 +1,11 @@
-package com.part4.team09.otboo.module.domain.clothes.repository.custom;
+package com.part4.team09.otboo.module.domain.clothes.repository.custom.impl;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttributeDefFindRequest;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.QClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.QSelectableValue;
+import com.part4.team09.otboo.module.domain.clothes.repository.custom.CustomClothesAttributeDefRepository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -13,18 +14,18 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
 
 @Slf4j
-@Repository
 @RequiredArgsConstructor
-public class ClothesAttributeDefRepositoryQueryDSL {
+public class CustomClothesAttributeDefRepositoryImpl implements
+    CustomClothesAttributeDefRepository {
 
   private final JPAQueryFactory queryFactory;
   private final QClothesAttributeDef def = QClothesAttributeDef.clothesAttributeDef;
   private final QSelectableValue value = QSelectableValue.selectableValue;
 
   // 속성 정의, 속성 값에 키워드가 있을 경우의 defId 찾기
+  @Override
   public List<UUID> findDefIdsByKeyword(String keyword) {
 
     return queryFactory
@@ -40,6 +41,7 @@ public class ClothesAttributeDefRepositoryQueryDSL {
         .fetch();
   }
 
+  @Override
   public List<ClothesAttributeDef> findByCursor(List<UUID> defIds
       , ClothesAttributeDefFindRequest request) {
 

@@ -5,11 +5,14 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
+import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
+import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
 import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +37,7 @@ class ClothesAttributeServiceTest {
   private ClothesRepository clothesRepository;
 
   private UUID clothesId;
+  private Clothes clothes;
   private UUID valueId1;
   private UUID valueId2;
   private ClothesAttribute clothesAttribute1;
@@ -43,6 +47,8 @@ class ClothesAttributeServiceTest {
   void setUp() {
 
     clothesId = UUID.randomUUID();
+    clothes = Clothes.create(UUID.randomUUID(), "사이즈", ClothesType.TOP, null);
+    ReflectionTestUtils.setField(clothes, "id", clothesId);
     valueId1 = UUID.randomUUID();
     valueId2 = UUID.randomUUID();
 
@@ -62,7 +68,7 @@ class ClothesAttributeServiceTest {
 
       // given
       List<UUID> selectedValueIds = List.of(valueId1, valueId2);
-      given(clothesRepository.existsById(clothesId)).willReturn(true);
+      given(clothesRepository.findById(clothesId)).willReturn(Optional.of(clothes));
 
       given(clothesAttributeRepository.saveAll(anyList()))
           .willReturn(List.of(clothesAttribute1, clothesAttribute2));
@@ -73,7 +79,7 @@ class ClothesAttributeServiceTest {
       // then
       assertEquals(result.size(), 2);
 
-      then(clothesRepository).should().existsById(clothesId);
+      then(clothesRepository).should().findById(clothesId);
       then(clothesAttributeRepository).should().saveAll(anyList());
     }
 
@@ -100,13 +106,13 @@ class ClothesAttributeServiceTest {
       // given
       List<UUID> selectedValueIds = List.of(UUID.randomUUID());
 
-      given(clothesRepository.existsById(clothesId)).willReturn(false);
+      given(clothesRepository.findById(clothesId)).willReturn(Optional.empty());
 
       // when & then
       assertThrows(ClothesNotFoundException.class,
           () -> clothesAttributeService.create(clothesId, selectedValueIds));
 
-      then(clothesRepository).should().existsById(clothesId);
+      then(clothesRepository).should().findById(clothesId);
       then(clothesAttributeRepository).should(times(0)).saveAll(anyList());
     }
   }

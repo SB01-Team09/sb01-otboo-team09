@@ -1,6 +1,5 @@
 package com.part4.team09.otboo.module.domain.clothes.service;
 
-
 import com.part4.team09.otboo.module.common.entity.BaseEntity;
 import com.part4.team09.otboo.module.domain.clothes.assembler.ClothesAttributeDefDtoAssembler;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDefDto;
@@ -35,6 +34,7 @@ public class ClothesAttributeInfoService {
 
   private final ClothesAttributeDefMapper clothesAttributeDefMapper;
   private final ClothesAttributeDefDtoCursorResponseMapper clothesAttributeDefDtoCursorResponseMapper;
+
   private final ClothesAttributeDefDtoAssembler clothesAttributeDefDtoAssembler;
 
   // 의상 속성 정의 생성

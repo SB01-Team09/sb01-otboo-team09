@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.part4.team09.otboo.config.AppConfig;
 import com.part4.team09.otboo.config.MeterRegistryTestConfig;
+import com.part4.team09.otboo.config.QueryDslConfig;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.entity.Humidity;
 import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
@@ -31,7 +32,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({WeatherCache.class, WeatherWriter.class, MeterRegistryTestConfig.class, AppConfig.class})
+@Import({WeatherCache.class, WeatherWriter.class, MeterRegistryTestConfig.class, AppConfig.class, QueryDslConfig.class})
 class WeatherWriterTest {
 
   @Autowired

@@ -22,19 +22,23 @@ public class ClothesAttributeDefDtoAssembler {
 
   public List<ClothesAttributeDefDto> assemble(List<ClothesAttributeDef> defs) {
 
-    List<UUID> defIds = defs.stream()
-        .map(ClothesAttributeDef::getId)
-        .toList();
+    if (defs.isEmpty()) {
+      return List.of();
+    } else {
+      List<UUID> defIds = defs.stream()
+          .map(ClothesAttributeDef::getId)
+          .toList();
 
-    Map<UUID, List<SelectableValue>> valueMap = selectableValueService.findAllByAttributeDefIdIn(
-            defIds).stream()
-        .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
+      Map<UUID, List<SelectableValue>> valueMap = selectableValueService.findAllByAttributeDefIdIn(
+              defIds).stream()
+          .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
 
-    return defs.stream().map(
-            def -> clothesAttributeDefMapper.toDto(def.getId(), def.getName(),
-                valueMap.get(def.getId()).stream()
-                    .map(SelectableValue::getItem)
-                    .toList()))
-        .toList();
+      return defs.stream().map(
+              def -> clothesAttributeDefMapper.toDto(def.getId(), def.getName(),
+                  valueMap.get(def.getId()).stream()
+                      .map(SelectableValue::getItem)
+                      .toList()))
+          .toList();
+    }
   }
 }

@@ -93,4 +93,19 @@ class ClothesAttributeDefDtoAssemblerTest {
     then(clothesAttributeDefMapper).should(times(2))
         .toDto(any(UUID.class), anyString(), anyList());
   }
+
+  @Test
+  @DisplayName("dto로 변환 성공 - 빈리스트")
+  void assembler_success_empty_list() {
+
+    // given
+    List<ClothesAttributeDef> defs = List.of();
+
+    // when
+    List<ClothesAttributeDefDto> result = clothesAttributeDefDtoAssembler.assemble(defs);
+
+    // then
+    assertEquals(List.of(), result);
+    then(selectableValueService).should(times(0)).findAllByAttributeDefIdIn(anyList());
+  }
 }
