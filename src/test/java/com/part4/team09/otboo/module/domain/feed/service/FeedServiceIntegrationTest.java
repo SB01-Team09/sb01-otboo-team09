@@ -26,6 +26,7 @@ import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository
 import com.part4.team09.otboo.module.domain.weather.repository.WindSpeedRepository;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -95,7 +96,7 @@ public class FeedServiceIntegrationTest {
                 LocalDateTime.now().plusHours(3),
                 LocalDateTime.now(),
                 Weather.SkyStatus.CLOUDY,
-                "LOCATION-001",
+          UUID.randomUUID(),
                 precipitation.getId(),
                 humidity.getId(),
                 temperature.getId(), // temperatureId
