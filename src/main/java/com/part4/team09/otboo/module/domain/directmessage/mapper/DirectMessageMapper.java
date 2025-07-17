@@ -3,22 +3,14 @@ package com.part4.team09.otboo.module.domain.directmessage.mapper;
 import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageDto;
 import com.part4.team09.otboo.module.domain.directmessage.entity.DirectMessage;
 import com.part4.team09.otboo.module.domain.user.dto.UserSummary;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Component
-@RequiredArgsConstructor
-public class DirectMessageMapper {
+@Mapper(componentModel = "spring")
+public interface DirectMessageMapper {
 
-    public DirectMessageDto toDto(DirectMessage directMessage, UserSummary senderSummary, UserSummary receiverSummary) {
-
-        return new DirectMessageDto(
-                directMessage.getId(),
-                directMessage.getCreatedAt(),
-                senderSummary,
-                receiverSummary,
-                directMessage.getContent()
-        );
-    }
-
+  @Mapping(source = "directMessage.id", target = "id")
+  @Mapping(source = "directMessage.createdAt", target = "createdAt")
+  @Mapping(source = "directMessage.content", target = "content")
+  DirectMessageDto toDto(DirectMessage directMessage, UserSummary sender, UserSummary receiver);
 }

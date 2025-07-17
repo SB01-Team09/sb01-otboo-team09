@@ -19,23 +19,23 @@ import java.util.UUID;
 @RequestMapping("/api/direct-messages")
 public class DirectMessageController {
 
-    private final DirectMessageService directMessageService;
+  private final DirectMessageService directMessageService;
 
-    // DM 목록 조회
-    @GetMapping
-    public ResponseEntity<DirectMessageDtoCursorResponse> getDirectMessages(
-            @RequestParam UUID userId,
-            @AuthenticationPrincipal CustomUserDetails currentUser,
-            @RequestParam(required = false) String cursor,
-            @RequestParam(required = false) UUID idAfter,
-            @RequestParam(defaultValue = "10") int limit
-            ){
+  // DM 목록 조회
+  @GetMapping
+  public ResponseEntity<DirectMessageDtoCursorResponse> getDirectMessages(
+      @RequestParam UUID userId,
+      @AuthenticationPrincipal CustomUserDetails currentUser,
+      @RequestParam(required = false) String cursor,
+      @RequestParam(required = false) UUID idAfter,
+      @RequestParam(defaultValue = "10") int limit
+  ) {
 
-        DirectMessageDtoCursorResponse response = directMessageService.getDirectMessages(userId, currentUser, cursor, idAfter, limit);
+    DirectMessageDtoCursorResponse response = directMessageService.getDirectMessages(userId,
+        currentUser, cursor, idAfter, limit);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
-    }
-
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(response);
+  }
 }
