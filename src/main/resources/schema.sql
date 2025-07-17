@@ -77,7 +77,7 @@ CREATE TABLE dongs
     latitude   DOUBLE PRECISION,
     longitude  DOUBLE PRECISION,
     x          INTEGER,
-    y INTEGER
+    y          INTEGER
 );
 
 CREATE TABLE gus
@@ -221,4 +221,14 @@ create table auth_tokens
     refresh_token TEXT,
     created_at    TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at    TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE user_temp_passwords
+(
+    id                 UUID PRIMARY KEY,
+    user_id            UUID      NOT NULL UNIQUE,
+    temporary_password TEXT      NOT NULL,
+    issued_at          TIMESTAMP NOT NULL,
+    expires_at         TIMESTAMP NOT NULL,
+    created_at         TIMESTAMP NOT NULL
 );

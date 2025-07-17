@@ -5,11 +5,9 @@ import com.part4.team09.otboo.module.common.security.jwt.AuthTokenRepository;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
-import com.part4.team09.otboo.module.domain.auth.dto.ResetPasswordRequest;
 import com.part4.team09.otboo.module.domain.auth.exception.AccountLockedException;
 import com.part4.team09.otboo.module.domain.auth.exception.InvalidTokenException;
 import com.part4.team09.otboo.module.domain.auth.mapper.AuthUserMapper;
-import com.part4.team09.otboo.module.domain.mail.service.EmailService;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.UUID;
@@ -18,6 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
+/**
+ * 토큰 인증 관련 서비스
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -27,7 +28,6 @@ public class AuthService {
   private final AuthTokenRepository authTokenRepository;
   private final UserRepository userRepository;
   private final AuthUserMapper authUserMapper;
-  private final EmailService emailService;
 
   public String getAccessTokenByRefreshToken(String refreshToken) {
 
@@ -112,10 +112,5 @@ public class AuthService {
       log.info("잠금 계정이 액세스 토큰 조회 시도 (userId: {})", user.getId());
       throw AccountLockedException.noDetail();
     }
-  }
-
-  public void resetPassword(ResetPasswordRequest request) {
-    // 이메일 전송 서비스 추가
-    emailService.sendTemporaryPassword(request.email());
   }
 }

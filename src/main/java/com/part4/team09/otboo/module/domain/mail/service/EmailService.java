@@ -24,21 +24,18 @@ public class EmailService {
 
   private final JavaMailSender javaMailSender;
 
-  public String sendTemporaryPassword(String email) {
+  public void sendTemporaryPassword(String email, String password) {
     log.info("{}의 임시 비밀번호 발급 요청", email);
 
-    String temp_password = "임시 비밀번호";
     String title = "[Otboo] 임시 비밀번호 발급 안내";
     String content = "안녕하세요, <b>Otboo</b> 입니다." + "<br><br>"
       + "비밀번호 재설정 요청에 따라 임시 비밀번호를 발급해드립니다." + "<br><br>"
       + "<b>임시 비밀번호:</b> <span style='font-weight: bold;'>"
-      + temp_password + "</span>" + "<br><br>"
-      + "<b style='color: red;'>⚠️ 로그인 후 반드시 새로운 비밀번호로 변경해주세요</b>" + "<br>"
-      + "<b>임시 비밀번호는 <span style='color: red;'>24시간 후 자동 만료</span>됩니다</b>" + "<br>";
+      + password + "</span>" + "<br><br>"
+      + "<b style='color: red;'>⚠️ 로그인 후 반드시 새로운 비밀번호로 변경해주세요.</b>" + "<br>"
+      + "<b>임시 비밀번호는 <span style='color: red;'>24시간 후 자동 만료</span>됩니다.</b>" + "<br>";
 
     sendMail(email, title, content);
-
-    return temp_password;
   }
 
   public void sendMail(String to, String title, String content) {

@@ -55,6 +55,9 @@ otboo:
       path: ${FILE_STORAGE_PATH:${user.dir}/fileStorage}
   resource:
     path: files
+  auth:
+    temp-password:
+      expiration-seconds: 86400 # 24시간
 
 jwt:
   issuer: otboo

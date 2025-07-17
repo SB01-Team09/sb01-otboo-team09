@@ -6,6 +6,7 @@ import com.part4.team09.otboo.module.domain.auth.dto.ResetPasswordRequest;
 import com.part4.team09.otboo.module.domain.auth.exception.AuthenticationRequiredException;
 import com.part4.team09.otboo.module.domain.auth.exception.MissingRefreshTokenException;
 import com.part4.team09.otboo.module.domain.auth.service.AuthService;
+import com.part4.team09.otboo.module.domain.auth.service.PasswordResetService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
   private final AuthService authService;
+  private final PasswordResetService passwordResetService;
 
   // csrf 토큰 조회
   @GetMapping("/csrf-token")
@@ -66,10 +68,10 @@ public class AuthController {
     return ResponseEntity.ok(generatedToken.accessToken());
   }
 
-  // 비밀번호 초기화
+  // 임시 비밀번호 발급
   @PostMapping("/reset-password")
   public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-    authService.resetPassword(request);
+    passwordResetService.resetPassword(request);
     return ResponseEntity.noContent().build();
   }
 }

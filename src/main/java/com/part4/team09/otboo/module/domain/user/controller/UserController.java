@@ -74,6 +74,7 @@ public class UserController {
     @PathVariable UUID userId,
     @Valid @RequestBody PasswordUpdateRequest request
   ) {
+    // TODO: 기존 refresh_token 모두 무효화 및 재발급 필요
     userService.updatePassword(userId, request);
     return ResponseEntity.noContent().build();
   }
