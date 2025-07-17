@@ -35,9 +35,9 @@ public class FeedRepositoryQueryDSL {
     public List<Feed> getFeeds(FeedListRequest request) {
         return queryFactory
                 .selectFrom(feed)
-                .join(ootd).on(feed.id.eq(ootd.feedId)).fetchJoin() // feed, ootd 조인
-                .join(weather).on(feed.weatherId.eq(weather.id)).fetchJoin()  // feed, weather 조인
-                .join(precipitation).on(weather.precipitationId.eq(precipitation.id)).fetchJoin()  // weather, precipitation 조인
+                .join(ootd).on(feed.id.eq(ootd.feedId)) // feed, ootd 조인
+                .join(weather).on(feed.weatherId.eq(weather.id)) // feed, weather 조인
+                .join(precipitation).on(weather.precipitationId.eq(precipitation.id)) // weather, precipitation 조인
                 .where(
                         keywordLikeCondition(request.keywordLike()),
                         skyStatusCondition(request.skyStatusEqual()),
@@ -55,8 +55,8 @@ public class FeedRepositoryQueryDSL {
         Long count = queryFactory
                 .select(feed.count())
                 .from(feed)
-                .join(ootd).on(feed.id.eq(ootd.feedId))// feed, ootd 조인
-                .join(weather).on(feed.weatherId.eq(weather.id))// feed, weather 조인
+                .join(ootd).on(feed.id.eq(ootd.feedId)) // feed, ootd 조인
+                .join(weather).on(feed.weatherId.eq(weather.id)) // feed, weather 조인
                 .join(precipitation).on(weather.precipitationId.eq(precipitation.id)) // weather, precipitation 조인
                 .where(
                         keywordLikeCondition(request.keywordLike()),
