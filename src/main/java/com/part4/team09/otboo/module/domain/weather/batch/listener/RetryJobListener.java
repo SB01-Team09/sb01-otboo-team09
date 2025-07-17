@@ -4,7 +4,6 @@ import com.part4.team09.otboo.module.domain.location.repository.CoordinateReposi
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
@@ -24,11 +23,6 @@ public class RetryJobListener implements JobExecutionListener {
 
   @Override
   public void afterJob(JobExecution jobExecution) {
-    if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
-      return;
-    }
-
-    // TODO: 고쳐야 함
     boolean hasRetryTargets =
       coordinateRepository.existsCoordinateNotInWeather(LocalDate.now().atStartOfDay());
 

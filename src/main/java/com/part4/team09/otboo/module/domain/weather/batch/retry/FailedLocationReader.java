@@ -22,6 +22,7 @@ public class FailedLocationReader extends JpaPagingItemReader<Coordinate> {
               FROM Weather w
               WHERE w.createdAt >= :today
         )
+          ORDER BY c.createdAt
       """);
 
     Map<String, Object> params = new HashMap<>();
@@ -30,5 +31,4 @@ public class FailedLocationReader extends JpaPagingItemReader<Coordinate> {
 
     setPageSize(10);
   }
-
 }

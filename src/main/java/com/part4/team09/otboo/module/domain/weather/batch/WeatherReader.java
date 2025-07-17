@@ -17,25 +17,24 @@ public class WeatherReader implements ItemStreamReader<WeatherApiData> {
   private final ItemStreamReader<Coordinate> coordinateReader;
   private final WeatherApiClient weatherApiClient;
 
-  private Coordinate currentCoordinate;
-
   @Override
   public WeatherApiData read() throws Exception {
     while (true) {
-      currentCoordinate = coordinateReader.read();
+      Coordinate currentCoordinate = coordinateReader.read();
       if (currentCoordinate == null) {
         return null;
       }
 
-      List<Item> items = fetchFromApi(currentCoordinate.getX(), currentCoordinate.getY());
+      List<Item> items = fetchFromApi(currentCoordinate);
       return new WeatherApiData(items, currentCoordinate);
     }
   }
-  private List<Item> fetchFromApi(int x, int y) {
+
+  private List<Item> fetchFromApi(Coordinate coordinate) {
     try {
-      return weatherApiClient.getWeatherApiResponse(x, y);
+      return weatherApiClient.getWeatherApiResponse(coordinate.getX(), coordinate.getY());
     } catch (Exception e) {
-      throw WeatherReadException.withId(currentCoordinate.getId());
+      throw WeatherReadException.withId(coordinate.getId());
     }
   }
 

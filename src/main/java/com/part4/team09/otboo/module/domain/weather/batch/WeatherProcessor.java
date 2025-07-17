@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.weather.batch;
 
 import com.part4.team09.otboo.module.domain.location.entity.Coordinate;
+import com.part4.team09.otboo.module.domain.location.repository.CoordinateRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherApiResponse.Response.Body.Items.Item;
@@ -30,9 +31,18 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, List<Weat
   private static final String TIME_NOON = "1200";
   private static final int CHUNK_SIZE = 290;
 
+  private final CoordinateRepository coordinateRepository;
+
   @Override
   public List<WeatherData> process(WeatherApiData data) {
     List<Item> items = data.items();
+    Coordinate coordinate = data.coordinate();
+
+    if (coordinate == null) {
+      Item item = items.get(0);
+      coordinate = coordinateRepository.findByXAndY(item.nx(), item.ny())
+        .orElseThrow(() -> new RuntimeException("coordinate not found"));
+    }
 
     int currentIndex = 0;
     int endIndex = CHUNK_SIZE;
@@ -43,7 +53,7 @@ public class WeatherProcessor implements ItemProcessor<WeatherApiData, List<Weat
       for (int i = currentIndex; i < endIndex; i++) {
         extractForecastData(items.get(i), context);
 
-        context.coordinate = data.coordinate();
+        context.coordinate = coordinate;
       }
       weatherDatas.add(context.toWeatherData());
       currentIndex = endIndex;
