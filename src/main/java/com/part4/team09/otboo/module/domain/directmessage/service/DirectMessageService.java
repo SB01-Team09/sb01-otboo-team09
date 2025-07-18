@@ -10,6 +10,10 @@ import com.part4.team09.otboo.module.domain.directmessage.entity.DirectMessage;
 import com.part4.team09.otboo.module.domain.directmessage.mapper.DirectMessageDtoAssembler;
 import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessageRepository;
 import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessageRepositoryQueryDSL;
+import com.part4.team09.otboo.module.domain.feed.entity.Feed;
+import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
+import com.part4.team09.otboo.module.domain.notification.event.DirectMessageReceivedEvent;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -18,6 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,10 +36,12 @@ public class DirectMessageService {
 
   private final UserRepository userRepository;
 
+  private final ApplicationEventPublisher eventPublisher;
+
   @Transactional
   public DirectMessageSendPayload create(DirectMessageCreateRequest request) {
-    validateUserExists(request.senderId());
-    validateUserExists(request.receiverId());
+    User sender = getUserOrThrow(request.senderId());
+    getUserOrThrow(request.receiverId());
 
     String dmKey = createDmKey(request.senderId(), request.receiverId());
     DirectMessage directMessage = DirectMessage.create(
@@ -45,6 +52,12 @@ public class DirectMessageService {
 
     DirectMessage savedDirectMessage = directMessageRepository.save(directMessage);
     DirectMessageDto directMessageDto = directMessageDtoAssembler.assemble(savedDirectMessage);
+
+    eventPublisher.publishEvent(new DirectMessageReceivedEvent(
+        request.receiverId(),
+        sender.getName(),
+        request.content()
+    ));
 
     return new DirectMessageSendPayload(dmKey, directMessageDto);
   }
@@ -105,10 +118,9 @@ public class DirectMessageService {
     return cursor == null || cursor.isEmpty() ? null : LocalDateTime.parse(cursor);
   }
 
-  private void validateUserExists(UUID userId) {
-    if (!userRepository.existsById(userId)) {
-      throw UserNotFoundException.withId(userId);
-    }
+  private User getUserOrThrow(UUID userId) {
+    return userRepository.findById(userId)
+        .orElseThrow(() -> UserNotFoundException.withId(userId));
   }
 
   private String createDmKey(UUID senderId, UUID receiverId) {

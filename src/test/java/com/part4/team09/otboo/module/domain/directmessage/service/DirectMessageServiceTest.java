@@ -11,7 +11,9 @@ import com.part4.team09.otboo.module.domain.directmessage.dto.request.DirectMess
 import com.part4.team09.otboo.module.domain.directmessage.entity.DirectMessage;
 import com.part4.team09.otboo.module.domain.directmessage.mapper.DirectMessageDtoAssembler;
 import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessageRepository;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class DirectMessageServiceTest {
@@ -32,6 +35,9 @@ class DirectMessageServiceTest {
 
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks
   private DirectMessageService directMessageService;
@@ -46,6 +52,8 @@ class DirectMessageServiceTest {
       // given
       UUID senderId = UUID.randomUUID();
       UUID receiverId = UUID.randomUUID();
+      User mockUser = mock(User.class);
+      User mockUser2 = mock(User.class);
       DirectMessage mockDirectMessage = mock(DirectMessage.class);
       DirectMessageDto mockDirectMessageDto = mock(DirectMessageDto.class);
 
@@ -55,8 +63,8 @@ class DirectMessageServiceTest {
           "content"
       );
 
-      given(userRepository.existsById(senderId)).willReturn(true);
-      given(userRepository.existsById(receiverId)).willReturn(true);
+      given(userRepository.findById(senderId)).willReturn(Optional.of(mockUser));
+      given(userRepository.findById(receiverId)).willReturn(Optional.of(mockUser2));
       given(directMessageRepository.save(any())).willReturn(mockDirectMessage);
       given(directMessageDtoAssembler.assemble(mockDirectMessage)).willReturn(mockDirectMessageDto);
 
