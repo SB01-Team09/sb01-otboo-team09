@@ -24,21 +24,20 @@ public class ClothesAttributeDefDtoAssembler {
 
     if (defs.isEmpty()) {
       return List.of();
-    } else {
-      List<UUID> defIds = defs.stream()
-        .map(ClothesAttributeDef::getId)
-        .toList();
+    }
 
-      Map<UUID, List<SelectableValue>> valueMap = selectableValueService.findAllByAttributeDefIdIn(
-          defIds).stream()
+    Map<UUID, List<SelectableValue>> valueMap = selectableValueService.findAll().stream()
         .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
 
-      return defs.stream().map(
-          def -> clothesAttributeDefMapper.toDto(def.getId(), def.getName(),
+    return defs.stream()
+        .map(def -> clothesAttributeDefMapper.toDto(
+            def.getId(),
+            def.getName(),
             valueMap.get(def.getId()).stream()
-              .map(SelectableValue::getItem)
-              .toList()))
+                .map(SelectableValue::getItem)
+                .toList()
+        ))
         .toList();
-    }
   }
 }
+
