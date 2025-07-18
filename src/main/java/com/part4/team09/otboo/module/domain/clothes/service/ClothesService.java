@@ -261,7 +261,7 @@ public class ClothesService {
     }
   }
 
-  private static void validateUser(UUID userId, UUID request) {
+  private void validateUser(UUID userId, UUID request) {
     if (!userId.equals(request)) {
       log.warn("사용자가 일치하지 않습니다.");
       throw new AccessDeniedException("사용자가 일치하지 않습니다.");
