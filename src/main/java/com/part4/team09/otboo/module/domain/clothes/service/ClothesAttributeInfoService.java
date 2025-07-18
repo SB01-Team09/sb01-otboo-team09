@@ -93,8 +93,6 @@ public class ClothesAttributeInfoService {
     List<ClothesAttributeDef> defs = clothesAttributeDefService.findByCursor(defIds, request);
 
     // 반환 값 생성
-    List<ClothesAttributeDefDto> data = clothesAttributeDefDtoAssembler.assemble(defs);
-
     boolean hasNext = defs.size() > request.limit();
     String nextCursor = null;
     UUID nextIdAfter = null;
@@ -105,6 +103,8 @@ public class ClothesAttributeInfoService {
       nextIdAfter = lastDef.getId();
     }
     int totalCount = defIds.size();
+
+    List<ClothesAttributeDefDto> data = clothesAttributeDefDtoAssembler.assemble(defs);
 
     ClothesAttributeDefDtoCursorResponse response = clothesAttributeDefDtoCursorResponseMapper.toDto(
         data,
