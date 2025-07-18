@@ -48,7 +48,6 @@ class ClothesDtoAssemblerTest {
   @Spy
   private ClothesAttributeWithDefMapper clothesAttributeWithDefMapper;
 
-  private UUID userId;
   private Clothes clothes1;
   private Clothes clothes2;
   private ClothesAttributeDef def1;

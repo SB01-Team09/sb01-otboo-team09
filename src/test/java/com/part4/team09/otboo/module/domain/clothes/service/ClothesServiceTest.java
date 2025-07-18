@@ -11,7 +11,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
-import com.part4.team09.otboo.module.domain.clothes.assembler.ClothesAttributeWithDefDtoAssembler;
 import com.part4.team09.otboo.module.domain.clothes.assembler.ClothesDtoAssembler;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeWithDefDto;
@@ -51,8 +50,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -363,7 +360,7 @@ class ClothesServiceTest {
       List<ClothesDto> data = List.of(data1, data2);
 
       given(clothesDtoAssembler.assembleList(clothesWithAttributesDtos)).willReturn(data);
-      boolean hasNext = clothesList.size() > limit;
+      boolean hasNext = false;
       String nextCursor = null;
       UUID nexIdAfter = null;
       int totalCount = clothesList.size();
@@ -440,7 +437,7 @@ class ClothesServiceTest {
 
       given(clothesDtoAssembler.assembleList(clothesWithAttributesDtos)).willReturn(data);
 
-      boolean hasNext = clothesList.size() > limit;
+      boolean hasNext = true;
       String nextCursor = clothes1.getCreatedAt().toString();
       UUID nextIdAfter = clothes1.getId();
       int totalCount = 2;
@@ -482,10 +479,10 @@ class ClothesServiceTest {
       given(clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual, ownerId,
           sortBy, sortDirection)).willReturn(List.of());
 
-      boolean hasNext = clothesList.size() > limit;
+      boolean hasNext = false;
       String nextCursor = null;
       UUID nexIdAfter = null;
-      int totalCount = clothesList.size();
+      int totalCount = 0;
       given(clothesRepository.countByOwnerIdAndType(ownerId, typeEqual)).willReturn(totalCount);
 
       List<ClothesDto> data = List.of();
@@ -724,10 +721,6 @@ class ClothesServiceTest {
       // given
       ClothesUpdateRequest request = new ClothesUpdateRequest("하의", ClothesType.BOTTOM,
           List.of(new ClothesAttributeDto(def1.getId(), "XL")));
-
-      // 7. 옷 - 속성 값 연관 생성
-      List<ClothesAttributeDef> defs = List.of(def1);
-      List<SelectableValue> values = List.of(value1, value2);
 
       given(clothesRepository.findById(clothes1.getId())).willReturn(Optional.of(clothes1));
       given(userRepository.findById(user.getId())).willReturn(Optional.of(user));

@@ -235,8 +235,6 @@ class ClothesRepositoryQueryDSLTest {
     void find_by_cursor_success_without_cursor() {
 
       // given
-      String cursor = null;
-      UUID idAfter = null;
       int limit = 10;
       ClothesType typeEqual = ClothesType.BOTTOM;
       UUID ownerId = userId;
@@ -244,7 +242,7 @@ class ClothesRepositoryQueryDSLTest {
       SortDirection sortDirection = SortDirection.ASCENDING;
 
       // when
-      List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
+      List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(null, null, limit,
         typeEqual,
           ownerId, sortBy, sortDirection);
 

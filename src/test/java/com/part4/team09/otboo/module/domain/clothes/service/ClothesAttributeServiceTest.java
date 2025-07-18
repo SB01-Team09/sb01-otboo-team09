@@ -139,6 +139,42 @@ class ClothesAttributeServiceTest {
   }
 
   @Nested
+  @DisplayName("의상 속성 값 - 의상 연관 조회")
+  class FindByClothesId {
+
+    @Test
+    @DisplayName("조회 성공")
+    void find_by_clothes_id_success() {
+
+      // given
+      given(clothesRepository.findById(clothesId)).willReturn(Optional.of(clothes));
+
+      List<ClothesAttribute> clothesAttributes = List.of(clothesAttribute1, clothesAttribute2);
+      given(clothesAttributeRepository.findAllByClothesId(clothesId)).willReturn(clothesAttributes);
+
+      // when
+      List<ClothesAttribute> result = clothesAttributeService.findAllByClothesId(clothesId);
+
+      // then
+      assertEquals(clothesAttributes, result);
+
+      then(clothesRepository).should().findById(clothesId);
+      then(clothesAttributeRepository).should().findAllByClothesId(clothesId);
+    }
+
+    @Test
+    @DisplayName("의상이 존재하지 않을 경우 실패")
+    void find_by_clothes_id_not_found_clothes() {
+
+      // given
+      given(clothesRepository.findById(clothesId)).willReturn(Optional.empty());
+
+      // when, then
+      assertThrows(ClothesNotFoundException.class, () -> clothesAttributeService.findAllByClothesId(clothesId));
+    }
+  }
+
+  @Nested
   @DisplayName("의상 속성 값 - 의상 연관 의상 의상 id로 삭제")
   class DeleteAllByClothesId {
 
