@@ -4,6 +4,7 @@ import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageDto;
 import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageDtoCursorResponse;
+import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageSendPayload;
 import com.part4.team09.otboo.module.domain.directmessage.dto.request.DirectMessageCreateRequest;
 import com.part4.team09.otboo.module.domain.directmessage.entity.DirectMessage;
 import com.part4.team09.otboo.module.domain.directmessage.mapper.DirectMessageDtoAssembler;
@@ -11,7 +12,10 @@ import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessa
 import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessageRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import java.util.Arrays;
+import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +25,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DirectMessageService {
 
   private final DirectMessageRepository directMessageRepository;
@@ -30,18 +35,21 @@ public class DirectMessageService {
   private final UserRepository userRepository;
 
   @Transactional
-  public DirectMessageDto create(DirectMessageCreateRequest request) {
+  public DirectMessageSendPayload create(DirectMessageCreateRequest request) {
     validateUserExists(request.senderId());
     validateUserExists(request.receiverId());
 
+    String dmKey = createDmKey(request.senderId(), request.receiverId());
     DirectMessage directMessage = DirectMessage.create(
         request.senderId(),
         request.receiverId(),
         request.content()
     );
-    DirectMessage savedDirectMessage = directMessageRepository.save(directMessage);
 
-    return directMessageDtoAssembler.assemble(savedDirectMessage);
+    DirectMessage savedDirectMessage = directMessageRepository.save(directMessage);
+    DirectMessageDto directMessageDto = directMessageDtoAssembler.assemble(savedDirectMessage);
+
+    return new DirectMessageSendPayload(dmKey, directMessageDto);
   }
 
   // DM 목록 조회
@@ -104,5 +112,11 @@ public class DirectMessageService {
     if (!userRepository.existsById(userId)) {
       throw UserNotFoundException.withId(userId);
     }
+  }
+
+  private String createDmKey(UUID senderId, UUID receiverId) {
+    List<UUID> ids = Arrays.asList(senderId, receiverId);
+    ids.sort(Comparator.comparing(UUID::toString));
+    return ids.get(0) + "_" + ids.get(1);
   }
 }
