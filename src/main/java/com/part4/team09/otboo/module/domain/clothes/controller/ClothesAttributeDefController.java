@@ -36,11 +36,13 @@ public class ClothesAttributeDefController {
   @PostMapping
   public ResponseEntity<ClothesAttributeDefDto> create(
     @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
-    log.info("의상 속성 정의 생성 요청");
+    log.info("의상 속성 정의 생성 요청: name = {}, selectableValue = {}",
+        request.name(), request.selectableValues());
 
     ClothesAttributeDefDto response = clothesAttributeInfoService.create(request);
 
-    log.info("의상 속성 정의 생성 응답: {}", HttpStatus.CREATED.value());
+    log.info("의상 속성 정의 생성 응답: name = {} selectableValue = {}",
+        response.name(), response.selectableValues());
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
@@ -76,11 +78,13 @@ public class ClothesAttributeDefController {
   public ResponseEntity<ClothesAttributeDefDto> update(
       @PathVariable UUID definitionId,
       @Valid @RequestBody ClothesAttributeDefUpdateRequest request) {
-    log.info("의상 속성 정의 수정 요청");
+    log.info("의상 속성 정의 수정 요청: name = {}, selectableValue = {}",
+        request.name(), request.selectableValues());
 
     ClothesAttributeDefDto response = clothesAttributeInfoService.update(definitionId, request);
 
-    log.info("의상 속성 정의 수정 응답: {}", HttpStatus.OK.value());
+    log.info("의상 속성 정의 수정 응답: name = {} selectableValue = {}",
+        response.name(), response.selectableValues());
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
