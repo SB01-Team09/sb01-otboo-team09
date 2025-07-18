@@ -169,18 +169,17 @@ class ClothesAttributeDefServiceTest {
     void find_ids_by_keyword_no_keyword() {
 
       // given
-      String keyword = null;
       List<ClothesAttributeDef> defs = List.of(def1);
 
       given(clothesAttributeDefRepository.findAll()).willReturn(defs);
 
       // when
-      List<UUID> result = clothesAttributeDefService.findIdsByKeyword(keyword);
+      List<UUID> result = clothesAttributeDefService.findIdsByKeyword(null);
 
       // then
       assertEquals(result, defs.stream().map(BaseEntity::getId).toList());
       then(clothesAttributeDefRepository).should().findAll();
-      then(clothesAttributeDefRepository).should(times(0)).findDefIdsByKeyword(keyword);
+      then(clothesAttributeDefRepository).should(times(0)).findDefIdsByKeyword(null);
     }
   }
 
@@ -258,62 +257,6 @@ class ClothesAttributeDefServiceTest {
   }
 
   @Nested
-  @DisplayName("의상 속성 정의 id 리스트로 속성 정의 리스트 조회")
-  class FindAllByIds {
-
-    @Test
-    @DisplayName("조회 성공")
-    void find_all_by_ids_success() {
-
-      // given
-      List<UUID> defIds = List.of(def1.getId());
-      List<ClothesAttributeDef> defs = List.of(def1);
-
-      given(clothesAttributeDefRepository.findAllById(defIds)).willReturn(defs);
-
-      // when
-      List<ClothesAttributeDef> result = clothesAttributeDefService.findAllByIds(defIds);
-
-      // then
-      assertNotNull(result);
-      assertEquals(result, defs);
-      then(clothesAttributeDefRepository).should().findAllById(defIds);
-    }
-
-    @Test
-    @DisplayName("defIds가 비어있을 경우 빈 리스트 반환")
-    void find_all_by_empty_def_ids() {
-
-      // given
-      List<UUID> defIds = List.of();
-
-      // when
-      List<ClothesAttributeDef> result = clothesAttributeDefService.findAllByIds(defIds);
-
-      // then
-      assertNotNull(result);
-      assertEquals(result, List.of());
-      then(clothesAttributeDefRepository).should(times(0)).findAllById(defIds);
-    }
-
-    @Test
-    @DisplayName("defIds가 비어있을 경우 빈 리스트 반환")
-    void find_all_by_no_def_ids() {
-
-      // given
-      List<UUID> defIds = null;
-
-      // when
-      List<ClothesAttributeDef> result = clothesAttributeDefService.findAllByIds(defIds);
-
-      // then
-      assertNotNull(result);
-      assertEquals(result, List.of());
-      then(clothesAttributeDefRepository).should(times(0)).findAllById(defIds);
-    }
-  }
-
-  @Nested
   @DisplayName("의상 속성 정의 수정")
   class Update {
 
@@ -361,13 +304,13 @@ class ClothesAttributeDefServiceTest {
       // given
       UUID defId = def1.getId();
 
-      given(clothesAttributeDefRepository.existsById(defId)).willReturn(true);
+      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.of(def1));
 
       // when
       clothesAttributeDefService.delete(defId);
 
       // then
-      then(clothesAttributeDefRepository).should().existsById(defId);
+      then(clothesAttributeDefRepository).should().findById(defId);
       then(clothesAttributeDefRepository).should().deleteById(defId);
     }
 
@@ -378,12 +321,12 @@ class ClothesAttributeDefServiceTest {
       // given
       UUID defId = def1.getId();
 
-      given(clothesAttributeDefRepository.existsById(defId)).willReturn(false);
+      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.empty());
 
       // when, then
       assertThrows(ClothesAttributeDefNotFoundException.class, () -> clothesAttributeDefService.delete(defId));
 
-      then(clothesAttributeDefRepository).should().existsById(defId);
+      then(clothesAttributeDefRepository).should().findById(defId);
       then(clothesAttributeDefRepository).should(times(0)).deleteById(defId);
     }
   }
