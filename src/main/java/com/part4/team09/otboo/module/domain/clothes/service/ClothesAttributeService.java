@@ -70,6 +70,8 @@ public class ClothesAttributeService {
   public void deleteAllByClothesId(UUID clothesId) {
     log.debug("의상 속성 값 - 의상 연관 삭제 시작: clothesId = {}", clothesId);
 
+    getClothesOrThrow(clothesId);
+
     clothesAttributeRepository.deleteAllByClothesId(clothesId);
 
     log.debug("의상 속성 값 - 의상 연관 삭제 완료");
@@ -77,9 +79,9 @@ public class ClothesAttributeService {
 
   private Clothes getClothesOrThrow(UUID clothesId) {
     return clothesRepository.findById(clothesId)
-      .orElseThrow(() -> {
-        log.warn("의상을 찾을 수 없습니다. clothesId = {}", clothesId);
-        return ClothesNotFoundException.withId(clothesId);
-      });
+        .orElseThrow(() -> {
+          log.warn("의상을 찾을 수 없습니다. clothesId = {}", clothesId);
+          return ClothesNotFoundException.withId(clothesId);
+        });
   }
 }
