@@ -9,12 +9,15 @@ import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttribute
 import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesAttributeDefDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
+import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefMapper;
+import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,8 @@ public class ClothesAttributeInfoService {
   private final SelectableValueService selectableValueService;
   private final ClothesAttributeService clothesAttributeService;
 
+  private final ClothesAttributeDefRepository clothesAttributeDefRepository;
+
   private final ClothesAttributeDefMapper clothesAttributeDefMapper;
   private final ClothesAttributeDefDtoCursorResponseMapper clothesAttributeDefDtoCursorResponseMapper;
 
@@ -44,8 +49,9 @@ public class ClothesAttributeInfoService {
 
     ClothesAttributeDef def = clothesAttributeDefService.create(request.name());
 
-    List<String> valueItems = selectableValueService.create(def.getId(), request.selectableValues())
-        .stream().map(SelectableValue::getItem).toList();
+    List<String> valueItems = selectableValueService.create(def.getId(), request.selectableValues()).stream()
+        .map(SelectableValue::getItem)
+        .toList();
 
     ClothesAttributeDefDto response = clothesAttributeDefMapper.toDto(def.getId(), def.getName(),
         valueItems);
@@ -76,7 +82,8 @@ public class ClothesAttributeInfoService {
           null,
           false, defIds.size(),
           request.sortBy(),
-          request.sortDirection());
+          request.sortDirection()
+      );
     }
 
     // 2. 커서 기반 페이지네이션
@@ -103,7 +110,8 @@ public class ClothesAttributeInfoService {
         hasNext,
         totalCount,
         request.sortBy(),
-        request.sortDirection());
+        request.sortDirection()
+    );
 
     log.debug("의상 속성 정의 조회 완료: dataSize = {}, nextCursor = {}, nextIdAfter = {}, hasNext = {}, "
             + "totalCount = {}, sortBy = {}, sortDirection = {}", response.data().size(),
@@ -114,17 +122,57 @@ public class ClothesAttributeInfoService {
 
   // 의상 속성 정의 수정
   public ClothesAttributeDefDto update(UUID defId, ClothesAttributeDefUpdateRequest request) {
-
     log.debug("의상 속성 정의 수정 시작: defId = {}, newName = {}, newValuesSize = {}", defId, request.name(),
         request.selectableValues().size());
 
-    ClothesAttributeDef def = clothesAttributeDefService.findById(defId);
+    ClothesAttributeDef def = getClothesAttributeDefOrThrow(defId);
     String oldName = def.getName();
     String newName = request.name();
 
-    ClothesAttributeDefDto response = newName.equals(oldName)
-        ? updateWhenNameSame(def, request)
-        : updateWhenNameChanged(def, request);
+    List<SelectableValue> oldValues = selectableValueService.findAllByAttributeDefId(def.getId());
+
+    Set<String> oldValueNameSet = oldValues.stream()
+        .map(SelectableValue::getItem)
+        .collect(Collectors.toSet());
+
+    Set<String> newValueNameSet = new HashSet<>(request.selectableValues());
+
+    // 삭제할 속성 값 id
+    List<UUID> valueIdsForDelete = oldValues.stream()
+        .filter(oldValue -> !newValueNameSet.contains(oldValue.getItem()))
+        .map(BaseEntity::getId)
+        .toList();
+
+    if (!newName.equals(oldName)) {
+      List<UUID> oldValueIds = oldValues.stream()
+          .map(BaseEntity::getId)
+          .toList();
+      clothesAttributeDefService.update(def.getId(), request.name());
+
+      // 속성 명이 바뀌면 속성 값 연관 전부 삭제
+      clothesAttributeService.deleteBySelectableValueIdIn(oldValueIds);
+    } else {
+
+      // 속성 명이 바뀌지 않았으면 바뀐 속성 값 연관만 삭제
+      clothesAttributeService.deleteBySelectableValueIdIn(valueIdsForDelete);
+    }
+
+    // 리퀘스트에 없는 속성 값 삭제
+    selectableValueService.deleteByIdIn(valueIdsForDelete);
+
+    // 새로 생성할 속성 값 id
+    List<String> newSelectableValues = request.selectableValues().stream()
+        .filter(value -> !oldValueNameSet.contains(value))
+        .toList();
+
+    // 리퀘스트에만 있는 속성 값 생성
+    selectableValueService.create(def.getId(), newSelectableValues);
+
+    List<String> values = selectableValueService.findAllByAttributeDefId(def.getId()).stream()
+        .map(SelectableValue::getItem)
+        .toList();
+
+    ClothesAttributeDefDto response = clothesAttributeDefMapper.toDto(defId, def.getName(), values);
 
     log.debug("의상 속성 정의 수정 완료: defId = {}, name = {}, valuesSize = {}", response.id(),
         response.name(),
@@ -134,7 +182,7 @@ public class ClothesAttributeInfoService {
 
   // 의상 속성 정의 삭제
   public void delete(UUID defId) {
-    ClothesAttributeDef def = clothesAttributeDefService.findById(defId);
+    ClothesAttributeDef def = getClothesAttributeDefOrThrow(defId);
 
     log.debug("의상 속성 정의 삭제 시작: defId = {}, name = {}", def.getId(), def.getName());
 
@@ -153,50 +201,12 @@ public class ClothesAttributeInfoService {
     log.debug("의상 속성 정의 삭제 완료: defId = {}", defId);
   }
 
-  private ClothesAttributeDefDto updateWhenNameSame(ClothesAttributeDef def,
-      ClothesAttributeDefUpdateRequest request) {
+  private ClothesAttributeDef getClothesAttributeDefOrThrow(UUID defId) {
 
-    // 1. 속성 값 가져와서 새로 수정할 값과 비교
-    List<SelectableValue> oldValues = selectableValueService.findAllByAttributeDefId(def.getId());
-    Set<String> newValuesSet = new HashSet<>(request.selectableValues());
-
-    List<UUID> valueIdsForDelete = oldValues.stream()
-        .filter(oldValue -> !newValuesSet.contains(oldValue.getItem()))
-        .map(BaseEntity::getId)
-        .toList();
-
-    // 2. clothesAttribute 삭제
-    clothesAttributeService.deleteBySelectableValueIdIn(valueIdsForDelete);
-
-    // 3. 속성 값 새로 생성
-    List<String> newValueItems = selectableValueService.updateWhenNameSame(def.getId(),
-            valueIdsForDelete, request.selectableValues()).stream().map(SelectableValue::getItem)
-        .toList();
-    log.debug("새로 생성된 의상 속성 값: newValues: {}", newValueItems);
-
-    List<String> values = selectableValueService.findAllByAttributeDefId(def.getId()).stream()
-        .map(SelectableValue::getItem)
-        .toList();
-
-    return clothesAttributeDefMapper.toDto(def.getId(), def.getName(), values);
-  }
-
-  private ClothesAttributeDefDto updateWhenNameChanged(ClothesAttributeDef def,
-      ClothesAttributeDefUpdateRequest request) {
-
-    List<SelectableValue> oldValues = selectableValueService.findAllByAttributeDefId(def.getId());
-
-    // 1. 정의명 변경
-    ClothesAttributeDef updatedDef = clothesAttributeDefService.update(def.getId(), request.name());
-
-    // 2. clothesAttribute 삭제
-    clothesAttributeService.deleteBySelectableValueIdIn(
-        oldValues.stream().map(BaseEntity::getId).toList());
-
-    // 3. 새 속성 값 전부 생성
-    List<String> newValueItems = selectableValueService.updateWhenNameChanged(updatedDef.getId(),
-        request.selectableValues()).stream().map(SelectableValue::getItem).toList();
-
-    return clothesAttributeDefMapper.toDto(updatedDef.getId(), updatedDef.getName(), newValueItems);
+    return clothesAttributeDefRepository.findById(defId)
+        .orElseThrow(() -> {
+          log.warn("의상 속성 정의를 찾을 수 없습니다. defId = {}", defId);
+          return ClothesAttributeDefNotFoundException.withId(defId);
+        });
   }
 }
