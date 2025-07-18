@@ -53,20 +53,6 @@ class ClothesRepositoryTest {
   }
 
   @Test
-  @DisplayName("의상 id 리스트로 의상 개수 조회")
-  void count_by_id_in() {
-
-    // given
-    List<UUID> ids = List.of(clothes1.getId(), clothes2.getId(), clothes3.getId(), clothes4.getId());
-
-    // when
-    int result = clothesRepository.countByIdIn(ids);
-
-    // then
-    assertEquals(result, 4);
-  }
-
-  @Test
   @DisplayName("사용자 id와 옷 타입으로 의상 개수 조회")
   void count_by_id_and_type() {
 

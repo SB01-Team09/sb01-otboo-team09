@@ -10,7 +10,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ClothesRepository extends JpaRepository<Clothes, UUID>, CustomClothesRepository {
 
-  int countByIdIn(List<UUID> ids);
-
   int countByOwnerIdAndType(UUID ownerId, ClothesType typeEqual);
 }
