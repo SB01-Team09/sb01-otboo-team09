@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.domain.weather.batch;
+package com.part4.team09.otboo.module.domain.weather.scheduler;
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
