@@ -30,7 +30,6 @@ public class ClothesAttributeDefService {
 
     log.debug("의상 속성 정의 명 생성 시작: name = {}", name);
 
-    // 프로토타입에는 없지만 이름 중복 검사
     if (clothesAttributeDefRepository.existsByName(name)) {
       log.warn("이미 존재하는 의상 속성 정의 명입니다. name = {}", name);
       throw ClothesAttributeDefAlreadyExistsException.withName(name);

@@ -32,6 +32,7 @@ public class ClothesAttributeService {
 
     getClothesOrThrow(clothesId);
 
+    // 연관 생성
     List<ClothesAttribute> clothesAttributes = selectedValueIds.stream()
         .map(selectedValueId -> ClothesAttribute.create(clothesId, selectedValueId))
         .toList();

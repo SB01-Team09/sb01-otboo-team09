@@ -3,8 +3,8 @@ package com.part4.team09.otboo.module.domain.clothes.service;
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.clothes.assembler.ClothesDtoAssembler;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDto;
-import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeRowDto;
+import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesCreateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesUpdateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesDtoCursorResponse;
@@ -59,18 +59,29 @@ public class ClothesService {
 
     log.debug("의상 생성 시작: ownerId = {}, name = {}", request.ownerId(), request.name());
 
+    // 유효성 검사
     validateUser(userId, request.ownerId());
-
     getUserOrThrow(request.ownerId());
 
+    // 이미지 업로드
     String url = uploadClothesImage(image);
 
+    // 의상 생성
     Clothes clothes = Clothes.create(request.ownerId(), request.name(), request.type(), url);
     Clothes savedClothes = clothesRepository.save(clothes);
 
-    ClothesDto response = createClothesAttributes(request.attributes(), savedClothes);
+    ClothesDto response;
+    if (!request.attributes().isEmpty()) {
+      // 선택한 속성 값이 있는 경우 연관 생성
+      createClothesAttributes(request.attributes(), clothes);
+      response = clothesDtoAssembler.assemble(clothesRepository.findByClothesId(clothes.getId()));
+    } else {
+      response = clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(), clothes.getName(),
+          clothes.getImageUrl(), clothes.getType(), clothes.getCreatedAt(), List.of());
+    }
 
-    log.debug("의상 생성 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
+    log.debug(
+        "의상 생성 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
         response.id(), response.ownerId(), response.name(), response.imageUrl(), response.type(),
         response.attributes().size());
     return response;
@@ -82,6 +93,7 @@ public class ClothesService {
     log.debug("의상 조회 시작: cursor = {}, idAfter = {}, limit = {}, typeEqual = {}, ownerId = {}",
         cursor, idAfter, limit, typeEqual, ownerId);
 
+    // 유효성 검사
     validateUser(userId, ownerId);
 
     if (limit <= 0) {
@@ -98,10 +110,13 @@ public class ClothesService {
     String sortBy = "createdAt";
     SortDirection sortDirection = SortDirection.DESCENDING;
 
-    List<ClothesAttributeRowDto> clothesAttributeRowDtoList = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
+    // 커서 기반 조회
+    List<ClothesAttributeRowDto> clothesAttributeRowDtoList = clothesRepository.findByCursor(cursor,
+        idAfter, limit, typeEqual,
         ownerId, sortBy, sortDirection);
 
     List<ClothesDto> data;
+    // 조회된 리스트가 있을 경우에만 어셈블러 호출
     if (!clothesAttributeRowDtoList.isEmpty()) {
       data = clothesDtoAssembler.assembleList(clothesAttributeRowDtoList);
 
@@ -119,17 +134,21 @@ public class ClothesService {
     }
     int totalCount = clothesRepository.countByOwnerIdAndType(ownerId, typeEqual);
 
-    ClothesDtoCursorResponse response = clothesDtoCursorResponseMapper.toDto(data, nextCursor, nextIdAfter,
+    ClothesDtoCursorResponse response = clothesDtoCursorResponseMapper.toDto(data, nextCursor,
+        nextIdAfter,
         hasNext, totalCount, sortBy, sortDirection);
 
     log.debug("의상 조회 완료: dataSize = {}, nexCursor = {}, nextIdAfter = {}, hasNext = {}, "
-            + "totalCount = {}, sortBy = {}, sortDirection = {}", data.size(), nextCursor, nextIdAfter, hasNext,
+            + "totalCount = {}, sortBy = {}, sortDirection = {}", data.size(), nextCursor, nextIdAfter,
+        hasNext,
         totalCount, sortBy, sortDirection);
     return response;
   }
 
-  public ClothesDto update(UUID userId, UUID clothesId, ClothesUpdateRequest request, MultipartFile image) {
+  public ClothesDto update(UUID userId, UUID clothesId, ClothesUpdateRequest request,
+      MultipartFile image) {
 
+    // 유효성 검사
     Clothes clothes = getClothesOrThrow(clothesId);
 
     validateUser(userId, clothes.getOwnerId());
@@ -155,10 +174,21 @@ public class ClothesService {
     // clothesAttribute 삭제
     clothesAttributeService.deleteAllByClothesId(clothes.getId());
 
-    ClothesDto response = createClothesAttributes(request.attributes(), clothes);
+    // 연관 생성
 
+    // 반환 생성
+    ClothesDto response;
+    if (!request.attributes().isEmpty()) {
+      // 선택한 속성 값이 있는 경우 연관 생성
+      createClothesAttributes(request.attributes(), clothes);
+      response = clothesDtoAssembler.assemble(clothesRepository.findByClothesId(clothes.getId()));
+    } else {
+      response = clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(), clothes.getName(),
+          clothes.getImageUrl(), clothes.getType(), clothes.getCreatedAt(), List.of());
+    }
 
-    log.debug("의상 수정 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
+    log.debug(
+        "의상 수정 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
         response.id(), response.ownerId(), response.name(), response.imageUrl(), response.type(),
         response.attributes().size());
     return response;
@@ -191,33 +221,24 @@ public class ClothesService {
     log.debug("의상 삭제 완료: clothesId = {}", clothesId);
   }
 
-  private ClothesDto createClothesAttributes(List<ClothesAttributeDto> attributeDtos, Clothes clothes) {
+  private void createClothesAttributes(List<ClothesAttributeDto> attributeDtos, Clothes clothes) {
 
-    if (!attributeDtos.isEmpty()) {
+    Map<UUID, List<SelectableValue>> selectableValueMap = selectableValueService.findAll().stream()
+        .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
 
-      Map<UUID, List<SelectableValue>> selectableValueMap = selectableValueService.findAll().stream()
-          .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
+    List<UUID> selectedValueIds = attributeDtos.stream()
+        .map(attribute -> selectableValueMap.getOrDefault(attribute.definitionId(), List.of())
+            .stream()
+            .filter(value -> value.getItem().equals(attribute.value()))
+            .findFirst()
+            .orElseThrow(() -> {
+              log.warn("해당 의상 속성 값이 없습니다. value = {}", attribute.value());
+              return SelectableValueNotFoundException.withItem(attribute.value());
+            })
+            .getId())
+        .toList();
 
-      List<UUID> selectedValueIds = attributeDtos.stream()
-          .map(attribute -> selectableValueMap.getOrDefault(attribute.definitionId(), List.of())
-              .stream()
-              .filter(value -> value.getItem().equals(attribute.value()))
-              .findFirst()
-              .orElseThrow(() -> {
-                log.warn("해당 의상 속성 값이 없습니다. value = {}", attribute.value());
-                return SelectableValueNotFoundException.withItem(attribute.value());
-              })
-              .getId())
-          .toList();
-
-      clothesAttributeService.create(clothes.getId(), selectedValueIds);
-
-      List<ClothesAttributeRowDto> clothesWithAttributesDtos = clothesRepository.findByClothesId(clothes.getId());
-      return clothesDtoAssembler.assemble(clothesWithAttributesDtos);
-    } else {
-      return clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(), clothes.getName(),
-          clothes.getImageUrl(), clothes.getType(), clothes.getCreatedAt(), List.of());
-    }
+    clothesAttributeService.create(clothes.getId(), selectedValueIds);
   }
 
   // 이미지 업로드

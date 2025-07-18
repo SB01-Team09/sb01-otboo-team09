@@ -47,12 +47,15 @@ public class ClothesAttributeInfoService {
 
     log.debug("의상 속정 정의 생성 시작: name = {}, values = {}", request.name(), request.selectableValues());
 
+    // 속성 정의 생성
     ClothesAttributeDef def = clothesAttributeDefService.create(request.name());
 
+    // 속성 값 생성
     List<String> valueItems = selectableValueService.create(def.getId(), request.selectableValues()).stream()
         .map(SelectableValue::getItem)
         .toList();
 
+    // 반환 값 생성
     ClothesAttributeDefDto response = clothesAttributeDefMapper.toDto(def.getId(), def.getName(),
         valueItems);
 
@@ -70,7 +73,7 @@ public class ClothesAttributeInfoService {
             + "sortDirection = {}, keywordLike = {}", request.cursor(), request.idAfter(),
         request.limit(), request.sortBy(), request.sortDirection(), request.keywordLike());
 
-    // 1. 키워드로 정의 명 또는 속성 값 찾기
+    // 키워드를 포한하는 속성 명 / 속성 값 조회
     List<UUID> defIds = clothesAttributeDefService.findIdsByKeyword(request.keywordLike());
 
     // 키워드를 포함하는 속성이 없을 경우 빈리스트 반환
@@ -86,10 +89,12 @@ public class ClothesAttributeInfoService {
       );
     }
 
-    // 2. 커서 기반 페이지네이션
+    // 커서 기반 페이지네이션
     List<ClothesAttributeDef> defs = clothesAttributeDefService.findByCursor(defIds, request);
 
-    // 3 반환 값 생성
+    // 반환 값 생성
+    List<ClothesAttributeDefDto> data = clothesAttributeDefDtoAssembler.assemble(defs);
+
     boolean hasNext = defs.size() > request.limit();
     String nextCursor = null;
     UUID nextIdAfter = null;
@@ -100,8 +105,6 @@ public class ClothesAttributeInfoService {
       nextIdAfter = lastDef.getId();
     }
     int totalCount = defIds.size();
-
-    List<ClothesAttributeDefDto> data = clothesAttributeDefDtoAssembler.assemble(defs);
 
     ClothesAttributeDefDtoCursorResponse response = clothesAttributeDefDtoCursorResponseMapper.toDto(
         data,
@@ -126,15 +129,21 @@ public class ClothesAttributeInfoService {
         request.selectableValues().size());
 
     ClothesAttributeDef def = getClothesAttributeDefOrThrow(defId);
-    String oldName = def.getName();
-    String newName = request.name();
 
+    // 이전에 존재하던 속성 값 조회
     List<SelectableValue> oldValues = selectableValueService.findAllByAttributeDefId(def.getId());
 
+    // 새로 생성 할 속성 값을 선택하기 위한 자료구조
     Set<String> oldValueNameSet = oldValues.stream()
         .map(SelectableValue::getItem)
         .collect(Collectors.toSet());
 
+    // 새로 생성할 속성 값 id
+    List<String> newSelectableValues = request.selectableValues().stream()
+        .filter(value -> !oldValueNameSet.contains(value))
+        .toList();
+
+    // 삭제할 속성 값을 선택하기 위한 자료구조
     Set<String> newValueNameSet = new HashSet<>(request.selectableValues());
 
     // 삭제할 속성 값 id
@@ -143,13 +152,16 @@ public class ClothesAttributeInfoService {
         .map(BaseEntity::getId)
         .toList();
 
-    if (!newName.equals(oldName)) {
-      List<UUID> oldValueIds = oldValues.stream()
-          .map(BaseEntity::getId)
-          .toList();
+    // 속성 정의 명이 업데이트 되는 경우
+    if (!request.name().equals(def.getName())) {
+
+      // 속성 정의 명 업데이트
       clothesAttributeDefService.update(def.getId(), request.name());
 
       // 속성 명이 바뀌면 속성 값 연관 전부 삭제
+      List<UUID> oldValueIds = oldValues.stream()
+          .map(BaseEntity::getId)
+          .toList();
       clothesAttributeService.deleteBySelectableValueIdIn(oldValueIds);
     } else {
 
@@ -160,14 +172,10 @@ public class ClothesAttributeInfoService {
     // 리퀘스트에 없는 속성 값 삭제
     selectableValueService.deleteByIdIn(valueIdsForDelete);
 
-    // 새로 생성할 속성 값 id
-    List<String> newSelectableValues = request.selectableValues().stream()
-        .filter(value -> !oldValueNameSet.contains(value))
-        .toList();
-
     // 리퀘스트에만 있는 속성 값 생성
     selectableValueService.create(def.getId(), newSelectableValues);
 
+    // 선택 가능한 값 조회
     List<String> values = selectableValueService.findAllByAttributeDefId(def.getId()).stream()
         .map(SelectableValue::getItem)
         .toList();
