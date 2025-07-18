@@ -59,12 +59,8 @@ import org.springframework.web.multipart.MultipartFile;
 @ExtendWith(MockitoExtension.class)
 class ClothesServiceTest {
 
-  private static final Logger log = LoggerFactory.getLogger(ClothesServiceTest.class);
   @InjectMocks
   private ClothesService clothesService;
-
-  @Mock
-  private ClothesAttributeDefService clothesAttributeDefService;
 
   @Mock
   private SelectableValueService selectableValueService;
@@ -80,9 +76,6 @@ class ClothesServiceTest {
 
   @Mock
   private OotdRepository ootdRepository;
-
-  @Mock
-  private ClothesAttributeWithDefDtoAssembler clothesAttributeWithDefDtoAssembler;
 
   @Spy
   private ClothesMapper clothesMapper;
@@ -196,25 +189,20 @@ class ClothesServiceTest {
 
       List<UUID> defIds = List.of(def1.getId(), def2.getId());
       List<SelectableValue> values = List.of(value1, value2, value3, value4);
-      given(selectableValueService.findAllByAttributeDefIdIn(defIds)).willReturn(values);
+      given(selectableValueService.findAll()).willReturn(values);
 
       List<UUID> selectedValueIds = List.of(value1.getId(), value3.getId());
       List<ClothesAttribute> clothesAttributes = List.of(clothesAttribute1, clothesAttribute2);
       given(clothesAttributeService.create(clothes1.getId(), selectedValueIds)).willReturn(clothesAttributes);
 
       List<ClothesAttributeRowDto> clothesWithAttributesDtos = List.of(
-        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
-          clothes1.getOwnerId(),
-          clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(),
-          def1.getName(),
-          value1.getItem()),
-        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
-          clothes1.getOwnerId(),
-          clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def2.getId(),
-          def2.getName(),
-          value3.getItem()));
-      given(clothesRepository.findByClothesId(clothes1.getId())).willReturn(
-        clothesWithAttributesDtos);
+          new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(), clothes1.getOwnerId(),
+              clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(), def1.getName(),
+              value1.getItem()),
+          new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(), clothes1.getOwnerId(),
+              clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def2.getId(), def2.getName(),
+              value3.getItem()));
+      given(clothesRepository.findByClothesId(clothes1.getId())).willReturn(clothesWithAttributesDtos);
 
       given(selectableValueService.findAll()).willReturn(values);
 
@@ -225,8 +213,8 @@ class ClothesServiceTest {
               value3.getItem())
       );
       ClothesDto clothesDto = new ClothesDto(clothes1.getId(), user.getId(), clothes1.getName(),
-        clothes1.getImageUrl(), clothes1.getType(), clothes1.getCreatedAt(), attributeDtos);
-      given(clothesDtoAssembler.assemble(clothesWithAttributesDtos, values)).willReturn(clothesDto);
+          clothes1.getImageUrl(), clothes1.getType(), clothes1.getCreatedAt(), attributeDtos);
+      given(clothesDtoAssembler.assemble(clothesWithAttributesDtos)).willReturn(clothesDto);
 
       // when
       ClothesDto result = clothesService.create(userId, request, image);
@@ -237,7 +225,6 @@ class ClothesServiceTest {
       then(userRepository).should().findById(user.getId());
       then(fileStorage).should().upload(image, FileDomain.CLOTHES_IMAGE);
       then(clothesRepository).should().save(any(Clothes.class));
-      then(selectableValueService).should().findAllByAttributeDefIdIn(defIds);
       then(clothesAttributeService).should().create(clothes1.getId(), selectedValueIds);
     }
 
@@ -257,8 +244,7 @@ class ClothesServiceTest {
       });
 
       ClothesDto clothesDto = new ClothesDto(clothesWithoutImage.getId(), user.getId(), clothesWithoutImage.getName(),
-        clothesWithoutImage.getImageUrl(), clothesWithoutImage.getType(),
-        clothesWithoutImage.getCreatedAt(), List.of());
+          clothesWithoutImage.getImageUrl(), clothesWithoutImage.getType(), clothesWithoutImage.getCreatedAt(), List.of());
 
       // when
       ClothesDto result = clothesService.create(user.getId(), request, null);
@@ -269,7 +255,6 @@ class ClothesServiceTest {
       then(userRepository).should().findById(user.getId());
       then(fileStorage).should(times(0)).upload(image, FileDomain.CLOTHES_IMAGE);
       then(clothesRepository).should().save(any(Clothes.class));
-      then(selectableValueService).should(times(0)).findAllByAttributeDefIdIn(anyList());
       then(clothesAttributeService).should(times(0)).create(any(UUID.class), anyList());
     }
 
@@ -285,8 +270,7 @@ class ClothesServiceTest {
       given(userRepository.findById(invalidUserId)).willReturn(Optional.empty());
 
       // when & then
-      assertThrows(UserNotFoundException.class,
-        () -> clothesService.create(invalidUserId, request, image));
+      assertThrows(UserNotFoundException.class, () -> clothesService.create(invalidUserId, request, image));
 
       then(userRepository).should().findById(invalidUserId);
       then(clothesRepository).should(times(0)).save(any(Clothes.class));
@@ -309,30 +293,26 @@ class ClothesServiceTest {
             ReflectionTestUtils.setField(clothes, "id", clothes1Id);
             return clothes;
           });
-      given(selectableValueService.findAllByAttributeDefIdIn(List.of(def1.getId())))
-          .willReturn(List.of(value1, value2));
 
       // when,  the
       assertThrows(SelectableValueNotFoundException.class,
-        () -> clothesService.create(user.getId(), request, image));
+          () -> clothesService.create(user.getId(), request, image));
 
       then(userRepository).should().findById(user.getId());
       then(fileStorage).should().upload(image, FileDomain.CLOTHES_IMAGE);
       then(clothesRepository).should().save(any(Clothes.class));
-      then(selectableValueService).should().findAllByAttributeDefIdIn(List.of(def1.getId()));
 
     }
   }
-  
+
   @Nested
   @DisplayName("의상 조회")
   class FindByCursor {
-    
-    // 1. 조회 성공 - hasNext가 없을 경우
+
     @Test
     @DisplayName("조회 성공 - hasNext가 없을 경우")
     void find_by_cursor_success_no_has_next() {
-      
+
       // given
       String cursor = null;
       UUID idAfter = null;
@@ -346,56 +326,43 @@ class ClothesServiceTest {
       SortDirection sortDirection = SortDirection.DESCENDING;
       List<Clothes> clothesList = List.of(clothes1, clothes2);
       List<ClothesAttributeRowDto> clothesWithAttributesDtos = List.of(
-        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
-          clothes1.getOwnerId(),
-          clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(),
-          def1.getName(),
-          value1.getItem()),
-        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
-          clothes1.getOwnerId(),
-          clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def2.getId(),
-          def2.getName(),
-          value3.getItem()),
-        new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(),
-          clothes2.getOwnerId(),
-          clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def1.getId(),
-          def1.getName(),
-          value2.getItem()),
-        new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(),
-          clothes2.getOwnerId(),
-          clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def2.getId(),
-          def2.getName(),
-          value4.getItem())
+          new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(), clothes1.getOwnerId(),
+              clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(), def1.getName(),
+              value1.getItem()),
+          new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(), clothes1.getOwnerId(),
+              clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def2.getId(), def2.getName(),
+              value3.getItem()),
+          new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(), clothes2.getOwnerId(),
+              clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def1.getId(), def1.getName(),
+              value2.getItem()),
+          new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(), clothes2.getOwnerId(),
+              clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def2.getId(), def2.getName(),
+              value4.getItem())
       );
-      given(clothesRepository.findByCursor(cursor, idAfter, limit, ClothesType.TOP, ownerId, sortBy,
-        sortDirection))
-        .willReturn(clothesWithAttributesDtos);
+      given(clothesRepository.findByCursor(cursor, idAfter, limit, ClothesType.TOP, ownerId, sortBy, sortDirection))
+          .willReturn(clothesWithAttributesDtos);
 
-      List<SelectableValue> values = List.of(value1, value2, value3, value4);
-      given(selectableValueService.findAll()).willReturn(values);
 
       List<ClothesAttributeWithDefDto> clothesAttributeWithDefDtoList1 = List.of(
-        new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), List.of(value1.getItem(),
-          value2.getItem()), value1.getItem()),
-        new ClothesAttributeWithDefDto(def2.getId(), def2.getName(), List.of(value3.getItem(),
-          value4.getItem()), value3.getItem()
-        ));
+          new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), List.of(value1.getItem(),
+              value2.getItem()), value1.getItem()),
+          new ClothesAttributeWithDefDto(def2.getId(), def2.getName(), List.of(value3.getItem(),
+              value4.getItem()), value3.getItem()
+          ));
       List<ClothesAttributeWithDefDto> clothesAttributeWithDefDtoList2 = List.of(
-        new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), List.of(value1.getItem(),
-          value2.getItem()), value2.getItem()),
-        new ClothesAttributeWithDefDto(def2.getId(), def2.getName(), List.of(value3.getItem(),
-          value4.getItem()), value4.getItem()
-        ));
+          new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), List.of(value1.getItem(),
+              value2.getItem()), value2.getItem()),
+          new ClothesAttributeWithDefDto(def2.getId(), def2.getName(), List.of(value3.getItem(),
+              value4.getItem()), value4.getItem()
+          ));
       ClothesDto data1 = new ClothesDto(clothes1.getId(), clothes1.getOwnerId(), clothes1.getName(),
-        clothes1.getImageUrl(), clothes1.getType(), clothes1.getCreatedAt(),
-        clothesAttributeWithDefDtoList1);
+          clothes1.getImageUrl(), clothes1.getType(), clothes1.getCreatedAt(), clothesAttributeWithDefDtoList1);
       ClothesDto data2 = new ClothesDto(clothes2.getId(), clothes2.getOwnerId(), clothes2.getName(),
-        clothes2.getImageUrl(), clothes2.getType(), clothes2.getCreatedAt(),
-        clothesAttributeWithDefDtoList2);
+          clothes2.getImageUrl(), clothes2.getType(), clothes2.getCreatedAt(), clothesAttributeWithDefDtoList2);
 
       List<ClothesDto> data = List.of(data1, data2);
 
-      given(clothesDtoAssembler.assembleList(clothesWithAttributesDtos, values)).willReturn(data);
+      given(clothesDtoAssembler.assembleList(clothesWithAttributesDtos)).willReturn(data);
       boolean hasNext = clothesList.size() > limit;
       String nextCursor = null;
       UUID nexIdAfter = null;
@@ -407,7 +374,7 @@ class ClothesServiceTest {
 
       // when
       ClothesDtoCursorResponse result = clothesService.findByCursor(user.getId(), cursor, idAfter,
-        limit, typeEqual, ownerId);
+          limit, typeEqual, ownerId);
 
       // then
       assertEquals(result, response);
@@ -436,56 +403,42 @@ class ClothesServiceTest {
       List<Clothes> clothesList = List.of(clothes1, clothes2);
 
       List<ClothesAttributeRowDto> clothesWithAttributesDtos = List.of(
-        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
-          clothes1.getOwnerId(),
-          clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(),
-          def1.getName(),
-          value1.getItem()),
-        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
-          clothes1.getOwnerId(),
-          clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def2.getId(),
-          def2.getName(),
-          value3.getItem()),
-        new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(),
-          clothes2.getOwnerId(),
-          clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def1.getId(),
-          def1.getName(),
-          value2.getItem()),
-        new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(),
-          clothes2.getOwnerId(),
-          clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def2.getId(),
-          def2.getName(),
-          value4.getItem())
+          new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(), clothes1.getOwnerId(),
+              clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(), def1.getName(),
+              value1.getItem()),
+          new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(), clothes1.getOwnerId(),
+              clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def2.getId(), def2.getName(),
+              value3.getItem()),
+          new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(), clothes2.getOwnerId(),
+              clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def1.getId(), def1.getName(),
+              value2.getItem()),
+          new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(), clothes2.getOwnerId(),
+              clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def2.getId(), def2.getName(),
+              value4.getItem())
       );
-      given(clothesRepository.findByCursor(cursor, idAfter, limit, ClothesType.TOP, ownerId, sortBy,
-        sortDirection))
-        .willReturn(clothesWithAttributesDtos);
-
-      List<SelectableValue> values = List.of(value1, value2, value3, value4);
-      given(selectableValueService.findAll()).willReturn(values);
+      given(clothesRepository.findByCursor(cursor, idAfter, limit, ClothesType.TOP, ownerId, sortBy, sortDirection))
+          .willReturn(clothesWithAttributesDtos);
 
       List<ClothesAttributeWithDefDto> clothesAttributeWithDefDtoList1 = List.of(
-        new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), List.of(value1.getItem(),
-          value2.getItem()), value1.getItem()),
-        new ClothesAttributeWithDefDto(def2.getId(), def2.getName(), List.of(value3.getItem(),
-          value4.getItem()), value3.getItem()
-        ));
+          new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), List.of(value1.getItem(),
+              value2.getItem()), value1.getItem()),
+          new ClothesAttributeWithDefDto(def2.getId(), def2.getName(), List.of(value3.getItem(),
+              value4.getItem()), value3.getItem()
+          ));
       List<ClothesAttributeWithDefDto> clothesAttributeWithDefDtoList2 = List.of(
-        new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), List.of(value1.getItem(),
-          value2.getItem()), value2.getItem()),
-        new ClothesAttributeWithDefDto(def2.getId(), def2.getName(), List.of(value3.getItem(),
-          value4.getItem()), value4.getItem()
-        ));
+          new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), List.of(value1.getItem(),
+              value2.getItem()), value2.getItem()),
+          new ClothesAttributeWithDefDto(def2.getId(), def2.getName(), List.of(value3.getItem(),
+              value4.getItem()), value4.getItem()
+          ));
       ClothesDto data1 = new ClothesDto(clothes1.getId(), clothes1.getOwnerId(), clothes1.getName(),
-        clothes1.getImageUrl(), clothes1.getType(), clothes1.getCreatedAt(),
-        clothesAttributeWithDefDtoList1);
+          clothes1.getImageUrl(), clothes1.getType(), clothes1.getCreatedAt(), clothesAttributeWithDefDtoList1);
       ClothesDto data2 = new ClothesDto(clothes2.getId(), clothes2.getOwnerId(), clothes2.getName(),
-        clothes2.getImageUrl(), clothes2.getType(), clothes2.getCreatedAt(),
-        clothesAttributeWithDefDtoList2);
+          clothes2.getImageUrl(), clothes2.getType(), clothes2.getCreatedAt(), clothesAttributeWithDefDtoList2);
 
       List<ClothesDto> data = List.of(data1, data2);
 
-      given(clothesDtoAssembler.assembleList(clothesWithAttributesDtos, values)).willReturn(data);
+      given(clothesDtoAssembler.assembleList(clothesWithAttributesDtos)).willReturn(data);
 
       boolean hasNext = clothesList.size() > limit;
       String nextCursor = clothes1.getCreatedAt().toString();
@@ -494,22 +447,19 @@ class ClothesServiceTest {
       given(clothesRepository.countByOwnerIdAndType(ownerId, ClothesType.TOP)).willReturn(totalCount);
 
       data = data.subList(0, limit);
-      ClothesDtoCursorResponse response = new ClothesDtoCursorResponse(data, nextCursor,
-        nextIdAfter,
+      ClothesDtoCursorResponse response = new ClothesDtoCursorResponse(data, nextCursor, nextIdAfter,
           hasNext, totalCount, sortBy, sortDirection);
 
       // when
       ClothesDtoCursorResponse result = clothesService.findByCursor(user.getId(), cursor, idAfter,
-        limit, typeEqual, ownerId);
+          limit, typeEqual, ownerId);
 
       // then
       assertEquals(response, result);
 
       then(userRepository).should().findById(ownerId);
-      then(clothesRepository).should()
-        .findByCursor(cursor, idAfter, limit, ClothesType.TOP, ownerId, sortBy, sortDirection);
-      then(selectableValueService).should().findAll();
-      then(clothesDtoAssembler).should().assembleList(clothesWithAttributesDtos, values);
+      then(clothesRepository).should().findByCursor(cursor, idAfter, limit, ClothesType.TOP, ownerId, sortBy, sortDirection);
+      then(clothesDtoAssembler).should().assembleList(clothesWithAttributesDtos);
       then(clothesRepository).should().countByOwnerIdAndType(ownerId, ClothesType.TOP);
     }
 
@@ -530,7 +480,7 @@ class ClothesServiceTest {
       SortDirection sortDirection = SortDirection.DESCENDING;
       List<Clothes> clothesList = List.of();
       given(clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual, ownerId,
-        sortBy, sortDirection)).willReturn(List.of());
+          sortBy, sortDirection)).willReturn(List.of());
 
       boolean hasNext = clothesList.size() > limit;
       String nextCursor = null;
@@ -544,8 +494,7 @@ class ClothesServiceTest {
           hasNext, totalCount, sortBy, sortDirection);
 
       // when
-      ClothesDtoCursorResponse result = clothesService.findByCursor(user.getId(), cursor, idAfter,
-        limit, typeEqual,
+      ClothesDtoCursorResponse result = clothesService.findByCursor(user.getId(), cursor, idAfter, limit, typeEqual,
           ownerId);
 
       // then
@@ -569,8 +518,7 @@ class ClothesServiceTest {
       UUID ownerId = user.getId();
 
       // when, then
-      assertThrows(BadRequestException.class,
-        () -> clothesService.findByCursor(user.getId(), cursor, idAfter,
+      assertThrows(BadRequestException.class, () -> clothesService.findByCursor(user.getId(), cursor, idAfter,
           limit, typeEqual, ownerId));
 
       then(userRepository).should(times(0)).findById(ownerId);
@@ -590,8 +538,7 @@ class ClothesServiceTest {
       SortDirection sortDirection = SortDirection.DESCENDING;
 
       // when, then
-      assertThrows(UserNotFoundException.class,
-        () -> clothesService.findByCursor(user.getId(), cursor, idAfter,
+      assertThrows(UserNotFoundException.class, () -> clothesService.findByCursor(user.getId(), cursor, idAfter,
           limit, typeEqual, ownerId));
 
       then(clothesRepository).should(times(0))
@@ -619,30 +566,25 @@ class ClothesServiceTest {
       given(fileStorage.upload(image, FileDomain.CLOTHES_IMAGE)).willReturn(newUrl);
 
       List<SelectableValue> values = List.of(value1, value2);
-      given(selectableValueService.findAllByAttributeDefIdIn(List.of(def1.getId()))).willReturn(values);
 
       List<UUID> selectedValueIds = List.of(value1.getId());
       List<ClothesAttribute> clothesAttributes = List.of(clothesAttribute1);
       given(clothesAttributeService.create(clothes1.getId(), selectedValueIds)).willReturn(clothesAttributes);
 
       List<ClothesAttributeRowDto> clothesWithAttributesDtos = List.of(
-        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
-          clothes1.getOwnerId(),
-          clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(),
-          def1.getName(), "S")
+          new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(), clothes1.getOwnerId(),
+              clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(),
+              def1.getName(), "S")
       );
       List<SelectableValue> selectableValues = List.of(value1, value2, value3, value4);
-      given(clothesRepository.findByClothesId(clothes1.getId())).willReturn(
-        clothesWithAttributesDtos);
+      given(clothesRepository.findByClothesId(clothes1.getId())).willReturn(clothesWithAttributesDtos);
       given(selectableValueService.findAll()).willReturn(selectableValues);
 
       List<String> items = values.stream().map(SelectableValue::getItem).toList();
       ClothesAttributeWithDefDto defDto = new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), items, "M");
       List<ClothesAttributeWithDefDto> attributes = List.of(defDto);
-      ClothesDto dto = new ClothesDto(clothes1.getId(), user.getId(), request.name(), newUrl,
-        request.type(), clothes1.getCreatedAt(), attributes);
-      given(clothesDtoAssembler.assemble(clothesWithAttributesDtos, selectableValues)).willReturn(
-        dto);
+      ClothesDto dto = new ClothesDto(clothes1.getId(), user.getId(), request.name(), newUrl, request.type(), clothes1.getCreatedAt(), attributes);
+      given(clothesDtoAssembler.assemble(clothesWithAttributesDtos)).willReturn(dto);
 
       // when
       ClothesDto result = clothesService.update(user.getId(), clothes1.getId(), request, image);
@@ -655,7 +597,6 @@ class ClothesServiceTest {
       then(userRepository).should().findById(user.getId());
       then(fileStorage).should().remove(imageUrl);
       then(fileStorage).should().upload(image, FileDomain.CLOTHES_IMAGE);
-      then(selectableValueService).should().findAllByAttributeDefIdIn(List.of(def1.getId()));
     }
 
     @Test
@@ -673,36 +614,29 @@ class ClothesServiceTest {
       given(fileStorage.upload(image, FileDomain.CLOTHES_IMAGE)).willReturn(newUrl);
 
       List<SelectableValue> values = List.of(value1, value2);
-      given(selectableValueService.findAllByAttributeDefIdIn(List.of(def1.getId()))).willReturn(values);
 
       List<UUID> selectedValueIds = List.of(value1.getId());
       List<ClothesAttribute> clothesAttributes = List.of(clothesAttribute1);
       given(clothesAttributeService.create(clothesWithoutImage.getId(), selectedValueIds)).willReturn(clothesAttributes);
 
       List<ClothesAttributeRowDto> clothesWithAttributesDtos = List.of(
-        new ClothesAttributeRowDto(clothesWithoutImage.getId(),
-          clothesWithoutImage.getCreatedAt(),
-          clothesWithoutImage.getOwnerId(), clothesWithoutImage.getName(),
-          clothesWithoutImage.getImageUrl(),
-          clothesWithoutImage.getType(), def1.getId(), def1.getName(), "S")
+          new ClothesAttributeRowDto(clothesWithoutImage.getId(), clothesWithoutImage.getCreatedAt(),
+              clothesWithoutImage.getOwnerId(), clothesWithoutImage.getName(), clothesWithoutImage.getImageUrl(),
+              clothesWithoutImage.getType(), def1.getId(), def1.getName(), "S")
       );
       List<SelectableValue> selectableValues = List.of(value1, value2, value3, value4);
-      given(clothesRepository.findByClothesId(clothesWithoutImage.getId())).willReturn(
-        clothesWithAttributesDtos);
+      given(clothesRepository.findByClothesId(clothesWithoutImage.getId())).willReturn(clothesWithAttributesDtos);
       given(selectableValueService.findAll()).willReturn(selectableValues);
 
       List<String> items = values.stream().map(SelectableValue::getItem).toList();
       ClothesAttributeWithDefDto defDto = new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), items, "M");
       List<ClothesAttributeWithDefDto> attributes = List.of(defDto);
-      ClothesDto dto = new ClothesDto(clothesWithoutImage.getId(), user.getId(), request.name(),
-        newUrl,
-        request.type(), clothesWithoutImage.getCreatedAt(), attributes);
-      given(clothesDtoAssembler.assemble(clothesWithAttributesDtos, selectableValues)).willReturn(
-        dto);
+      ClothesDto dto = new ClothesDto(clothesWithoutImage.getId(), user.getId(), request.name(), newUrl,
+          request.type(), clothesWithoutImage.getCreatedAt(), attributes);
+      given(clothesDtoAssembler.assemble(clothesWithAttributesDtos)).willReturn(dto);
 
       // when
-      ClothesDto result = clothesService.update(user.getId(), clothesWithoutImage.getId(), request,
-        image);
+      ClothesDto result = clothesService.update(user.getId(), clothesWithoutImage.getId(), request, image);
 
       // then
       assertEquals(dto, result);
@@ -712,7 +646,6 @@ class ClothesServiceTest {
       then(userRepository).should().findById(user.getId());
       then(fileStorage).should(times(0)).remove(imageUrl);
       then(fileStorage).should().upload(image, FileDomain.CLOTHES_IMAGE);
-      then(selectableValueService).should().findAllByAttributeDefIdIn(List.of(def1.getId()));
     }
 
     @Test
@@ -730,9 +663,8 @@ class ClothesServiceTest {
       given(fileStorage.remove(clothes1.getImageUrl())).willReturn(true);
       given(fileStorage.upload(image, FileDomain.CLOTHES_IMAGE)).willReturn(newUrl);
 
-      ClothesDto dto = new ClothesDto(clothes1.getId(), user.getId(), request.name(), newUrl,
-        request.type(),
-        clothes1.getCreatedAt(), List.of());
+      ClothesDto dto = new ClothesDto(clothes1.getId(), user.getId(), request.name(), newUrl, request.type(),
+          clothes1.getCreatedAt(), List.of());
 
       // when
       ClothesDto result = clothesService.update(user.getId(), clothes1.getId(), request, image);
@@ -745,7 +677,6 @@ class ClothesServiceTest {
       then(userRepository).should().findById(user.getId());
       then(fileStorage).should().remove(imageUrl);
       then(fileStorage).should().upload(image, FileDomain.CLOTHES_IMAGE);
-      then(selectableValueService).should(times(0)).findAllByAttributeDefIdIn(List.of(def1.getId()));
     }
 
     @Test
@@ -761,8 +692,7 @@ class ClothesServiceTest {
       given(clothesRepository.findById(clothesId)).willReturn(Optional.empty());
 
       // when, then
-      assertThrows(ClothesNotFoundException.class,
-        () -> clothesService.update(user.getId(), clothesId, request, image));
+      assertThrows(ClothesNotFoundException.class, () -> clothesService.update(user.getId(), clothesId, request, image));
 
       then(userRepository).should(times(0)).findById(any(UUID.class));
     }
@@ -782,8 +712,7 @@ class ClothesServiceTest {
       given(userRepository.findById(user.getId())).willReturn(Optional.empty());
 
       // when, then
-      assertThrows(UserNotFoundException.class,
-        () -> clothesService.update(user.getId(), clothesId, request, image));
+      assertThrows(UserNotFoundException.class, () -> clothesService.update(user.getId(), clothesId, request, image));
 
       then(clothesAttributeService).should(times(0)).deleteAllByClothesId(clothesId);
     }
@@ -804,11 +733,10 @@ class ClothesServiceTest {
       given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
       given(fileStorage.remove(clothes1.getImageUrl())).willReturn(true);
       given(fileStorage.upload(image, FileDomain.CLOTHES_IMAGE)).willReturn(imageUrl);
-      given(selectableValueService.findAllByAttributeDefIdIn(List.of(def1.getId()))).willReturn(values);
 
       // when, then
       assertThrows(SelectableValueNotFoundException.class,
-        () -> clothesService.update(user.getId(), clothes1.getId(), request, image));
+          () -> clothesService.update(user.getId(), clothes1.getId(), request, image));
     }
   }
 
@@ -828,7 +756,7 @@ class ClothesServiceTest {
       given(fileStorage.remove(clothes1.getImageUrl())).willReturn(true);
 
       // when
-      clothesService.delete(user.getId(), requestClothesId);
+      clothesService.delete(user.getId(),requestClothesId);
 
       // then
       then(clothesRepository).should().findById(requestClothesId);
@@ -851,7 +779,7 @@ class ClothesServiceTest {
       given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
 
       // when
-      clothesService.delete(user.getId(), requestClothesId);
+      clothesService.delete(user.getId(),requestClothesId);
 
       // then
       then(clothesRepository).should().findById(requestClothesId);
@@ -872,8 +800,7 @@ class ClothesServiceTest {
       given(clothesRepository.findById(requestClothesId)).willReturn(Optional.empty());
 
       // when, then
-      assertThrows(ClothesNotFoundException.class,
-        () -> clothesService.delete(user.getId(), requestClothesId));
+      assertThrows(ClothesNotFoundException.class, () -> clothesService.delete(user.getId(), requestClothesId));
 
       then(clothesRepository).should().findById(requestClothesId);
       then(ootdRepository).should(times(0)).deleteByClothesId(clothes1Id);

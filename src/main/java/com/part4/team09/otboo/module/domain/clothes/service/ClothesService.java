@@ -68,24 +68,11 @@ public class ClothesService {
     Clothes clothes = Clothes.create(request.ownerId(), request.name(), request.type(), url);
     Clothes savedClothes = clothesRepository.save(clothes);
 
-    ClothesDto response;
-    // 연관 생성
-    if (!request.attributes().isEmpty()) {
-      createClothesAttributes(request.attributes(), savedClothes.getId());
-      List<ClothesAttributeRowDto> clothesWithAttributesDtos =
-        clothesRepository.findByClothesId(savedClothes.getId());
-      List<SelectableValue> selectableValues = selectableValueService.findAll();
-      response = clothesDtoAssembler.assemble(clothesWithAttributesDtos, selectableValues);
-    } else {
-      response = clothesMapper.toDto(savedClothes.getId(), savedClothes.getOwnerId(),
-        savedClothes.getName(),
-        savedClothes.getImageUrl(), savedClothes.getType(), savedClothes.getCreatedAt(), List.of());
-    }
+    ClothesDto response = createClothesAttributes(request.attributes(), savedClothes);
 
-    log.debug(
-      "의상 생성 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
-      response.id(), response.ownerId(), response.name(), response.imageUrl(), response.type(),
-      response.attributes().size());
+    log.debug("의상 생성 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
+        response.id(), response.ownerId(), response.name(), response.imageUrl(), response.type(),
+        response.attributes().size());
     return response;
   }
 
@@ -111,14 +98,12 @@ public class ClothesService {
     String sortBy = "createdAt";
     SortDirection sortDirection = SortDirection.DESCENDING;
 
-    List<ClothesAttributeRowDto> clothesWithAttributesDtos = clothesRepository.findByCursor(
-      cursor, idAfter, limit, typeEqual,
+    List<ClothesAttributeRowDto> clothesAttributeRowDtoList = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
         ownerId, sortBy, sortDirection);
 
     List<ClothesDto> data;
-    if (!clothesWithAttributesDtos.isEmpty()) {
-      List<SelectableValue> selectableValues = selectableValueService.findAll();
-      data = clothesDtoAssembler.assembleList(clothesWithAttributesDtos, selectableValues);
+    if (!clothesAttributeRowDtoList.isEmpty()) {
+      data = clothesDtoAssembler.assembleList(clothesAttributeRowDtoList);
 
     } else {
       data = List.of();
@@ -134,19 +119,16 @@ public class ClothesService {
     }
     int totalCount = clothesRepository.countByOwnerIdAndType(ownerId, typeEqual);
 
-    ClothesDtoCursorResponse response = clothesDtoCursorResponseMapper.toDto(data, nextCursor,
-      nextIdAfter,
-      hasNext, totalCount, sortBy, sortDirection);
+    ClothesDtoCursorResponse response = clothesDtoCursorResponseMapper.toDto(data, nextCursor, nextIdAfter,
+        hasNext, totalCount, sortBy, sortDirection);
 
     log.debug("의상 조회 완료: dataSize = {}, nexCursor = {}, nextIdAfter = {}, hasNext = {}, "
-        + "totalCount = {}, sortBy = {}, sortDirection = {}", data.size(), nextCursor, nextIdAfter,
-      hasNext,
+            + "totalCount = {}, sortBy = {}, sortDirection = {}", data.size(), nextCursor, nextIdAfter, hasNext,
         totalCount, sortBy, sortDirection);
     return response;
   }
 
-  public ClothesDto update(UUID userId, UUID clothesId, ClothesUpdateRequest request,
-    MultipartFile image) {
+  public ClothesDto update(UUID userId, UUID clothesId, ClothesUpdateRequest request, MultipartFile image) {
 
     Clothes clothes = getClothesOrThrow(clothesId);
 
@@ -167,28 +149,18 @@ public class ClothesService {
       clothes.updateImageUrl(newUrl);
     }
 
-    // 3. clothes 엔티티 수정
+    // clothes 엔티티 수정
     clothes.updateNameAndType(request.name(), request.type());
 
-    // 4. clothesAttribute 삭제
+    // clothesAttribute 삭제
     clothesAttributeService.deleteAllByClothesId(clothes.getId());
 
-    ClothesDto response;
-    if (!request.attributes().isEmpty()) {
-      createClothesAttributes(request.attributes(), clothes.getId());
-      List<ClothesAttributeRowDto> clothesWithAttributesDtos = clothesRepository.findByClothesId(
-        clothes.getId());
-      List<SelectableValue> selectableValues = selectableValueService.findAll();
-      response = clothesDtoAssembler.assemble(clothesWithAttributesDtos, selectableValues);
-    } else {
-      response = clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(), clothes.getName(),
-        clothes.getImageUrl(), clothes.getType(), clothes.getCreatedAt(), List.of());
-    }
+    ClothesDto response = createClothesAttributes(request.attributes(), clothes);
 
-    log.debug(
-      "의상 수정 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
-      response.id(), response.ownerId(), response.name(), response.imageUrl(), response.type(),
-      response.attributes().size());
+
+    log.debug("의상 수정 완료: clothesId = {}, ownerId = {}, name = {}, url = {}, type = {}, attributesSize = {}",
+        response.id(), response.ownerId(), response.name(), response.imageUrl(), response.type(),
+        response.attributes().size());
     return response;
   }
 
@@ -219,30 +191,33 @@ public class ClothesService {
     log.debug("의상 삭제 완료: clothesId = {}", clothesId);
   }
 
-  private void createClothesAttributes(List<ClothesAttributeDto> attributeDtos, UUID clothesId) {
+  private ClothesDto createClothesAttributes(List<ClothesAttributeDto> attributeDtos, Clothes clothes) {
 
-    List<UUID> defIds = attributeDtos.stream()
-        .map(ClothesAttributeDto::definitionId)
-        .distinct()
-        .toList();
+    if (!attributeDtos.isEmpty()) {
 
-    Map<UUID, List<SelectableValue>> selectableValueMap = selectableValueService
-      .findAllByAttributeDefIdIn(defIds).stream()
-        .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
+      Map<UUID, List<SelectableValue>> selectableValueMap = selectableValueService.findAll().stream()
+          .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
 
-    List<UUID> selectedValueIds = attributeDtos.stream()
-        .map(attribute -> selectableValueMap.getOrDefault(attribute.definitionId(), List.of())
-            .stream()
-            .filter(value -> value.getItem().equals(attribute.value()))
-            .findFirst()
-            .orElseThrow(() -> {
-              log.warn("해당 의상 속성 값이 없습니다. value = {}", attribute.value());
-              return SelectableValueNotFoundException.withItem(attribute.value());
-            })
-          .getId())
-        .toList();
+      List<UUID> selectedValueIds = attributeDtos.stream()
+          .map(attribute -> selectableValueMap.getOrDefault(attribute.definitionId(), List.of())
+              .stream()
+              .filter(value -> value.getItem().equals(attribute.value()))
+              .findFirst()
+              .orElseThrow(() -> {
+                log.warn("해당 의상 속성 값이 없습니다. value = {}", attribute.value());
+                return SelectableValueNotFoundException.withItem(attribute.value());
+              })
+              .getId())
+          .toList();
 
-    clothesAttributeService.create(clothesId, selectedValueIds);
+      clothesAttributeService.create(clothes.getId(), selectedValueIds);
+
+      List<ClothesAttributeRowDto> clothesWithAttributesDtos = clothesRepository.findByClothesId(clothes.getId());
+      return clothesDtoAssembler.assemble(clothesWithAttributesDtos);
+    } else {
+      return clothesMapper.toDto(clothes.getId(), clothes.getOwnerId(), clothes.getName(),
+          clothes.getImageUrl(), clothes.getType(), clothes.getCreatedAt(), List.of());
+    }
   }
 
   // 이미지 업로드
@@ -295,17 +270,18 @@ public class ClothesService {
 
   private User getUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
-      .orElseThrow(() -> {
-        log.warn("사용자을 찾을 수 없습니다. userId = {}", userId);
-        return UserNotFoundException.withId(userId);
-      });
+        .orElseThrow(() -> {
+          log.warn("사용자을 찾을 수 없습니다. userId = {}", userId);
+          return UserNotFoundException.withId(userId);
+        });
   }
 
   private Clothes getClothesOrThrow(UUID clothesId) {
-    return clothesRepository.findById(clothesId).orElseThrow(() -> {
-      log.warn("의상을 찾을 수 없습니다. clothesId = {}", clothesId);
-      return ClothesNotFoundException.withId(clothesId);
-    });
+    return clothesRepository.findById(clothesId)
+        .orElseThrow(() -> {
+          log.warn("의상을 찾을 수 없습니다. clothesId = {}", clothesId);
+          return ClothesNotFoundException.withId(clothesId);
+        });
   }
 }
 
