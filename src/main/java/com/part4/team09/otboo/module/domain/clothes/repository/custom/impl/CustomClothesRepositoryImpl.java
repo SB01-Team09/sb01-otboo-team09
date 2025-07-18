@@ -17,6 +17,7 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -95,23 +96,7 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
       .map(Clothes::getId)
       .toList();
 
-    return queryFactory
-      .select(Projections.constructor(
-        ClothesAttributeRowDto.class,
-        clothes.id,
-        clothes.createdAt,
-        clothes.ownerId,
-        clothes.name,
-        clothes.imageUrl,
-        clothes.type,
-        clothesAttributeDef.id,
-        clothesAttributeDef.name,
-        selectableValue.item
-      ))
-      .from(clothes)
-      .leftJoin(clothesAttribute).on(clothesAttribute.clothesId.eq(clothes.id))
-      .leftJoin(selectableValue).on(selectableValue.id.eq(clothesAttribute.selectableValueId))
-      .leftJoin(clothesAttributeDef).on(clothesAttributeDef.id.eq(selectableValue.attributeDefId))
+    return selectClothesAttributeRow()
       .where(clothes.id.in(clothesIds))
       .orderBy(order)
       .fetch();
@@ -119,23 +104,7 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
 
   @Override
   public List<ClothesAttributeRowDto> findByClothesId(UUID clothesId) {
-    return queryFactory
-      .select(Projections.constructor(
-        ClothesAttributeRowDto.class,
-        clothes.id,
-        clothes.createdAt,
-        clothes.ownerId,
-        clothes.name,
-        clothes.imageUrl,
-        clothes.type,
-        clothesAttributeDef.id,
-        clothesAttributeDef.name,
-        selectableValue.item
-      ))
-      .from(clothes)
-      .leftJoin(clothesAttribute).on(clothesAttribute.clothesId.eq(clothes.id))
-      .leftJoin(selectableValue).on(selectableValue.id.eq(clothesAttribute.selectableValueId))
-      .leftJoin(clothesAttributeDef).on(clothesAttributeDef.id.eq(selectableValue.attributeDefId))
+    return selectClothesAttributeRow()
       .where(clothes.id.eq(clothesId))
       .fetch();
   }
@@ -159,6 +128,26 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
         .orderBy(totalScoreExpr.asc())
         .limit(limit)
         .fetch();
+  }
+
+  private JPAQuery<ClothesAttributeRowDto> selectClothesAttributeRow() {
+    return queryFactory
+        .select(Projections.constructor(
+            ClothesAttributeRowDto.class,
+            clothes.id,
+            clothes.createdAt,
+            clothes.ownerId,
+            clothes.name,
+            clothes.imageUrl,
+            clothes.type,
+            clothesAttributeDef.id,
+            clothesAttributeDef.name,
+            selectableValue.item
+        ))
+        .from(clothes)
+        .leftJoin(clothesAttribute).on(clothesAttribute.clothesId.eq(clothes.id))
+        .leftJoin(selectableValue).on(selectableValue.id.eq(clothesAttribute.selectableValueId))
+        .leftJoin(clothesAttributeDef).on(clothesAttributeDef.id.eq(selectableValue.attributeDefId));
   }
 
   private NumberExpression<Integer> buildScoreExpression(
