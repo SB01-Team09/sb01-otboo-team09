@@ -4,7 +4,7 @@ import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.clothes.assembler.ClothesDtoAssembler;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
-import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesWithAttributesDto;
+import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeRowDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesCreateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesUpdateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesDtoCursorResponse;
@@ -72,7 +72,7 @@ public class ClothesService {
     // 연관 생성
     if (!request.attributes().isEmpty()) {
       createClothesAttributes(request.attributes(), savedClothes.getId());
-      List<ClothesWithAttributesDto> clothesWithAttributesDtos =
+      List<ClothesAttributeRowDto> clothesWithAttributesDtos =
         clothesRepository.findByClothesId(savedClothes.getId());
       List<SelectableValue> selectableValues = selectableValueService.findAll();
       response = clothesDtoAssembler.assemble(clothesWithAttributesDtos, selectableValues);
@@ -111,7 +111,7 @@ public class ClothesService {
     String sortBy = "createdAt";
     SortDirection sortDirection = SortDirection.DESCENDING;
 
-    List<ClothesWithAttributesDto> clothesWithAttributesDtos = clothesRepository.findByCursor(
+    List<ClothesAttributeRowDto> clothesWithAttributesDtos = clothesRepository.findByCursor(
       cursor, idAfter, limit, typeEqual,
         ownerId, sortBy, sortDirection);
 
@@ -176,7 +176,7 @@ public class ClothesService {
     ClothesDto response;
     if (!request.attributes().isEmpty()) {
       createClothesAttributes(request.attributes(), clothes.getId());
-      List<ClothesWithAttributesDto> clothesWithAttributesDtos = clothesRepository.findByClothesId(
+      List<ClothesAttributeRowDto> clothesWithAttributesDtos = clothesRepository.findByClothesId(
         clothes.getId());
       List<SelectableValue> selectableValues = selectableValueService.findAll();
       response = clothesDtoAssembler.assemble(clothesWithAttributesDtos, selectableValues);

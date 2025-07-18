@@ -16,7 +16,7 @@ import com.part4.team09.otboo.module.domain.clothes.assembler.ClothesDtoAssemble
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeWithDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
-import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesWithAttributesDto;
+import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeRowDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesCreateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesUpdateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesDtoCursorResponse;
@@ -202,13 +202,13 @@ class ClothesServiceTest {
       List<ClothesAttribute> clothesAttributes = List.of(clothesAttribute1, clothesAttribute2);
       given(clothesAttributeService.create(clothes1.getId(), selectedValueIds)).willReturn(clothesAttributes);
 
-      List<ClothesWithAttributesDto> clothesWithAttributesDtos = List.of(
-        new ClothesWithAttributesDto(clothes1.getId(), clothes1.getCreatedAt(),
+      List<ClothesAttributeRowDto> clothesWithAttributesDtos = List.of(
+        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
           clothes1.getOwnerId(),
           clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(),
           def1.getName(),
           value1.getItem()),
-        new ClothesWithAttributesDto(clothes1.getId(), clothes1.getCreatedAt(),
+        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
           clothes1.getOwnerId(),
           clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def2.getId(),
           def2.getName(),
@@ -345,23 +345,23 @@ class ClothesServiceTest {
       String sortBy = "createdAt";
       SortDirection sortDirection = SortDirection.DESCENDING;
       List<Clothes> clothesList = List.of(clothes1, clothes2);
-      List<ClothesWithAttributesDto> clothesWithAttributesDtos = List.of(
-        new ClothesWithAttributesDto(clothes1.getId(), clothes1.getCreatedAt(),
+      List<ClothesAttributeRowDto> clothesWithAttributesDtos = List.of(
+        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
           clothes1.getOwnerId(),
           clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(),
           def1.getName(),
           value1.getItem()),
-        new ClothesWithAttributesDto(clothes1.getId(), clothes1.getCreatedAt(),
+        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
           clothes1.getOwnerId(),
           clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def2.getId(),
           def2.getName(),
           value3.getItem()),
-        new ClothesWithAttributesDto(clothes2.getId(), clothes2.getCreatedAt(),
+        new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(),
           clothes2.getOwnerId(),
           clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def1.getId(),
           def1.getName(),
           value2.getItem()),
-        new ClothesWithAttributesDto(clothes2.getId(), clothes2.getCreatedAt(),
+        new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(),
           clothes2.getOwnerId(),
           clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def2.getId(),
           def2.getName(),
@@ -435,23 +435,23 @@ class ClothesServiceTest {
       SortDirection sortDirection = SortDirection.DESCENDING;
       List<Clothes> clothesList = List.of(clothes1, clothes2);
 
-      List<ClothesWithAttributesDto> clothesWithAttributesDtos = List.of(
-        new ClothesWithAttributesDto(clothes1.getId(), clothes1.getCreatedAt(),
+      List<ClothesAttributeRowDto> clothesWithAttributesDtos = List.of(
+        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
           clothes1.getOwnerId(),
           clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(),
           def1.getName(),
           value1.getItem()),
-        new ClothesWithAttributesDto(clothes1.getId(), clothes1.getCreatedAt(),
+        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
           clothes1.getOwnerId(),
           clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def2.getId(),
           def2.getName(),
           value3.getItem()),
-        new ClothesWithAttributesDto(clothes2.getId(), clothes2.getCreatedAt(),
+        new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(),
           clothes2.getOwnerId(),
           clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def1.getId(),
           def1.getName(),
           value2.getItem()),
-        new ClothesWithAttributesDto(clothes2.getId(), clothes2.getCreatedAt(),
+        new ClothesAttributeRowDto(clothes2.getId(), clothes2.getCreatedAt(),
           clothes2.getOwnerId(),
           clothes2.getName(), clothes2.getImageUrl(), clothes2.getType(), def2.getId(),
           def2.getName(),
@@ -625,8 +625,8 @@ class ClothesServiceTest {
       List<ClothesAttribute> clothesAttributes = List.of(clothesAttribute1);
       given(clothesAttributeService.create(clothes1.getId(), selectedValueIds)).willReturn(clothesAttributes);
 
-      List<ClothesWithAttributesDto> clothesWithAttributesDtos = List.of(
-        new ClothesWithAttributesDto(clothes1.getId(), clothes1.getCreatedAt(),
+      List<ClothesAttributeRowDto> clothesWithAttributesDtos = List.of(
+        new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(),
           clothes1.getOwnerId(),
           clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), def1.getId(),
           def1.getName(), "S")
@@ -679,8 +679,8 @@ class ClothesServiceTest {
       List<ClothesAttribute> clothesAttributes = List.of(clothesAttribute1);
       given(clothesAttributeService.create(clothesWithoutImage.getId(), selectedValueIds)).willReturn(clothesAttributes);
 
-      List<ClothesWithAttributesDto> clothesWithAttributesDtos = List.of(
-        new ClothesWithAttributesDto(clothesWithoutImage.getId(),
+      List<ClothesAttributeRowDto> clothesWithAttributesDtos = List.of(
+        new ClothesAttributeRowDto(clothesWithoutImage.getId(),
           clothesWithoutImage.getCreatedAt(),
           clothesWithoutImage.getOwnerId(), clothesWithoutImage.getName(),
           clothesWithoutImage.getImageUrl(),

@@ -1,7 +1,7 @@
 package com.part4.team09.otboo.module.domain.clothes.repository.custom.impl;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
-import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesWithAttributesDto;
+import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeRowDto;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
 import com.part4.team09.otboo.module.domain.clothes.entity.QClothes;
@@ -35,7 +35,7 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
   private final QClothesAttributeDef clothesAttributeDef = QClothesAttributeDef.clothesAttributeDef;
 
   @Override
-  public List<ClothesWithAttributesDto> findByCursor(String cursor, UUID idAfter, int limit,
+  public List<ClothesAttributeRowDto> findByCursor(String cursor, UUID idAfter, int limit,
     ClothesType typeEqual, UUID ownerId, String sortBy, SortDirection sortDirection) {
 
     BooleanBuilder where = new BooleanBuilder();
@@ -97,7 +97,7 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
 
     return queryFactory
       .select(Projections.constructor(
-        ClothesWithAttributesDto.class,
+        ClothesAttributeRowDto.class,
         clothes.id,
         clothes.createdAt,
         clothes.ownerId,
@@ -118,10 +118,10 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
   }
 
   @Override
-  public List<ClothesWithAttributesDto> findByClothesId(UUID clothesId) {
+  public List<ClothesAttributeRowDto> findByClothesId(UUID clothesId) {
     return queryFactory
       .select(Projections.constructor(
-        ClothesWithAttributesDto.class,
+        ClothesAttributeRowDto.class,
         clothes.id,
         clothes.createdAt,
         clothes.ownerId,

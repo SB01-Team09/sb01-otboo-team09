@@ -1,8 +1,8 @@
 package com.part4.team09.otboo.module.domain.clothes.assembler;
 
+import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeRowDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeWithDefDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
-import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesWithAttributesDto;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithDefMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesMapper;
@@ -21,10 +21,10 @@ public class ClothesDtoAssembler {
   private final ClothesMapper clothesMapper;
   private final ClothesAttributeWithDefMapper clothesAttributeWithDefMapper;
 
-  public ClothesDto assemble(List<ClothesWithAttributesDto> dtos,
+  public ClothesDto assemble(List<ClothesAttributeRowDto> dtos,
     List<SelectableValue> selectableValues) {
 
-    ClothesWithAttributesDto clothesWithAttributesDto = dtos.get(0);
+    ClothesAttributeRowDto clothesWithAttributesDto = dtos.get(0);
 
     if (dtos.isEmpty()) {
       return clothesMapper.toDto(
@@ -37,9 +37,9 @@ public class ClothesDtoAssembler {
         List.of());
     }
     // 의상 정의 id를 기준으로 묶기
-    Map<UUID, List<ClothesWithAttributesDto>> mapByDefId = dtos.stream()
+    Map<UUID, List<ClothesAttributeRowDto>> mapByDefId = dtos.stream()
       .filter(dto -> dto.attributeDefId() != null)
-      .collect(Collectors.groupingBy(ClothesWithAttributesDto::attributeDefId));
+      .collect(Collectors.groupingBy(ClothesAttributeRowDto::attributeDefId));
 
     Map<UUID, List<SelectableValue>> selectableValueMap = selectableValues.stream()
       .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
@@ -49,8 +49,8 @@ public class ClothesDtoAssembler {
       .sorted(Map.Entry.comparingByKey())
       .map(entry -> {
         UUID defId = entry.getKey();
-        List<ClothesWithAttributesDto> clothesWithAttributesDtos = entry.getValue();
-        ClothesWithAttributesDto firstDto = clothesWithAttributesDtos.get(0);
+        List<ClothesAttributeRowDto> clothesWithAttributesDtos = entry.getValue();
+        ClothesAttributeRowDto firstDto = clothesWithAttributesDtos.get(0);
 
         String defName = firstDto.attributeDefName();
 
@@ -75,13 +75,13 @@ public class ClothesDtoAssembler {
       attributes);
   }
 
-  public List<ClothesDto> assembleList(List<ClothesWithAttributesDto> dtos,
+  public List<ClothesDto> assembleList(List<ClothesAttributeRowDto> dtos,
     List<SelectableValue> selectableValues
   ) {
     // 의상 id별로 붂기, 순서 보장
-    Map<UUID, List<ClothesWithAttributesDto>> groupedDtos = dtos.stream()
+    Map<UUID, List<ClothesAttributeRowDto>> groupedDtos = dtos.stream()
       .collect(Collectors.groupingBy(
-        ClothesWithAttributesDto::clothesId,
+        ClothesAttributeRowDto::clothesId,
         LinkedHashMap::new,
         Collectors.toList()
       ));
