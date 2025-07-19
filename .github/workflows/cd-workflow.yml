@@ -1,0 +1,80 @@
+name: CD workflow
+
+on:
+  push:
+    branches: release
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::170414696400:role/OIDC-connect
+          aws-region: ap-northeast-2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission to gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build test
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to ECR
+        env:
+          ECR_REGISTRY: 170414696400.dkr.ecr.ap-northeast-2.amazonaws.com
+          ECR_REPOSITORY: otboo
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Download and sanitize task definition
+        id: taskdef
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition sb01-monew-team5-task \
+            --query 'taskDefinition' \
+            | jq 'del(
+              .taskDefinitionArn,
+              .requiresAttributes,
+              .revision,
+              .status,
+              .registeredAt,
+              .registeredBy,
+              .compatibilities,
+              .enableFaultInjection
+            )' > task-def.json
+
+
+      - name: Replace image URI with new tag
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          sed -i "s|170414696400.dkr.ecr.ap-northeast-2.amazonaws.com/otboo:[^\"']*|170414696400.dkr.ecr.ap-northeast-2.amazonaws.com/otboo:${IMAGE_TAG}|g" task-def.json
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: task-def.json
+          service: sb01-monew-team5-fargate-service-ezlex9f6
+          cluster: sb01-monew-team5-cluster
+          wait-for-service-stability: true
