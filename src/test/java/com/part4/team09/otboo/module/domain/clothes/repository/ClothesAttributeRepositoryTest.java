@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.clothes.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.part4.team09.otboo.config.QueryDslConfig;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;

@@ -4,9 +4,9 @@ import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import java.util.UUID;
 
 public record RoleChangedEvent(
-    UUID receiverId,
-    Role previousRole,
-    Role newRole
+  UUID receiverId,
+  Role previousRole,
+  Role newRole
 ) {
 
 }

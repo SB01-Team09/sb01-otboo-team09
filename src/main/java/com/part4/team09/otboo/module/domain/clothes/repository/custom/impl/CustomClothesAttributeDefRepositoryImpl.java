@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class CustomClothesAttributeDefRepositoryImpl implements
-    CustomClothesAttributeDefRepository {
+  CustomClothesAttributeDefRepository {
 
   private final JPAQueryFactory queryFactory;
   private final QClothesAttributeDef def = QClothesAttributeDef.clothesAttributeDef;

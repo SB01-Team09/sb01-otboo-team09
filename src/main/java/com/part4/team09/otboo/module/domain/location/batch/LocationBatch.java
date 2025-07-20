@@ -55,7 +55,7 @@ public class LocationBatch {
     ItemWriter<Location> locationItemWriter
   ) {
     return new StepBuilder("locationStep", jobRepository)
-      .<TLocation, Location>chunk(100, transactionManager)
+      .<TLocation, Location>chunk(1, transactionManager)
       .reader(locationItemReader)
       .processor(locationProcessor)
       .writer(locationItemWriter)

@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.part4.team09.otboo.module.domain.location.entity.Coordinate;
+import com.part4.team09.otboo.module.domain.location.repository.CoordinateRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherApiResponse;
@@ -15,26 +17,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@SpringBootTest
-@ContextConfiguration(classes = WeatherProcessor.class)
+@ExtendWith(MockitoExtension.class)
 class WeatherProcessorTest {
 
-  @Autowired
+  @Mock
+  private CoordinateRepository coordinateRepository;
+
+  @InjectMocks
   private WeatherProcessor weatherProcessor;
 
   @Test
   void process_test() throws IOException {
     // given
     List<Item> items = getItems();
-    String locationId = "1111111111";
     int x = 60;
     int y = 127;
+    Coordinate coordinate = Coordinate.create(x, y);
 
-    WeatherApiData weatherApiData = new WeatherApiData(locationId, items, x, y);
+    WeatherApiData weatherApiData = new WeatherApiData(items, coordinate);
 
     // when
     List<WeatherData> weatherDatas = weatherProcessor.process(weatherApiData);

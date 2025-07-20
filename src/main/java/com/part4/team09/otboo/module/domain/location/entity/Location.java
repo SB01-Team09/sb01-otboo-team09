@@ -40,18 +40,22 @@ public class Location {
   @Column(nullable = false)
   private UUID dongId;
 
+  @Column(nullable = false)
+  private UUID coordinateId;
+
   @CreatedDate
   @Column(columnDefinition = "timestamp with time zone", updatable = false, nullable = false)
   private LocalDateTime createdAt;
 
-  public static Location create(String id, UUID sidoId, UUID guId, UUID dongId) {
-    return new Location(id, sidoId, guId, dongId);
+  public static Location create(String id, UUID sidoId, UUID guId, UUID dongId, UUID coordinateId) {
+    return new Location(id, sidoId, guId, dongId, coordinateId);
   }
 
-  private Location(String id, UUID sidoId, UUID guId, UUID dongId) {
+  private Location(String id, UUID sidoId, UUID guId, UUID dongId, UUID coordinateId) {
     this.id = id;
     this.sidoId = sidoId;
     this.guId = guId;
     this.dongId = dongId;
+    this.coordinateId = coordinateId;
   }
 }

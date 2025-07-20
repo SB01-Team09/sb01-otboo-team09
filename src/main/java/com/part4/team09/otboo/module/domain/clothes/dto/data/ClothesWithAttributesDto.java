@@ -5,13 +5,15 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record ClothesWithAttributesDto(
-    UUID clothesId,
-    LocalDateTime createdAt,
-    UUID ownerId,
-    String name,
-    String imageUrl,
-    ClothesType type,
-    UUID attributeDefId,
-    String attributeDefName,
-    String selectableValueItem
-) {}
+  UUID clothesId,
+  LocalDateTime createdAt,
+  UUID ownerId,
+  String name,
+  String imageUrl,
+  ClothesType type,
+  UUID attributeDefId,
+  String attributeDefName,
+  String selectableValueItem
+) {
+
+}

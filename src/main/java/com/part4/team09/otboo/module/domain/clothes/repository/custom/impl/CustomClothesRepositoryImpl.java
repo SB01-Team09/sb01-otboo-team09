@@ -31,7 +31,7 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
 
   @Override
   public List<ClothesWithAttributesDto> findByCursor(String cursor, UUID idAfter, int limit,
-      ClothesType typeEqual, UUID ownerId, String sortBy, SortDirection sortDirection) {
+    ClothesType typeEqual, UUID ownerId, String sortBy, SortDirection sortDirection) {
 
     BooleanBuilder where = new BooleanBuilder();
 
@@ -47,13 +47,13 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
         if (sortDirection == SortDirection.ASCENDING) {
 
           where.and(
-              clothes.createdAt.gt(createdAt)
-                  .or(clothes.createdAt.eq(createdAt).and(clothes.id.gt(idAfter)))
+            clothes.createdAt.gt(createdAt)
+              .or(clothes.createdAt.eq(createdAt).and(clothes.id.gt(idAfter)))
           );
         } else {
           where.and(
-              clothes.createdAt.lt(createdAt)
-                  .or(clothes.createdAt.eq(createdAt).and(clothes.id.lt(idAfter)))
+            clothes.createdAt.lt(createdAt)
+              .or(clothes.createdAt.eq(createdAt).and(clothes.id.lt(idAfter)))
           );
         }
       } else {
@@ -61,13 +61,13 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
         if (sortDirection == SortDirection.ASCENDING) {
 
           where.and(
-              clothes.name.gt(cursor)
-                  .or(clothes.name.eq(cursor).and(clothes.id.gt(idAfter)))
+            clothes.name.gt(cursor)
+              .or(clothes.name.eq(cursor).and(clothes.id.gt(idAfter)))
           );
         } else {
           where.and(
-              clothes.name.lt(cursor)
-                  .or(clothes.name.eq(cursor).and(clothes.id.lt(idAfter)))
+            clothes.name.lt(cursor)
+              .or(clothes.name.eq(cursor).and(clothes.id.lt(idAfter)))
           );
         }
       }
@@ -76,72 +76,74 @@ public class CustomClothesRepositoryImpl implements CustomClothesRepository {
     OrderSpecifier<?> order = getOrderSpecifier(sortBy, sortDirection);
 
     List<Clothes> clothesList = queryFactory
-        .selectFrom(clothes)
-        .where(where)
-        .orderBy(order)
-        .limit(limit + 1)
-        .fetch();
+      .selectFrom(clothes)
+      .where(where)
+      .orderBy(order)
+      .limit(limit + 1)
+      .fetch();
 
-    if (clothesList.isEmpty()) return List.of();
+    if (clothesList.isEmpty()) {
+      return List.of();
+    }
 
     List<UUID> clothesIds = clothesList.stream()
-        .map(Clothes::getId)
-        .toList();
+      .map(Clothes::getId)
+      .toList();
 
     return queryFactory
-        .select(Projections.constructor(
-            ClothesWithAttributesDto.class,
-            clothes.id,
-            clothes.createdAt,
-            clothes.ownerId,
-            clothes.name,
-            clothes.imageUrl,
-            clothes.type,
-            clothesAttributeDef.id,
-            clothesAttributeDef.name,
-            selectableValue.item
-        ))
-        .from(clothes)
-        .leftJoin(clothesAttribute).on(clothesAttribute.clothesId.eq(clothes.id))
-        .leftJoin(selectableValue).on(selectableValue.id.eq(clothesAttribute.selectableValueId))
-        .leftJoin(clothesAttributeDef).on(clothesAttributeDef.id.eq(selectableValue.attributeDefId))
-        .where(clothes.id.in(clothesIds))
-        .orderBy(order)
-        .fetch();
+      .select(Projections.constructor(
+        ClothesWithAttributesDto.class,
+        clothes.id,
+        clothes.createdAt,
+        clothes.ownerId,
+        clothes.name,
+        clothes.imageUrl,
+        clothes.type,
+        clothesAttributeDef.id,
+        clothesAttributeDef.name,
+        selectableValue.item
+      ))
+      .from(clothes)
+      .leftJoin(clothesAttribute).on(clothesAttribute.clothesId.eq(clothes.id))
+      .leftJoin(selectableValue).on(selectableValue.id.eq(clothesAttribute.selectableValueId))
+      .leftJoin(clothesAttributeDef).on(clothesAttributeDef.id.eq(selectableValue.attributeDefId))
+      .where(clothes.id.in(clothesIds))
+      .orderBy(order)
+      .fetch();
   }
 
   @Override
   public List<ClothesWithAttributesDto> findByClothesId(UUID clothesId) {
     return queryFactory
-        .select(Projections.constructor(
-            ClothesWithAttributesDto.class,
-            clothes.id,
-            clothes.createdAt,
-            clothes.ownerId,
-            clothes.name,
-            clothes.imageUrl,
-            clothes.type,
-            clothesAttributeDef.id,
-            clothesAttributeDef.name,
-            selectableValue.item
-        ))
-        .from(clothes)
-        .leftJoin(clothesAttribute).on(clothesAttribute.clothesId.eq(clothes.id))
-        .leftJoin(selectableValue).on(selectableValue.id.eq(clothesAttribute.selectableValueId))
-        .leftJoin(clothesAttributeDef).on(clothesAttributeDef.id.eq(selectableValue.attributeDefId))
-        .where(clothes.id.eq(clothesId))
-        .fetch();
+      .select(Projections.constructor(
+        ClothesWithAttributesDto.class,
+        clothes.id,
+        clothes.createdAt,
+        clothes.ownerId,
+        clothes.name,
+        clothes.imageUrl,
+        clothes.type,
+        clothesAttributeDef.id,
+        clothesAttributeDef.name,
+        selectableValue.item
+      ))
+      .from(clothes)
+      .leftJoin(clothesAttribute).on(clothesAttribute.clothesId.eq(clothes.id))
+      .leftJoin(selectableValue).on(selectableValue.id.eq(clothesAttribute.selectableValueId))
+      .leftJoin(clothesAttributeDef).on(clothesAttributeDef.id.eq(selectableValue.attributeDefId))
+      .where(clothes.id.eq(clothesId))
+      .fetch();
   }
 
   private OrderSpecifier<?> getOrderSpecifier(String sortBy, SortDirection sortDirection) {
     if (sortBy.equals("createdAt")) {
       return sortDirection.equals(SortDirection.ASCENDING)
-          ? clothes.createdAt.asc()
-          : clothes.createdAt.desc();
+        ? clothes.createdAt.asc()
+        : clothes.createdAt.desc();
     } else {
       return sortDirection.equals(SortDirection.ASCENDING)
-          ? clothes.name.asc()
-          : clothes.name.desc();
+        ? clothes.name.asc()
+        : clothes.name.desc();
     }
   }
 }

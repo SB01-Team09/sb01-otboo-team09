@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.clothes.repository.custom;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.part4.team09.otboo.config.QueryDslConfig;
 import com.part4.team09.otboo.module.common.enums.SortDirection;
@@ -79,17 +80,23 @@ class ClothesRepositoryQueryDSLTest {
     Thread.sleep(1000);
     clothesRepository.save(clothes3);
 
-    ClothesAttribute clothes1Attribute1 = ClothesAttribute.create(clothes1.getId(), def1Value1.getId());
-    ClothesAttribute clothes1Attribute3 = ClothesAttribute.create(clothes1.getId(), def2Value3.getId());
+    ClothesAttribute clothes1Attribute1 = ClothesAttribute.create(clothes1.getId(),
+      def1Value1.getId());
+    ClothesAttribute clothes1Attribute3 = ClothesAttribute.create(clothes1.getId(),
+      def2Value3.getId());
 
-    ClothesAttribute clothes2Attribute1 = ClothesAttribute.create(clothes2.getId(), def1Value1.getId());
-    ClothesAttribute clothes2Attribute4 = ClothesAttribute.create(clothes2.getId(), def2Value4.getId());
+    ClothesAttribute clothes2Attribute1 = ClothesAttribute.create(clothes2.getId(),
+      def1Value1.getId());
+    ClothesAttribute clothes2Attribute4 = ClothesAttribute.create(clothes2.getId(),
+      def2Value4.getId());
 
-    ClothesAttribute clothes3Attribute2 = ClothesAttribute.create(clothes3.getId(), def1Value2.getId());
-    ClothesAttribute clothes3Attribute4 = ClothesAttribute.create(clothes3.getId(), def2Value4.getId());
+    ClothesAttribute clothes3Attribute2 = ClothesAttribute.create(clothes3.getId(),
+      def1Value2.getId());
+    ClothesAttribute clothes3Attribute4 = ClothesAttribute.create(clothes3.getId(),
+      def2Value4.getId());
     clothesAttributeRepository.saveAll(List.of(clothes1Attribute1, clothes1Attribute3,
-        clothes2Attribute1,
-        clothes2Attribute4, clothes3Attribute2, clothes3Attribute4));
+      clothes2Attribute1,
+      clothes2Attribute4, clothes3Attribute2, clothes3Attribute4));
   }
 
   @Nested
@@ -111,7 +118,8 @@ class ClothesRepositoryQueryDSLTest {
 
 
       // when
-      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
+        typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
@@ -143,7 +151,8 @@ class ClothesRepositoryQueryDSLTest {
       SortDirection sortDirection = SortDirection.DESCENDING;
 
       // when
-      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
+        typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
@@ -169,7 +178,8 @@ class ClothesRepositoryQueryDSLTest {
       SortDirection sortDirection = SortDirection.ASCENDING;
 
       // when
-      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
+        typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
@@ -201,7 +211,8 @@ class ClothesRepositoryQueryDSLTest {
       SortDirection sortDirection = SortDirection.DESCENDING;
 
       // when
-      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
+        typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then
@@ -233,7 +244,8 @@ class ClothesRepositoryQueryDSLTest {
       SortDirection sortDirection = SortDirection.ASCENDING;
 
       // when
-      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit, typeEqual,
+      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
+        typeEqual,
           ownerId, sortBy, sortDirection);
 
       // then

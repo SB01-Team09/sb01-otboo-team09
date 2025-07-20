@@ -4,13 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
+import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
-import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Comment;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.event.CommentCreatedEvent;
@@ -159,11 +161,11 @@ class CommentServiceTest {
     User mockAuthor = mock(User.class);
     Comment comment = Comment.create(feedId, authorId, "댓글1");
     CommentDto commentDto = new CommentDto(
-            commentId,
-            LocalDateTime.now(),
-            feedId,
-            mock(AuthorDto.class),
-            comment.getContent()
+      commentId,
+      LocalDateTime.now(),
+      feedId,
+      mock(AuthorDto.class),
+      comment.getContent()
     );
 
     List<Comment> commentEntities = List.of(comment);
@@ -172,7 +174,8 @@ class CommentServiceTest {
     // mock 처리
     given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
     given(userRepository.findById(authorId)).willReturn(Optional.of(mockAuthor));
-    given(commentRepositoryQueryDSL.getComments(feedId, cursor, idAfter, limit + 1)).willReturn(commentEntities);
+    given(commentRepositoryQueryDSL.getComments(feedId, cursor, idAfter, limit + 1)).willReturn(
+      commentEntities);
     given(commentRepositoryQueryDSL.countComments(feedId)).willReturn(1);
     given(commentMapper.toDto(comment, mockAuthor)).willReturn(commentDto);
 

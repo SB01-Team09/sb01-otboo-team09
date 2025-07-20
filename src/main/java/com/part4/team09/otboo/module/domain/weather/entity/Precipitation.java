@@ -21,7 +21,21 @@ public class Precipitation extends BaseEntity {
   private double probability;
 
   public enum PrecipitationType {
-    NONE, RAIN, RAIN_SNOW, SNOW, SHOWER;
+    NONE("없음"),
+    RAIN("비"),
+    RAIN_SNOW("비/눈"),
+    SNOW("눈"),
+    SHOWER("소나기");
+
+    private final String korean;
+
+    PrecipitationType(String korean) {
+      this.korean = korean;
+    }
+
+    public String getKorean() {
+      return korean;
+    }
 
     public static PrecipitationType of(int value) {
       if (value == 0) {

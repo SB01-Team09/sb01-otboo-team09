@@ -5,12 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
+import com.part4.team09.otboo.module.domain.location.entity.Coordinate;
 import com.part4.team09.otboo.module.domain.location.entity.Dong;
 import com.part4.team09.otboo.module.domain.location.entity.Gu;
 import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.entity.Sido;
 import com.part4.team09.otboo.module.domain.location.exception.LocationNotFoundException;
 import com.part4.team09.otboo.module.domain.location.external.LocationApiClient;
+import com.part4.team09.otboo.module.domain.location.repository.CoordinateRepository;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
 import com.part4.team09.otboo.module.domain.location.repository.GuRepository;
 import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
@@ -35,6 +37,8 @@ class LocationServiceTest {
   @Mock
   private DongRepository dongRepository;
   @Mock
+  private CoordinateRepository coordinateRepository;
+  @Mock
   private LocationApiClient locationApiClient;
 
   @InjectMocks
@@ -53,17 +57,20 @@ class LocationServiceTest {
     UUID sidoId = UUID.randomUUID();
     UUID guId = UUID.randomUUID();
     UUID dongId = UUID.randomUUID();
+    UUID coordinateId = UUID.randomUUID();
 
-    Location location = Location.create(locationId, sidoId, guId, dongId);
+    Location location = Location.create(locationId, sidoId, guId, dongId, coordinateId);
     when(locationRepository.findById(locationId)).thenReturn(Optional.of(location));
 
     Sido sido = Sido.create("서울특별시");
     Gu gu = Gu.create("성동구");
-    Dong dong = Dong.create("금호동", 37.5, 127.0, 60, 127);
+    Dong dong = Dong.create("금호동", 37.5, 127.0);
+    Coordinate coordinate = Coordinate.create(60, 127);
 
     when(sidoRepository.findById(sidoId)).thenReturn(Optional.of(sido));
     when(guRepository.findById(guId)).thenReturn(Optional.of(gu));
     when(dongRepository.findById(dongId)).thenReturn(Optional.of(dong));
+    when(coordinateRepository.findById(coordinateId)).thenReturn(Optional.of(coordinate));
 
     // when
     WeatherAPILocation result = locationService.getLocation(longitude, latitude);
@@ -71,8 +78,8 @@ class LocationServiceTest {
     // then
     assertThat(result.latitude()).isEqualTo(dong.getLatitude());
     assertThat(result.longitude()).isEqualTo(dong.getLongitude());
-    assertThat(result.x()).isEqualTo(dong.getX());
-    assertThat(result.y()).isEqualTo(dong.getY());
+    assertThat(result.x()).isEqualTo(coordinate.getX());
+    assertThat(result.y()).isEqualTo(coordinate.getY());
     assertThat(result.locationNames()).containsExactly("서울특별시", "성동구", "금호동");
   }
 
@@ -91,8 +98,9 @@ class LocationServiceTest {
     UUID sidoId = UUID.randomUUID();
     UUID guId = UUID.randomUUID();
     UUID dongId = UUID.randomUUID();
+    UUID coordinateId = UUID.randomUUID();
 
-    Location location = Location.create(locationId, sidoId, guId, dongId);
+    Location location = Location.create(locationId, sidoId, guId, dongId, coordinateId);
     when(locationRepository.findById(locationId)).thenReturn(Optional.of(location));
 
     Sido sido = Sido.create("서울특별시");
@@ -110,17 +118,20 @@ class LocationServiceTest {
     UUID sidoId = UUID.randomUUID();
     UUID guId = UUID.randomUUID();
     UUID dongId = UUID.randomUUID();
+    UUID coordinateId = UUID.randomUUID();
 
-    Location location = Location.create(locationId, sidoId, guId, dongId);
+    Location location = Location.create(locationId, sidoId, guId, dongId, coordinateId);
     when(locationRepository.findById(locationId)).thenReturn(Optional.of(location));
 
     Sido sido = Sido.create("서울특별시");
     Gu gu = Gu.create("성동구");
-    Dong dong = Dong.create("금호동", 37.5, 127.0, 60, 127);
+    Dong dong = Dong.create("금호동", 37.5, 127.0);
+    Coordinate coordinate = Coordinate.create(60, 127);
 
     when(sidoRepository.findById(sidoId)).thenReturn(Optional.of(sido));
     when(guRepository.findById(guId)).thenReturn(Optional.of(gu));
     when(dongRepository.findById(dongId)).thenReturn(Optional.of(dong));
+    when(coordinateRepository.findById(coordinateId)).thenReturn(Optional.of(coordinate));
 
     // when
     WeatherAPILocation result = locationService.getLocation(locationId);

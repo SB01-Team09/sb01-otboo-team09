@@ -26,19 +26,19 @@ public class ClothesAttributeDefDtoAssembler {
       return List.of();
     } else {
       List<UUID> defIds = defs.stream()
-          .map(ClothesAttributeDef::getId)
-          .toList();
+        .map(ClothesAttributeDef::getId)
+        .toList();
 
       Map<UUID, List<SelectableValue>> valueMap = selectableValueService.findAllByAttributeDefIdIn(
-              defIds).stream()
-          .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
+          defIds).stream()
+        .collect(Collectors.groupingBy(SelectableValue::getAttributeDefId));
 
       return defs.stream().map(
-              def -> clothesAttributeDefMapper.toDto(def.getId(), def.getName(),
-                  valueMap.get(def.getId()).stream()
-                      .map(SelectableValue::getItem)
-                      .toList()))
-          .toList();
+          def -> clothesAttributeDefMapper.toDto(def.getId(), def.getName(),
+            valueMap.get(def.getId()).stream()
+              .map(SelectableValue::getItem)
+              .toList()))
+        .toList();
     }
   }
 }

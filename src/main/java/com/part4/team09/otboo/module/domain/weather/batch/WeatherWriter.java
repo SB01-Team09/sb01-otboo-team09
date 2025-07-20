@@ -11,7 +11,6 @@ import com.part4.team09.otboo.module.domain.weather.repository.PrecipitationRepo
 import com.part4.team09.otboo.module.domain.weather.repository.TemperatureRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import com.part4.team09.otboo.module.domain.weather.repository.WindSpeedRepository;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -28,27 +27,22 @@ public class WeatherWriter implements ItemWriter<List<WeatherData>> {
   private final TemperatureRepository temperatureRepository;
   private final WindSpeedRepository windSpeedRepository;
   private final WeatherRepository weatherRepository;
-  private final WeatherCache weatherCache;
 
   @Override
   public void write(Chunk<? extends List<WeatherData>> chunk) throws Exception {
     chunk.forEach(
       weatherDatas -> {
-        List<Weather> weathers = new ArrayList<>();
         weatherDatas.forEach(
           weatherData -> {
-            Weather savedWeather = weatherRepository
-              .findByLocationIdAndForecastAt(weatherData.locationId(), weatherData.forecastAt())
+            weatherRepository
+              .findByCoordinateIdAndForecastAt(weatherData.coordinate().getId(),
+                weatherData.forecastAt())
               .map(
                 weather -> updateExistingWeather(weather, weatherData)
               )
               .orElseGet(() -> saveNewWeather(weatherData));
-
-            weathers.add(savedWeather);
           }
         );
-
-        weatherCache.putData(weatherDatas.get(0).x(), weatherDatas.get(0).y(), weathers);
       }
     );
   }
@@ -103,7 +97,7 @@ public class WeatherWriter implements ItemWriter<List<WeatherData>> {
       weatherData.forecastAt(),
       weatherData.forecastedAt(),
       weatherData.skyStatus(),
-      weatherData.locationId(),
+      weatherData.coordinate().getId(),
       weatherData.precipitation().getId(),
       weatherData.humidity().getId(),
       weatherData.temperature().getId(),

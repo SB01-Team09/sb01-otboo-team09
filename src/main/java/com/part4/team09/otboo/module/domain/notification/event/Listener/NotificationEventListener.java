@@ -12,12 +12,13 @@ import com.part4.team09.otboo.module.domain.notification.event.FeedCommentedEven
 import com.part4.team09.otboo.module.domain.notification.event.FeedCreatedEvent;
 import com.part4.team09.otboo.module.domain.notification.event.FeedLikedEvent;
 import com.part4.team09.otboo.module.domain.notification.event.FollowedEvent;
-import com.part4.team09.otboo.module.domain.notification.event.PrecipitationStartedEvent;
 import com.part4.team09.otboo.module.domain.notification.event.RapidTemperatureDropEvent;
 import com.part4.team09.otboo.module.domain.notification.event.RapidTemperatureRiseEvent;
 import com.part4.team09.otboo.module.domain.notification.event.RoleChangedEvent;
+import com.part4.team09.otboo.module.domain.notification.event.WeatherNotificationCreateEvent;
 import com.part4.team09.otboo.module.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -35,13 +36,13 @@ public class NotificationEventListener {
   public void handleRoleChangedEvent(RoleChangedEvent event) {
     String title = "내 권한이 변경되었어요.";
     String content = String.format("내 권한이 [%s]에서 [%s](으)로 변경되었어요.",
-        event.previousRole(), event.newRole());
+      event.previousRole(), event.newRole());
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.receiverId(),
-        title,
-        content,
-        Level.INFO
+      event.receiverId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.create(request);
@@ -55,9 +56,9 @@ public class NotificationEventListener {
     String content = String.format("내 의상에 [%s] 속성을 추가해보세요.", event.name());
 
     NotificationCreateAllRequest request = new NotificationCreateAllRequest(
-        title,
-        content,
-        Level.INFO
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.createAll(request);
@@ -71,9 +72,9 @@ public class NotificationEventListener {
     String content = String.format("[%s] 속성을 확인해보세요.", event.name());
 
     NotificationCreateAllRequest request = new NotificationCreateAllRequest(
-        title,
-        content,
-        Level.INFO
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.createAll(request);
@@ -87,10 +88,10 @@ public class NotificationEventListener {
     String content = event.feedContent();
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.receiverId(),
-        title,
-        content,
-        Level.INFO
+      event.receiverId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.create(request);
@@ -104,10 +105,10 @@ public class NotificationEventListener {
     String content = event.content();
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.receiverId(),
-        title,
-        content,
-        Level.INFO
+      event.receiverId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.create(request);
@@ -121,10 +122,10 @@ public class NotificationEventListener {
     String content = event.content();
 
     NotificationCreateFollowerRequest request = new NotificationCreateFollowerRequest(
-        event.authorId(),
-        title,
-        content,
-        Level.INFO
+      event.authorId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.createFollower(request);
@@ -138,10 +139,10 @@ public class NotificationEventListener {
     String content = "";
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.receiverId(),
-        title,
-        content,
-        Level.INFO
+      event.receiverId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.create(request);
@@ -155,61 +156,58 @@ public class NotificationEventListener {
     String content = event.content();
 
     NotificationCreateRequest request = new NotificationCreateRequest(
-        event.receiverId(),
-        title,
-        content,
-        Level.INFO
+      event.receiverId(),
+      title,
+      content,
+      Level.INFO
     );
 
     notificationService.create(request);
   }
 
-  // 급격한 기온 상승 예정 (3시간 이내 5℃ 이상)
+  // 급격한 기온 상승 예정
   @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  @EventListener
   public void handleRapidTemperatureRiseEvent(RapidTemperatureRiseEvent event) {
-    String title = "3시간 이내 급격한 기온 상승이 있을 예정이에요.";
+    String title = "어제보다 기온이 급격히 높아졌어요";
     String content = "외출 시 옷차림에 유의하세요.";
 
     NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
-        event.locationId(),
-        title,
-        content,
-        Level.WARNING
+      event.locationId(),
+      title,
+      content,
+      Level.WARNING
     );
 
     notificationService.createLocation(request);
   }
 
-  // 급격한 기온 하강 예정 (3시간 이내 5℃ 이상)
+  // 급격한 기온 하강 예정
   @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  @EventListener
   public void handleRapidTemperatureDropEvent(RapidTemperatureDropEvent event) {
-    String title = "3시간 이내 급격한 기온 하강이 있을 예정이에요.";
+    String title = "어제보다 기온이 급격히 낮아졌어요..";
     String content = "외출 시 옷차림에 유의하세요.";
 
     NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
-        event.locationId(),
-        title,
-        content,
-        Level.WARNING
+      event.locationId(),
+      title,
+      content,
+      Level.WARNING
     );
 
     notificationService.createLocation(request);
   }
 
-  // 1시간 이내 강수 시작 예정
+  // 비, 눈, 소나기 등 예정
   @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handlePrecipitationStartedEvent(PrecipitationStartedEvent event) {
-    String title = "1시간 이내 강수가 시작될 예정이에요.";
-    String content = "우산을 챙기세요.";
-
+  @EventListener
+  public void handlePrecipitationStartedEvent(WeatherNotificationCreateEvent event) {
     NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
-        event.locationId(),
-        title,
-        content,
-        Level.WARNING
+      event.locationId(),
+      event.title(),
+      event.content(),
+      Level.WARNING
     );
 
     notificationService.createLocation(request);

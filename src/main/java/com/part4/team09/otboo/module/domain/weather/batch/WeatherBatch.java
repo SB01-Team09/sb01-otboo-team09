@@ -1,14 +1,12 @@
 package com.part4.team09.otboo.module.domain.weather.batch;
 
 import com.part4.team09.otboo.module.common.monitoring.BatchMonitoringListener;
-import com.part4.team09.otboo.module.domain.location.entity.Location;
-import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
+import com.part4.team09.otboo.module.domain.location.entity.Coordinate;
 import com.part4.team09.otboo.module.domain.weather.batch.listener.RetryJobListener;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherReadException;
 import com.part4.team09.otboo.module.domain.weather.external.WeatherApiClient;
-import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +18,7 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
@@ -30,17 +29,15 @@ public class WeatherBatch {
   private final WeatherProcessor weatherProcessor;
   private final WeatherWriter weatherWriter;
   private final WeatherApiClient weatherApiClient;
-  private final DongRepository dongRepository;
-  private final WeatherRepository weatherRepository;
-  private final WeatherCache weatherCache;
   private final BatchMonitoringListener batchMonitoringListener;
   private final RetryJobListener retryJobListener;
+  private final TaskExecutor taskExecutor;
 
   @Bean
   public Step weatherStep(JobRepository jobRepository,
     PlatformTransactionManager transactionManager) {
     return new StepBuilder("weatherStep", jobRepository)
-      .<WeatherApiData, List<WeatherData>>chunk(1, transactionManager)
+      .<WeatherApiData, List<WeatherData>>chunk(50, transactionManager)
       .reader(weatherReader())
       .processor(weatherProcessor)
       .writer(weatherWriter)
@@ -49,21 +46,22 @@ public class WeatherBatch {
       .retryLimit(3) // 최대 3번 재시도
       .skip(WeatherReadException.class)
       .skipLimit(50)
+      .taskExecutor(taskExecutor)
       .build();
   }
 
   @Bean
   public WeatherReader weatherReader() {
-    return new WeatherReader(locationReader(), weatherApiClient, dongRepository, weatherRepository,
-      weatherCache);
+    return new WeatherReader(coordinateReader(), weatherApiClient);
   }
 
   @Bean
-  public JpaPagingItemReader<Location> locationReader() {
-    JpaPagingItemReader<Location> reader = new JpaPagingItemReader<>();
+  public JpaPagingItemReader<Coordinate> coordinateReader() {
+    JpaPagingItemReader<Coordinate> reader = new JpaPagingItemReader<>();
     reader.setEntityManagerFactory(entityManagerFactory);
-    reader.setQueryString("SELECT l FROM Location l");
-    reader.setPageSize(10);
+    reader.setQueryString("SELECT c FROM Coordinate c ORDER BY c.createdAt ASC");
+    reader.setPageSize(50);
+    reader.setSaveState(false);
     return reader;
   }
 

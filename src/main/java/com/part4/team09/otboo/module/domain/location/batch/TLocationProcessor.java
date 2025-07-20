@@ -1,10 +1,12 @@
 package com.part4.team09.otboo.module.domain.location.batch;
 
 import com.part4.team09.otboo.module.domain.location.dto.response.TLocation;
+import com.part4.team09.otboo.module.domain.location.entity.Coordinate;
 import com.part4.team09.otboo.module.domain.location.entity.Dong;
 import com.part4.team09.otboo.module.domain.location.entity.Gu;
 import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.entity.Sido;
+import com.part4.team09.otboo.module.domain.location.repository.CoordinateRepository;
 import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
 import com.part4.team09.otboo.module.domain.location.repository.GuRepository;
 import com.part4.team09.otboo.module.domain.location.repository.SidoRepository;
@@ -20,6 +22,8 @@ public class TLocationProcessor implements ItemProcessor<TLocation, Location> {
   private final SidoRepository sidoRepository;
   private final GuRepository guRepository;
   private final DongRepository dongRepository;
+  private final CoordinateRepository coordinateRepository;
+  private final LocationCache locationCache;
 
   @Override
   public Location process(TLocation item) throws Exception {
@@ -42,14 +46,21 @@ public class TLocationProcessor implements ItemProcessor<TLocation, Location> {
     Gu gu = guRepository.findByGuName(guName)
       .orElseGet(() -> guRepository.save(Gu.create(guName)));
 
-    String dongName = item.level3();
     int x = item.gridX();
     int y = item.gridY();
+
+    UUID coordinateId = locationCache.getData(x, y);
+    if (coordinateId == null) {
+      coordinateId = coordinateRepository.save(Coordinate.create(x, y)).getId();
+      locationCache.putData(x, y, coordinateId);
+    }
+
+    String dongName = item.level3();
     double longitude = item.longitude();
     double latitude = item.latitude();
     Dong dong = dongRepository.findByDongName(dongName)
       .orElseGet(() -> dongRepository.save(
-        Dong.create(dongName, latitude, longitude, x, y)
+        Dong.create(dongName, latitude, longitude)
       ));
 
 
@@ -57,7 +68,8 @@ public class TLocationProcessor implements ItemProcessor<TLocation, Location> {
       id,
       sido.getId(),
       gu.getId(),
-      dong.getId()
+      dong.getId(),
+      coordinateId
     );
   }
 }

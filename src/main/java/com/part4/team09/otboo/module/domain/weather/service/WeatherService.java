@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.weather.service;
 
 import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
+import com.part4.team09.otboo.module.domain.location.entity.Location;
 import com.part4.team09.otboo.module.domain.location.service.LocationService;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherDto;
 import com.part4.team09.otboo.module.domain.weather.entity.Humidity;
@@ -37,12 +38,13 @@ public class WeatherService {
   public final List<WeatherDto> getWeather(double longitude, double latitude) {
     // 지역 정보 조회 및 dto 변환
     String locationId = locationService.getLocationCodeByCoordinates(longitude, latitude);
-    WeatherAPILocation location = locationService.getLocation(locationId);
+    Location location = locationService.getLocationOrThrow(locationId);
+    WeatherAPILocation weatherAPILocation = locationService.getLocation(locationId);
 
     // 지역에 해당하는 날씨 정보 리스트 조회 및 dto 변환
     LocalDateTime forecastAt = LocalDate.now().atTime(12, 0);
     List<Weather> weathers = weatherRepository
-      .findByLocationIdAndForecastAtGreaterThanEqual(locationId, forecastAt);
+      .findByCoordinateIdAndForecastAtGreaterThanEqual(location.getCoordinateId(), forecastAt);
 
     List<WeatherDto> weatherDtos = weathers.stream()
       .map(weather -> {
@@ -66,7 +68,7 @@ public class WeatherService {
           weather.getId(),
           weather.getForecastedAt(),
           weather.getForecastAt(),
-          location,
+          weatherAPILocation,
           weather.getSkyStatus(),
           weatherMapper.toPrecipitationDto(precipitation),
           weatherMapper.toHumidityDto(humidity),
@@ -78,5 +80,4 @@ public class WeatherService {
 
     return weatherDtos;
   }
-
 }
