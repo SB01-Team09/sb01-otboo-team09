@@ -1,9 +1,9 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
+import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
-import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Comment;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.event.CommentCreatedEvent;
@@ -13,11 +13,9 @@ import com.part4.team09.otboo.module.domain.feed.mapper.CommentMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.CommentRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.CommentRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
-import com.part4.team09.otboo.module.domain.follow.event.FollowCreatedEvent;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -41,11 +39,12 @@ public class CommentService {
 
   @Transactional
   public CommentDto create(UUID feedId, CommentCreateRequest request) {
-    validateFeedExists(feedId);
+    Feed feed = getFeedOrThrow(feedId);
     User author = getUserOrThrow(request.authorId());
 
     Comment comment = Comment.create(feedId, request.authorId(), request.content());
     Comment savedComment = commentRepository.save(comment);
+    feed.increaseCommentCount();
 
     eventPublisher.publishEvent(new CommentCreatedEvent(feedId));
 
@@ -101,9 +100,8 @@ public class CommentService {
         .orElseThrow(() -> UserNotFoundException.withId(userId));
   }
 
-  private void validateFeedExists(UUID feedId) {
-    if (!feedRepository.existsById(feedId)) {
-      throw FeedNotFoundException.withId(feedId);
-    }
+  private Feed getFeedOrThrow(UUID feedId) {
+    return feedRepository.findById(feedId)
+        .orElseThrow(() -> FeedNotFoundException.withId(feedId));
   }
 }
