@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
+import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.entity.Like;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.exception.like.LikeAlreadyExistsException;
@@ -28,23 +29,25 @@ public class LikeService {
 
   @Transactional
   public FeedDto create(UUID userId, UUID feedId) {
-    validateFeedExists(feedId);
     validateUserExists(userId);
     validateLikeNotExists(userId, feedId);
+    Feed feed = getFeedOrThrow(feedId);
 
     Like like = Like.create(feedId, userId);
     likeRepository.save(like);
+    feed.increaseLikeCount();
 
     return feedDtoAssembler.assemble(feedId, userId);
   }
 
   @Transactional
   public void delete(UUID userId, UUID feedId) {
-    validateFeedExists(feedId);
     validateUserExists(userId);
+    Feed feed = getFeedOrThrow(feedId);
 
     Like like = getLikeOrThrow(userId, feedId);
     likeRepository.deleteById(like.getId());
+    feed.decreaseLikeCount();
   }
 
   public void deleteAllByFeedId(UUID feedId) {
@@ -56,15 +59,14 @@ public class LikeService {
         .orElseThrow(() -> LikeNotFoundException.withId(userId, feedId));
   }
 
+  private Feed getFeedOrThrow(UUID feedId) {
+    return feedRepository.findById(feedId)
+        .orElseThrow(() -> FeedNotFoundException.withId(feedId));
+  }
+
   public void validateLikeNotExists(UUID userId, UUID feedId) {
     if (likeRepository.existsByUserIdAndFeedId(userId, feedId)) {
       throw LikeAlreadyExistsException.withId(userId, feedId);
-    }
-  }
-
-  private void validateFeedExists(UUID feedId) {
-    if (!feedRepository.existsById(feedId)) {
-      throw FeedNotFoundException.withId(feedId);
     }
   }
 
