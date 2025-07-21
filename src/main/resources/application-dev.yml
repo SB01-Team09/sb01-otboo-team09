@@ -21,3 +21,4 @@ logging:
   level:
     p6spy: debug
     com.nimbusds.jwt: debug
+    org.springframework.web.socket: debug
