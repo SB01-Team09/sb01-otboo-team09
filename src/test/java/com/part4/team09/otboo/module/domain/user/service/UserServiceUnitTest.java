@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,6 +16,7 @@ import com.part4.team09.otboo.module.domain.file.service.FileStorage;
 import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
 import com.part4.team09.otboo.module.domain.location.exception.LocationNotFoundException;
 import com.part4.team09.otboo.module.domain.location.service.LocationService;
+import com.part4.team09.otboo.module.domain.notification.event.RoleChangedEvent;
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDtoCursorResponse;
@@ -22,8 +24,10 @@ import com.part4.team09.otboo.module.domain.user.dto.request.PasswordUpdateReque
 import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.ProfileUpdateRequest.LocationUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserListRequest;
+import com.part4.team09.otboo.module.domain.user.dto.request.UserRoleUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.entity.User.Gender;
+import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import com.part4.team09.otboo.module.domain.user.event.UserProfileUpdateEvent;
 import com.part4.team09.otboo.module.domain.user.exception.SameAsOldPasswordException;
 import com.part4.team09.otboo.module.domain.user.mapper.UserMapper;
@@ -181,7 +185,6 @@ public class UserServiceUnitTest {
     }
   }
 
-
   @DisplayName("비밀번호 변경 시 이전과 동일한 비밀번호일 경우 예외를 던진다.")
   @Test
   void password_update_success() {
@@ -264,6 +267,44 @@ public class UserServiceUnitTest {
     assertThat(response.totalCount()).isEqualTo(1);
     assertThat(response.nextCursor()).isNull();
     assertThat(response.nextIdAfter()).isNull();
+  }
+
+  @DisplayName("유저 권한 변경 성공 시 권한 변경 알림, 강제 로그아웃이 발생한다.")
+  @Test
+  void changeUserRole_shouldSendNotification_andForceLogout() {
+    // given
+    User user = User.createUser("email@email.com", "name", "password!");
+    UserRoleUpdateRequest request = new UserRoleUpdateRequest(Role.ADMIN);
+    UserDto userDto = userMapper.toDto(user, null);
+
+    when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+    when(userMapper.toDto(user, null)).thenReturn(userDto);
+
+    // when
+    userService.changeRole(user.getId(), request);
+
+    // then
+    verify(eventPublisher).publishEvent(any(RoleChangedEvent.class));
+    verify(authService).forceLogout(user.getId());
+  }
+
+  @DisplayName("이전 권한과 같으면 알림 전송 및 강제 로그아웃이 발생하지 않는다.")
+  @Test
+  void changeUserRole_shouldDoNothing_whenRoleIsUnchanged() {
+    // given
+    User user = User.createUser("email@email.com", "name", "password!");
+    UserRoleUpdateRequest request = new UserRoleUpdateRequest(Role.USER);
+    UserDto userDto = userMapper.toDto(user, null);
+
+    when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+    when(userMapper.toDto(user, null)).thenReturn(userDto);
+
+    // when
+    userService.changeRole(user.getId(), request);
+
+    // then
+    verify(eventPublisher, never()).publishEvent(any(RoleChangedEvent.class));
+    verify(authService, never()).forceLogout(user.getId());
   }
 
 }
