@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/api/clothes/attribute-defs")
 public class ClothesAttributeDefController {
 
@@ -36,6 +35,7 @@ public class ClothesAttributeDefController {
 
   // 의상 속성 정의 등록
   @PostMapping
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ClothesAttributeDefDto> create(
     @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
     log.info("의상 속성 정의 생성 요청: name = {}, selectableValue = {}",
@@ -77,6 +77,7 @@ public class ClothesAttributeDefController {
 
   // 의상 속성 정의 수정
   @PatchMapping("/{definitionId}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ClothesAttributeDefDto> update(
       @PathVariable UUID definitionId,
       @Valid @RequestBody ClothesAttributeDefUpdateRequest request) {
@@ -92,6 +93,7 @@ public class ClothesAttributeDefController {
 
   // 의상 속성 정의 삭제
   @DeleteMapping("/{definitionId}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> delete(@PathVariable UUID definitionId) {
     log.info("의상 속성 정의 삭제 요청");
 
