@@ -5,27 +5,33 @@ import com.part4.team09.otboo.module.domain.directmessage.entity.DirectMessage;
 import com.part4.team09.otboo.module.domain.user.dto.UserSummary;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
+import com.part4.team09.otboo.module.domain.user.mapper.UserSummaryMapper;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class DirectMessageDtoAssembler {
 
-    private final UserRepository userRepository;
-    private final DirectMessageMapper directMessageMapper;
+  private final DirectMessageMapper directMessageMapper;
 
-    public DirectMessageDto assemble(DirectMessage directMessage, UUID userId, UUID currentUserId) {
-        User sender = userRepository.findById(currentUserId)
-                .orElseThrow(() -> UserNotFoundException.withId(currentUserId));
-        UserSummary senderSummary = new UserSummary(sender.getId(), sender.getName(), sender.getProfileImageUrl());
-        User receiver = userRepository.findById(userId)
-                .orElseThrow(() -> UserNotFoundException.withId(userId));
-        UserSummary receiverSummary = new UserSummary(receiver.getId(), receiver.getName(), receiver.getProfileImageUrl());
+  private final UserRepository userRepository;
+  private final UserSummaryMapper userSummaryMapper;
 
-        return directMessageMapper.toDto(directMessage, senderSummary, receiverSummary);
-    }
+  public DirectMessageDto assemble(DirectMessage directMessage) {
+    User sender = getUserOrThrow(directMessage.getSenderId());
+    UserSummary senderSummary = userSummaryMapper.toDto(sender);
+
+    User receiver = getUserOrThrow(directMessage.getReceiverId());
+    UserSummary receiverSummary = userSummaryMapper.toDto(receiver);
+
+    return directMessageMapper.toDto(directMessage, senderSummary, receiverSummary);
+  }
+
+  private User getUserOrThrow(UUID userId) {
+    return userRepository.findById(userId)
+        .orElseThrow(() -> UserNotFoundException.withId(userId));
+  }
 }

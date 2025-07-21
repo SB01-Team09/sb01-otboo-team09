@@ -122,10 +122,8 @@ public class FeedService {
       nextIdAfter = lastFeedDto.id();
     }
 
-
     // 최종 반환
     return new FeedDtoCursorResponse(feedDtos, nextCursor, nextIdAfter, hasNext, totalCount, request.sortBy(), request.sortDirection());
-
   }
 
   private Feed getFeedOrThrow(UUID feedId) {

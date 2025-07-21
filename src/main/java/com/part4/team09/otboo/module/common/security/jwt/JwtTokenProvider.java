@@ -23,12 +23,16 @@ import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -187,6 +191,17 @@ public class JwtTokenProvider {
   @Transactional
   public void invalidateRefreshToken(String refreshToken) {
     authTokenRepository.deleteByRefreshToken(refreshToken);
+  }
+
+  public Authentication getAuthentication(String token) {
+    AuthUserDto userDto = getAuthUserDtoFromToken(token);
+    SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + userDto.role().name());
+
+    return new UsernamePasswordAuthenticationToken(
+        userDto, // Principal
+        null,    // credentials (비밀번호 null)
+        List.of(authority)
+    );
   }
 
   // 서명
