@@ -229,3 +229,13 @@ create table auth_tokens
     created_at    TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at    TIMESTAMP WITH TIME ZONE
 );
+
+CREATE TABLE user_temp_passwords
+(
+    id                 UUID PRIMARY KEY,
+    user_id            UUID      NOT NULL UNIQUE,
+    temporary_password TEXT      NOT NULL,
+    issued_at          TIMESTAMP NOT NULL,
+    expires_at         TIMESTAMP NOT NULL,
+    created_at         TIMESTAMP NOT NULL
+);

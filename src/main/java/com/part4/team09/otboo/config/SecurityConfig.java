@@ -1,6 +1,8 @@
 package com.part4.team09.otboo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.part4.team09.otboo.module.common.security.CustomDaoAuthenticationProvider;
+import com.part4.team09.otboo.module.common.security.CustomUserDetailsService;
 import com.part4.team09.otboo.module.common.security.Filter.JsonLoginAuthenticationFilter;
 import com.part4.team09.otboo.module.common.security.Filter.JwtAuthenticationFilter;
 import com.part4.team09.otboo.module.common.security.handler.CustomAccessDeniedHandler;
@@ -11,6 +13,7 @@ import com.part4.team09.otboo.module.common.security.handler.JsonLoginFailureHan
 import com.part4.team09.otboo.module.common.security.handler.JsonLoginSuccessHandler;
 import com.part4.team09.otboo.module.common.security.jwt.JwtProperty;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
+import com.part4.team09.otboo.module.domain.auth.repository.UserTempPasswordRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -22,6 +25,7 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -45,17 +49,23 @@ public class SecurityConfig {
   private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
   private final CustomLogoutHandler customLogoutHandler;
   private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
+  private final CustomUserDetailsService customUserDetailsService;
+  private final UserTempPasswordRepository tempPasswordRepository;
 
   @Bean
   public SecurityFilterChain filterChain(
     HttpSecurity http,
-    JsonLoginAuthenticationFilter jsonLoginAuthenticationFilter) throws Exception {
+    JsonLoginAuthenticationFilter jsonLoginAuthenticationFilter,
+    AuthenticationProvider customDaoAuthenticationProvider
+  ) throws Exception {
     return http
 
       .cors(AbstractHttpConfigurer::disable)
       .csrf(AbstractHttpConfigurer::disable) // 정적 리소스 변경 후 활성화
 //      .csrf(csrf -> csrf
 //        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+
+      .authenticationProvider(customDaoAuthenticationProvider)
 
       // 인가 설정
       .authorizeHttpRequests(this::configureAuthorization)
@@ -109,6 +119,16 @@ public class SecurityConfig {
     return authenticationConfiguration.getAuthenticationManager();
   }
 
+  // 인증 커스텀
+  @Bean
+  public AuthenticationProvider customDaoAuthenticationProvider(PasswordEncoder passwordEncoder) {
+    return new CustomDaoAuthenticationProvider(
+      customUserDetailsService,
+      passwordEncoder,
+      tempPasswordRepository
+    );
+  }
+
   // json 로그인 필터 등록
   @Bean
   public JsonLoginAuthenticationFilter jsonLoginAuthenticationFilter(
@@ -121,7 +141,6 @@ public class SecurityConfig {
       objectMapper);
     filter.setAuthenticationSuccessHandler(successHandler);
     filter.setAuthenticationFailureHandler(failureHandler);
-
     return filter;
   }
 
