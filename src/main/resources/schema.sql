@@ -229,3 +229,7 @@ create table auth_tokens
     created_at    TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at    TIMESTAMP WITH TIME ZONE
 );
+
+CREATE INDEX idx_selectable_value_attribute_def_id ON selectable_values (attribute_def_id);
+CREATE INDEX idx_clothes_attribute_clothes_id ON clothes_attributes (clothes_id);
+
