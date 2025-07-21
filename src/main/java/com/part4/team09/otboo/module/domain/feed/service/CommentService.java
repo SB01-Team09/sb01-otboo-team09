@@ -52,7 +52,7 @@ public class CommentService {
         new FeedCommentedEvent(
             feed.getAuthorId(),
             author.getName(),
-            comment.getContent()
+            request.content()
         )
     );
 

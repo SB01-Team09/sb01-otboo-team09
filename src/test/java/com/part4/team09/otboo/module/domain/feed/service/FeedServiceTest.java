@@ -23,6 +23,7 @@ import com.part4.team09.otboo.module.domain.feed.event.FeedDeletedEvent;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepositoryQueryDSL;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
@@ -83,6 +84,7 @@ class FeedServiceTest {
       UUID userId = UUID.randomUUID();
       WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       Feed mockFeed = mock(Feed.class);
+      User mockUser = mock(User.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
       List<OotdDto> ootdDtos = List.of();
 
@@ -106,7 +108,7 @@ class FeedServiceTest {
           false
       );
 
-      given(userRepository.existsById(any())).willReturn(true);
+      given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
       given(weatherRepository.existsById(any())).willReturn(true);
       given(feedRepository.save(any(Feed.class))).willReturn(mockFeed);
       given(feedDtoAssembler.assemble(any(Feed.class), eq(userId))).willReturn(feedDto);
