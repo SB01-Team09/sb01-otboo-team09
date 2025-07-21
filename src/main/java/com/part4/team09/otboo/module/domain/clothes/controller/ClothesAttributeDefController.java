@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -34,13 +35,16 @@ public class ClothesAttributeDefController {
 
   // 의상 속성 정의 등록
   @PostMapping
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ClothesAttributeDefDto> create(
     @Valid @RequestBody ClothesAttributeDefCreateRequest request) {
-    log.info("의상 속성 정의 생성 요청");
+    log.info("의상 속성 정의 생성 요청: name = {}, selectableValue = {}",
+        request.name(), request.selectableValues());
 
     ClothesAttributeDefDto response = clothesAttributeInfoService.create(request);
 
-    log.info("의상 속성 정의 생성 응답: {}", HttpStatus.CREATED.value());
+    log.info("의상 속성 정의 생성 응답: name = {} selectableValue = {}",
+        response.name(), response.selectableValues());
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
@@ -73,19 +77,23 @@ public class ClothesAttributeDefController {
 
   // 의상 속성 정의 수정
   @PatchMapping("/{definitionId}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ClothesAttributeDefDto> update(
       @PathVariable UUID definitionId,
       @Valid @RequestBody ClothesAttributeDefUpdateRequest request) {
-    log.info("의상 속성 정의 수정 요청");
+    log.info("의상 속성 정의 수정 요청: name = {}, selectableValue = {}",
+        request.name(), request.selectableValues());
 
     ClothesAttributeDefDto response = clothesAttributeInfoService.update(definitionId, request);
 
-    log.info("의상 속성 정의 수정 응답: {}", HttpStatus.OK.value());
+    log.info("의상 속성 정의 수정 응답: name = {} selectableValue = {}",
+        response.name(), response.selectableValues());
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   // 의상 속성 정의 삭제
   @DeleteMapping("/{definitionId}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> delete(@PathVariable UUID definitionId) {
     log.info("의상 속성 정의 삭제 요청");
 

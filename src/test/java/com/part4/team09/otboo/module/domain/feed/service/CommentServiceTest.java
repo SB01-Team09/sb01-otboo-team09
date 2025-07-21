@@ -70,13 +70,15 @@ class CommentServiceTest {
     void create_comment_success() {
       // given
       UUID feedId = UUID.randomUUID();
+      UUID authorId = UUID.randomUUID();
       Comment mockComment = mock(Comment.class);
+      Feed mockFeed = mock(Feed.class);
       User mockUser = mock(User.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
 
       CommentCreateRequest request = new CommentCreateRequest(
           feedId,
-          UUID.randomUUID(),
+          authorId,
           "content"
       );
 
@@ -88,8 +90,8 @@ class CommentServiceTest {
           "content"
       );
 
-      given(userRepository.findById(any())).willReturn(Optional.of(mockUser));
-      given(feedRepository.existsById(any())).willReturn(true);
+      given(userRepository.findById(authorId)).willReturn(Optional.of(mockUser));
+      given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
       given(commentRepository.save(any(Comment.class))).willReturn(mockComment);
       given(commentMapper.toDto(any(Comment.class), any(User.class))).willReturn(commentDto);
       doNothing().when(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
@@ -114,7 +116,7 @@ class CommentServiceTest {
           "content"
       );
 
-      given(feedRepository.existsById(nonExistFeedId)).willReturn(false);
+      given(feedRepository.findById(nonExistFeedId)).willReturn(Optional.empty());
 
       // when & then
       assertThrows(FeedNotFoundException.class,
@@ -126,6 +128,7 @@ class CommentServiceTest {
     void create_comment_throwsUserNotFoundException_whenUserDoseNotExist() {
       // given
       UUID feedId = UUID.randomUUID();
+      Feed mockFeed = mock(Feed.class);
       UUID nonExistUserId = UUID.randomUUID();
 
       CommentCreateRequest request = new CommentCreateRequest(
@@ -134,7 +137,7 @@ class CommentServiceTest {
           "content"
       );
 
-      given(feedRepository.existsById(any())).willReturn(true);
+      given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
       given(userRepository.findById(nonExistUserId)).willReturn(Optional.empty());
 
       // when & then

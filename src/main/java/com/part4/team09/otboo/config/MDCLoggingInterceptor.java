@@ -10,12 +10,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Slf4j
 public class MDCLoggingInterceptor implements HandlerInterceptor {
 
-  public static final String REQUEST_ID = "requestId";
-  public static final String REQUEST_METHOD = "requestMethod";
-  public static final String REQUEST_URI = "requestUri";
-
-  public static final String REQUEST_ID_HEADER = "Discodeit-Request-ID";
-
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
     // 요청 ID 생성 (UUID)
@@ -32,7 +26,7 @@ public class MDCLoggingInterceptor implements HandlerInterceptor {
     MDC.put("clientIp", clientIp);
 
     // 응답 헤더에 요청 ID 추가
-    response.setHeader("Discodeit-Request-ID", requestId);
+    response.setHeader("Otboo-Request-ID", requestId);
 
     log.debug("Request started");
     return true;

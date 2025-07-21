@@ -239,3 +239,6 @@ CREATE TABLE user_temp_passwords
     expires_at         TIMESTAMP NOT NULL,
     created_at         TIMESTAMP NOT NULL
 );
+
+CREATE INDEX idx_selectable_value_attribute_def_id ON selectable_values (attribute_def_id);
+CREATE INDEX idx_clothes_attribute_clothes_id ON clothes_attributes (clothes_id);

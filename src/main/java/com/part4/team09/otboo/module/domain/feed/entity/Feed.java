@@ -45,4 +45,18 @@ public class Feed extends BaseUpdatableEntity {
   public void update(String newContent) {
     this.content = newContent;
   }
+
+  public void increaseCommentCount() {
+    this.commentCount++;
+  }
+
+  public void increaseLikeCount() {
+    this.likeCount++;
+  }
+
+  public void decreaseLikeCount() {
+    if (this.likeCount > 0) {
+      this.likeCount--;
+    }
+  }
 }

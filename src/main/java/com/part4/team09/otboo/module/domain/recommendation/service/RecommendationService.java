@@ -11,8 +11,8 @@ import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDe
 import com.part4.team09.otboo.module.domain.clothes.exception.SelectableValue.SelectableValueNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeRepository;
+import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.SelectableValueRepository;
-import com.part4.team09.otboo.module.domain.clothes.repository.custom.ClothesRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.recommendation.dto.ClothingOption;
 import com.part4.team09.otboo.module.domain.recommendation.dto.response.RecommendationClothesAttributeDto;
 import com.part4.team09.otboo.module.domain.recommendation.dto.response.RecommendationClothesDto;
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Service;
 public class RecommendationService {
 
   private final LLMApiClient llmApiClient;
-  private final ClothesRepositoryQueryDSL clothesRepositoryQueryDSL;
+  private final ClothesRepository clothesRepository;
   private final HumidityRepository humidityRepository;
   private final PrecipitationRepository precipitationRepository;
   private final TemperatureRepository temperatureRepository;
@@ -67,7 +67,7 @@ public class RecommendationService {
 
     // 우선순위를 통해 옷 조회 후 Dto 변환
     List<Clothes> clothes =
-      clothesRepositoryQueryDSL.findAllOrderedByAttributeScores(clothingOptions, 10);
+        clothesRepository.findAllOrderedByAttributeScores(clothingOptions, 10);
     List<RecommendationClothesDto> recommendationClothesDtos = clothes.stream()
       .map(this::toRecommendationClothesDto)
       .toList();
@@ -131,7 +131,7 @@ public class RecommendationService {
 
     // 조회 목록 개수 랜덤 지정
     int limit = ThreadLocalRandom.current().nextInt(20, 30);
-    List<Clothes> clothes = clothesRepositoryQueryDSL.findAllOrderedByAttributeScores(
+    List<Clothes> clothes = clothesRepository.findAllOrderedByAttributeScores(
       clothingOptions, limit
     );
 
