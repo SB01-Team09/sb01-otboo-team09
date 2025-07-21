@@ -36,6 +36,9 @@ public class CustomLogoutHandler implements LogoutHandler {
 
   // refresh token 추출
   private Optional<String> extractRefreshTokenFromRequest(HttpServletRequest request) {
+    if (request.getCookies() == null) {
+      return Optional.empty();
+    }
     return Arrays.stream(request.getCookies())
       .filter(cookie -> cookie.getName().equals(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME))
       .findFirst()
