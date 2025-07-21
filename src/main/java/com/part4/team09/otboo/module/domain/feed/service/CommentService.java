@@ -41,11 +41,12 @@ public class CommentService {
 
   @Transactional
   public CommentDto create(UUID feedId, CommentCreateRequest request) {
-    validateFeedExists(feedId);
+    Feed feed = getFeedOrThrow(feedId);
     User author = getUserOrThrow(request.authorId());
 
     Comment comment = Comment.create(feedId, request.authorId(), request.content());
     Comment savedComment = commentRepository.save(comment);
+    feed.increaseCommentCount();
 
     eventPublisher.publishEvent(new CommentCreatedEvent(feedId));
 
@@ -101,9 +102,8 @@ public class CommentService {
         .orElseThrow(() -> UserNotFoundException.withId(userId));
   }
 
-  private void validateFeedExists(UUID feedId) {
-    if (!feedRepository.existsById(feedId)) {
-      throw FeedNotFoundException.withId(feedId);
-    }
+  private Feed getFeedOrThrow(UUID feedId) {
+    return feedRepository.findById(feedId)
+        .orElseThrow(() -> FeedNotFoundException.withId(feedId));
   }
 }
