@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -96,6 +97,7 @@ public class ClothesController {
   }
 
   @DeleteMapping("/{clothesId}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> delete(
     @AuthenticationPrincipal CustomUserDetails userDetails,
     @PathVariable UUID clothesId) {
@@ -106,5 +108,18 @@ public class ClothesController {
 
     log.info("의상 삭제 응답: {}", HttpStatus.NO_CONTENT.value());
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
+
+  @GetMapping("/extractions")
+  public ResponseEntity<ClothesDto> extraction(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @RequestParam String url) {
+    log.info("구매 링크 의상 정보 불러오기 요청: url = {}", userDetails);
+
+    ClothesDto response = clothesService.extraction(userDetails.getId(), url);
+
+    log.info("구매 링크 의상 정보 불러오기 응답: name = {}, type = {}, attributeSize = {}, imageUrl = {}",
+        response.name(), response.type(), response.attributes().size(), response.imageUrl());
+    return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 }

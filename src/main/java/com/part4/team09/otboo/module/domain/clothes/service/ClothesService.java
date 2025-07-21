@@ -24,12 +24,15 @@ import com.part4.team09.otboo.module.domain.file.service.FileStorage;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -219,6 +222,21 @@ public class ClothesService {
     // 5. 의상 삭제
     clothesRepository.deleteById(clothes.getId());
     log.debug("의상 삭제 완료: clothesId = {}", clothesId);
+  }
+
+  public ClothesDto extraction(UUID userId, String url) {
+    try {
+      Document doc = Jsoup.connect(url)
+          .userAgent("Mozilla/5.0")
+          .get();
+
+      String name = doc.selectFirst("meta[property=og:title]").attr("content");
+      String imageUrl = doc.selectFirst("meta[property=og:image]").attr("content");
+
+      return clothesMapper.toDto(null, userId, name, imageUrl, ClothesType.TOP, null, List.of());
+    } catch (IOException e) {
+      throw new RuntimeException("상품 정보를 불러올 수 없습니다.", e);
+    }
   }
 
   private void createClothesAttributes(List<ClothesAttributeDto> attributeDtos, Clothes clothes) {
