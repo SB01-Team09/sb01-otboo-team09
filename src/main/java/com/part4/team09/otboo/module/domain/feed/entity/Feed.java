@@ -55,7 +55,7 @@ public class Feed extends BaseUpdatableEntity {
   }
 
   public void decreaseLikeCount() {
-    if (this.likeCount > 0 ) {
+    if (this.likeCount > 0) {
       this.likeCount--;
     }
   }
