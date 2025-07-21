@@ -13,6 +13,7 @@ import com.part4.team09.otboo.module.domain.feed.mapper.CommentMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.CommentRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.CommentRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
+import com.part4.team09.otboo.module.domain.notification.event.FeedCommentedEvent;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
@@ -47,6 +48,13 @@ public class CommentService {
     feed.increaseCommentCount();
 
     eventPublisher.publishEvent(new CommentCreatedEvent(feedId));
+    eventPublisher.publishEvent(
+        new FeedCommentedEvent(
+            feed.getAuthorId(),
+            author.getName(),
+            request.content()
+        )
+    );
 
     return commentMapper.toDto(savedComment, author);
   }

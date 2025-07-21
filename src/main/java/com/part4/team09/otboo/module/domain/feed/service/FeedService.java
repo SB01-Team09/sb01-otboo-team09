@@ -12,6 +12,8 @@ import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundExce
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepositoryQueryDSL;
+import com.part4.team09.otboo.module.domain.notification.event.FeedCreatedFollowerEvent;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherErrorCode;
@@ -51,7 +53,7 @@ public class FeedService {
 
   @Transactional
   public FeedDto create(UUID userId, FeedCreateRequest request) {
-    validateUserExists(request.authorId());
+    User author = getUserOrThrow(request.authorId());
     validateWeatherExists(request.weatherId());
 
     Feed feed = Feed.create(request.authorId(), request.weatherId(), request.content());
@@ -59,6 +61,13 @@ public class FeedService {
     ootdService.create(savedFeed.getId(), request.clothesIds());
 
     eventPublisher.publishEvent(new FeedCreatedEvent()); // 캐시 무효화 이벤트
+    eventPublisher.publishEvent(
+        new FeedCreatedFollowerEvent(
+            request.authorId(),
+            author.getName(),
+            request.content()
+        )
+    );
 
     return feedDtoAssembler.assemble(savedFeed, userId);
   }
@@ -131,15 +140,14 @@ public class FeedService {
         .orElseThrow(() -> FeedNotFoundException.withId(feedId));
   }
 
+  private User getUserOrThrow(UUID userId) {
+    return userRepository.findById(userId)
+        .orElseThrow(() -> UserNotFoundException.withId(userId));
+  }
+
   private void validateFeedExists(UUID feedId) {
     if (!feedRepository.existsById(feedId)) {
       throw FeedNotFoundException.withId(feedId);
-    }
-  }
-
-  private void validateUserExists(UUID userId) {
-    if (!userRepository.existsById(userId)) {
-      throw UserNotFoundException.withId(userId);
     }
   }
 
