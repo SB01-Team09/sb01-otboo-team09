@@ -13,6 +13,7 @@ import com.part4.team09.otboo.module.common.security.jwt.AuthTokenRepository;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
+import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
 import com.part4.team09.otboo.module.domain.auth.exception.AccountLockedException;
 import com.part4.team09.otboo.module.domain.auth.exception.InvalidTokenException;
 import com.part4.team09.otboo.module.domain.auth.mapper.AuthUserMapper;
@@ -54,6 +55,7 @@ class AuthServiceTest {
   @Test
   void refreshTokens_success() {
     AuthUserDto authUserDto = authUserMapper.toAuthUserDto(user);
+    TempPasswordMetadata tempPasswordMetadata = TempPasswordMetadata.notUsed();
 
     // given
     when(jwtTokenProvider.getSubjectFromToken(refreshToken)).thenReturn(user.getEmail());
@@ -61,8 +63,10 @@ class AuthServiceTest {
     when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
     when(authTokenRepository.findByUserIdAndRefreshToken(userId, refreshToken))
       .thenReturn(Optional.of(authToken));
+    when(jwtTokenProvider.getTempPasswordMetaDataFromToken(refreshToken))
+      .thenReturn(tempPasswordMetadata);
     when(authUserMapper.toAuthUserDto(user)).thenReturn(authUserDto);
-    when(jwtTokenProvider.generateToken(authUserDto))
+    when(jwtTokenProvider.generateToken(authUserDto, tempPasswordMetadata))
       .thenReturn(new GeneratedToken("new-access-token", "new-refresh-token"));
 
     // when

@@ -32,6 +32,17 @@ spring:
       - feeds
     redis:
       enable-statistics: true          # size, TTL은 cacheConfig에서 지정
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:dummy}
+    password: ${MAIL_PASSWORD:dummy_password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 otboo:
   admin:
@@ -44,6 +55,9 @@ otboo:
       path: ${FILE_STORAGE_PATH:${user.dir}/fileStorage}
   resource:
     path: files
+  auth:
+    temp-password:
+      expiration-seconds: 86400 # 24시간
 
 jwt:
   issuer: otboo

@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.common.security.handler;
 
 import com.part4.team09.otboo.module.common.security.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
+import com.part4.team09.otboo.module.common.util.CookieUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,10 +44,7 @@ public class CustomLogoutHandler implements LogoutHandler {
 
   // refresh token 쿠키 무효화
   private void invalidateRefreshTokenCookie(HttpServletResponse response) {
-    Cookie refreshTokenCookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME, "");
-    refreshTokenCookie.setMaxAge(0);
-    refreshTokenCookie.setHttpOnly(true);
-    refreshTokenCookie.setPath("/");
+    Cookie refreshTokenCookie = CookieUtil.expireRefreshTokenCookie();
     response.addCookie(refreshTokenCookie);
   }
 }

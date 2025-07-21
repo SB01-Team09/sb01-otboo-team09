@@ -1,6 +1,11 @@
 package com.part4.team09.otboo.module.domain.user.controller;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
+import com.part4.team09.otboo.module.common.security.AuthCookieNames;
+import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
+import com.part4.team09.otboo.module.common.util.CookieUtil;
+import com.part4.team09.otboo.module.domain.auth.exception.MissingRefreshTokenException;
+import com.part4.team09.otboo.module.domain.auth.service.AuthService;
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDtoCursorResponse;
@@ -12,6 +17,8 @@ import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateReque
 import com.part4.team09.otboo.module.domain.user.dto.request.UserRoleUpdateRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.util.UUID;
@@ -21,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,6 +48,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
 
   private final UserService userService;
+  private final AuthService authService;
 
   // 유저 생성
   @PostMapping
@@ -72,9 +81,22 @@ public class UserController {
   @PatchMapping("/{userId}/password")
   public ResponseEntity<Void> updatePassword(
     @PathVariable UUID userId,
-    @Valid @RequestBody PasswordUpdateRequest request
+    @Valid @RequestBody PasswordUpdateRequest request,
+    @CookieValue(name = AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
+    HttpServletResponse response
   ) {
+    if (refreshToken == null || refreshToken.isBlank()) {
+      throw MissingRefreshTokenException.noDetail();
+    }
     userService.updatePassword(userId, request);
+
+    // 새로운 토큰 발급
+    GeneratedToken generatedToken = authService.refreshTokens(refreshToken);
+
+    // 쿠키 설정
+    Cookie refreshCookie = CookieUtil.createRefreshTokenCookie(generatedToken.refreshToken());
+    response.addCookie(refreshCookie);
+
     return ResponseEntity.noContent().build();
   }
 

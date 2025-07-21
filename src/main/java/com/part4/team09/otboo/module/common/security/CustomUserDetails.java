@@ -65,13 +65,6 @@ public class CustomUserDetails implements UserDetails {
     return !userDto.locked();
   }
 
-  // TODO : 임시 비밀번호 구현 시 사용
-  // 사용자의 비밀번호 유효 기간 상태를 반환 (false: 기간 만료)
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return true;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
