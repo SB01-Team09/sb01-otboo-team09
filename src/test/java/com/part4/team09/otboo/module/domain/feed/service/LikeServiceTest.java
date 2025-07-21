@@ -17,6 +17,7 @@ import com.part4.team09.otboo.module.domain.feed.exception.like.LikeNotFoundExce
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.LikeRepository;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class LikeServiceTest {
@@ -47,6 +49,9 @@ class LikeServiceTest {
   @Mock
   private UserRepository userRepository;
 
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
+
   @InjectMocks
   private LikeService likeService;
 
@@ -61,6 +66,7 @@ class LikeServiceTest {
       UUID userId = UUID.randomUUID();
       UUID feedId = UUID.randomUUID();
       Feed mockFeed = mock(Feed.class);
+      User mockUser = mock(User.class);
       WeatherSummaryDto mockWeather = mock(WeatherSummaryDto.class);
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
 
@@ -78,7 +84,7 @@ class LikeServiceTest {
       );
 
       given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
-      given(userRepository.existsById(any())).willReturn(true);
+      given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
       given(feedDtoAssembler.assemble(feedId, userId)).willReturn(feedDto);
 
       // when
@@ -95,9 +101,10 @@ class LikeServiceTest {
       // given
       UUID nonExistFeedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
+      User mockUser = mock(User.class);
 
       given(feedRepository.findById(nonExistFeedId)).willReturn(Optional.empty());
-      given(userRepository.existsById(userId)).willReturn(true);
+      given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
 
       // when & then
       assertThrows(FeedNotFoundException.class,
@@ -111,7 +118,7 @@ class LikeServiceTest {
       UUID feedId = UUID.randomUUID();
       UUID nonExistUserId = UUID.randomUUID();
 
-      given(userRepository.existsById(nonExistUserId)).willReturn(false);
+      given(userRepository.findById(nonExistUserId)).willReturn(Optional.empty());
 
       // when & then
       assertThrows(UserNotFoundException.class,
@@ -131,10 +138,11 @@ class LikeServiceTest {
       UUID feedId = UUID.randomUUID();
       UUID likeId = UUID.randomUUID();
       Feed mockFeed = mock(Feed.class);
+      User mockUser  = mock(User.class);
       Like mockLike = mock(Like.class);
 
       given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
-      given(userRepository.existsById(userId)).willReturn(true);
+      given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
       given(likeRepository.findByUserIdAndFeedId(userId, feedId)).willReturn(Optional.of(mockLike));
       given(mockLike.getId()).willReturn(likeId);
 
@@ -151,9 +159,10 @@ class LikeServiceTest {
       // given
       UUID nonExistFeedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
+      User mockUser = mock(User.class);
 
       given(feedRepository.findById(nonExistFeedId)).willReturn(Optional.empty());
-      given(userRepository.existsById(userId)).willReturn(true);
+      given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
 
       // when & then
       assertThrows(FeedNotFoundException.class,
@@ -167,7 +176,7 @@ class LikeServiceTest {
       UUID feedId = UUID.randomUUID();
       UUID nonExistUserId = UUID.randomUUID();
 
-      given(userRepository.existsById(nonExistUserId)).willReturn(false);
+      given(userRepository.findById(nonExistUserId)).willReturn(Optional.empty());
 
       // when & then
       assertThrows(UserNotFoundException.class,
@@ -181,9 +190,10 @@ class LikeServiceTest {
       UUID feedId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
       Feed mockFeed = mock(Feed.class);
+      User mockUser = mock(User.class);
 
       given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
-      given(userRepository.existsById(userId)).willReturn(true);
+      given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
       given(likeRepository.findByUserIdAndFeedId(userId, feedId)).willReturn(Optional.empty());
 
       // when & then
