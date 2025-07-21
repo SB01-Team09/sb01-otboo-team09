@@ -94,6 +94,10 @@ dependencies {
 
   // WebSocket
   implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+  // Shedlock
+  implementation 'net.javacrumbs.shedlock:shedlock-spring:6.3.0'
+  implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.3.0'
 }
 
 tasks.named('test') {
