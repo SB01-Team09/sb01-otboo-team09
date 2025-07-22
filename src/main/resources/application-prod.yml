@@ -19,10 +19,3 @@ otboo:
 
 jwt:
   secret: ${JWT_SECRET}
-
-#cloud:
-#  aws:
-#    region:
-#      static: ap-northeast-2
-#    s3:
-#      bucket: sb01-otboo-team09
