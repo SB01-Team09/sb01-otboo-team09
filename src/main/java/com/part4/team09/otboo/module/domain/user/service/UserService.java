@@ -209,8 +209,8 @@ public class UserService {
 
     if (oldRole != newRole) {
       user.changeRole(newRole);
-      eventPublisher.publishEvent(new RoleChangedEvent(id, oldRole, newRole));
       authService.forceLogout(id);
+      eventPublisher.publishEvent(new RoleChangedEvent(id, oldRole, newRole));
       log.info("{} -> {} 권한이 변경되었습니다. (userId: {})", oldRole, newRole, id);
     }
 

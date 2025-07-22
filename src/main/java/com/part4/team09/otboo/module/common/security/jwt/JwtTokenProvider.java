@@ -27,8 +27,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -121,6 +121,7 @@ public class JwtTokenProvider {
 
     Map<String, Object> claims = new HashMap<>();
     claims.put("type", "refresh");
+    claims.put("userId", authUserDto.userId());
     claims.put("isTempPassword", tempPassword.isUsed());
     claims.put("tempPasswordExpiresAt", tempPasswordExpiresAtStr);
 
@@ -215,6 +216,16 @@ public class JwtTokenProvider {
     return claimsSet.getSubject();
   }
 
+  // 클레임에서 유저 아이디 추출
+  public UUID getUserIdFromToken(String token) throws AuthenticationException {
+    try {
+      JWTClaimsSet claimsSet = parseToken(token);
+      return UUID.fromString(claimsSet.getClaimAsString("userId"));
+    } catch (ParseException e) {
+      throw new InvalidJwtFormatException("JWT 형식이 잘못되었습니다.");
+    }
+  }
+
   // 클레임에서 임시 비밀번호 정보 추출
   public TempPasswordMetadata getTempPasswordMetaDataFromToken(String token) {
     try {
@@ -241,9 +252,9 @@ public class JwtTokenProvider {
     SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + userDto.role().name());
 
     return new UsernamePasswordAuthenticationToken(
-        userDto, // Principal
-        null,    // credentials (비밀번호 null)
-        List.of(authority)
+      userDto, // Principal
+      null,    // credentials (비밀번호 null)
+      List.of(authority)
     );
   }
 

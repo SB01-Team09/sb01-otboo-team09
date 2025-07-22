@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.notification.sse;
 
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.domain.auth.exception.AuthenticationRequiredException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +19,11 @@ public class SseController {
 
   @GetMapping
   public SseEmitter connect(@AuthenticationPrincipal CustomUserDetails userDetails) {
+
+    if (userDetails == null) {
+      throw AuthenticationRequiredException.noDetail();
+    }
+
     UUID userId = userDetails.getId();
 
     return sseService.connect(userId);

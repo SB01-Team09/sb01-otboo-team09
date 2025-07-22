@@ -31,10 +31,12 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
   public void commence(HttpServletRequest request, HttpServletResponse response,
     AuthenticationException authException) throws IOException, ServletException {
 
-    log.info("인증 실패 (이유: {} - {}, IP: {})",
+    log.info("인증 실패 (이유: {} - {}, IP: {}, Method: {})",
       authException.getClass().getSimpleName(),
       authException.getMessage(),
-      IpUtils.getClientIp(request));
+      IpUtils.getClientIp(request),
+      request.getRequestURI()
+    );
 
     AuthErrorCode errorCode = AuthErrorCode.AUTHENTICATION_REQUIRED;
 

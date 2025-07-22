@@ -3,11 +3,13 @@ package com.part4.team09.otboo.module.common.security.handler;
 import com.part4.team09.otboo.module.common.security.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.common.util.CookieUtil;
+import com.part4.team09.otboo.module.domain.notification.sse.SseService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Component;
 public class CustomLogoutHandler implements LogoutHandler {
 
   private final JwtTokenProvider jwtTokenProvider;
+  private final SseService sseService;
 
   @Override
   public void logout(HttpServletRequest request, HttpServletResponse response,
@@ -27,10 +30,11 @@ public class CustomLogoutHandler implements LogoutHandler {
 
     extractRefreshTokenFromRequest(request)
       .ifPresent(refreshToken -> {
-        String userEmail = jwtTokenProvider.getSubjectFromToken(refreshToken);
+        UUID userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
         jwtTokenProvider.invalidateRefreshToken(refreshToken);
         invalidateRefreshTokenCookie(response);
-        log.info("로그아웃되었습니다. (userEmail: {})", userEmail);
+        sseService.disconnectAllEmitters(userId, "로그아웃으로 연결 해제");
+        log.info("로그아웃되었습니다. (userId: {})", userId);
       });
   }
 

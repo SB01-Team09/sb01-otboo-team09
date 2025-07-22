@@ -98,6 +98,8 @@ public class SecurityConfig {
       .requestMatchers("/api/auth/**").permitAll()
       .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
       .requestMatchers("/file/**").permitAll()
+      .requestMatchers("/api/sse").permitAll()
+
       // 의상 속성 정의는 관리자만 접근 가능
       .requestMatchers("/api/clothes/attribute-defs/**").hasRole(Role.ADMIN.name())
 
