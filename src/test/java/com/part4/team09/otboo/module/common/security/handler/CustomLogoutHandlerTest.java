@@ -7,9 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.part4.team09.otboo.module.common.security.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
-import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.notification.sse.SseService;
-import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -52,8 +50,8 @@ class CustomLogoutHandlerTest {
 
     Cookie cookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME, refreshToken);
     when(request.getCookies()).thenReturn(new Cookie[]{cookie});
-    when(jwtTokenProvider.getAuthUserDtoFromToken(refreshToken))
-      .thenReturn(new AuthUserDto(userId, "email", "name", false, Role.USER));
+    when(jwtTokenProvider.getUserIdFromToken(refreshToken))
+      .thenReturn(userId);
 
     // when
     logoutHandler.logout(request, response, authentication);
