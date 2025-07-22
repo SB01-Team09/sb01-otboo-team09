@@ -119,8 +119,7 @@ class ClothesRepositoryQueryDSLTest {
 
       // when
       List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
-        typeEqual,
-          ownerId, sortBy, sortDirection);
+        typeEqual, ownerId, sortBy, sortDirection);
 
       // then
       assertNotNull(result);
@@ -152,8 +151,7 @@ class ClothesRepositoryQueryDSLTest {
 
       // when
       List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
-        typeEqual,
-          ownerId, sortBy, sortDirection);
+        typeEqual, ownerId, sortBy, sortDirection);
 
       // then
       assertNotNull(result);
@@ -179,8 +177,7 @@ class ClothesRepositoryQueryDSLTest {
 
       // when
       List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
-        typeEqual,
-          ownerId, sortBy, sortDirection);
+        typeEqual, ownerId, sortBy, sortDirection);
 
       // then
       assertNotNull(result);
@@ -212,8 +209,7 @@ class ClothesRepositoryQueryDSLTest {
 
       // when
       List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
-        typeEqual,
-          ownerId, sortBy, sortDirection);
+        typeEqual, ownerId, sortBy, sortDirection);
 
       // then
       assertNotNull(result);
@@ -232,7 +228,7 @@ class ClothesRepositoryQueryDSLTest {
 
     @Test
     @DisplayName("커서가 없을 경우")
-    void find_by_cursor_success_without_cursor() {
+    void find_by_cursor_success_without_cursor_and_id_after() {
 
       // given
       int limit = 10;
@@ -243,8 +239,7 @@ class ClothesRepositoryQueryDSLTest {
 
       // when
       List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(null, null, limit,
-        typeEqual,
-          ownerId, sortBy, sortDirection);
+        typeEqual, ownerId, sortBy, sortDirection);
 
       // then
       assertNotNull(result);
@@ -265,6 +260,98 @@ class ClothesRepositoryQueryDSLTest {
 
       assertEquals(clothes2.getId(), result.get(5).clothesId());
       assertEquals(def2Value4.getItem(), result.get(5).selectableValueItem());
+    }
+    @Test
+    @DisplayName("idAfter가 없을 경우")
+    void find_by_cursor_success_without_id_after() {
+
+      // given
+      int limit = 10;
+      String cursor = clothes2.getName();
+      ClothesType typeEqual = ClothesType.BOTTOM;
+      UUID ownerId = userId;
+      String sortBy = "name";
+      SortDirection sortDirection = SortDirection.ASCENDING;
+
+      // when
+      List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(cursor, null, limit,
+          typeEqual, ownerId, sortBy, sortDirection);
+
+      // then
+      assertNotNull(result);
+      assertEquals(clothes1.getId(), result.get(0).clothesId());
+      assertEquals(def1Value1.getItem(), result.get(0).selectableValueItem());
+
+      assertEquals(clothes1.getId(), result.get(1).clothesId());
+      assertEquals(def2Value3.getItem(), result.get(1).selectableValueItem());
+
+      assertEquals(clothes3.getId(), result.get(2).clothesId());
+      assertEquals(def1Value2.getItem(), result.get(2).selectableValueItem());
+
+      assertEquals(clothes3.getId(), result.get(3).clothesId());
+      assertEquals(def2Value4.getItem(), result.get(3).selectableValueItem());
+
+      assertEquals(clothes2.getId(), result.get(4).clothesId());
+      assertEquals(def1Value1.getItem(), result.get(4).selectableValueItem());
+
+      assertEquals(clothes2.getId(), result.get(5).clothesId());
+      assertEquals(def2Value4.getItem(), result.get(5).selectableValueItem());
+    }
+
+    @Test
+    @DisplayName("커서가 없을 경우")
+    void find_by_cursor_success_without_cursor() {
+
+      // given
+      int limit = 10;
+      UUID idAfter = clothes2.getId();
+      ClothesType typeEqual = ClothesType.BOTTOM;
+      UUID ownerId = userId;
+      String sortBy = "name";
+      SortDirection sortDirection = SortDirection.ASCENDING;
+
+      // when
+      List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(null, idAfter, limit,
+          typeEqual, ownerId, sortBy, sortDirection);
+
+      // then
+      assertNotNull(result);
+      assertEquals(clothes1.getId(), result.get(0).clothesId());
+      assertEquals(def1Value1.getItem(), result.get(0).selectableValueItem());
+
+      assertEquals(clothes1.getId(), result.get(1).clothesId());
+      assertEquals(def2Value3.getItem(), result.get(1).selectableValueItem());
+
+      assertEquals(clothes3.getId(), result.get(2).clothesId());
+      assertEquals(def1Value2.getItem(), result.get(2).selectableValueItem());
+
+      assertEquals(clothes3.getId(), result.get(3).clothesId());
+      assertEquals(def2Value4.getItem(), result.get(3).selectableValueItem());
+
+      assertEquals(clothes2.getId(), result.get(4).clothesId());
+      assertEquals(def1Value1.getItem(), result.get(4).selectableValueItem());
+
+      assertEquals(clothes2.getId(), result.get(5).clothesId());
+      assertEquals(def2Value4.getItem(), result.get(5).selectableValueItem());
+    }
+
+    @Test
+    @DisplayName("해당 의상이 없을 경우 빈 리스트 반환")
+    void find_by_cursor_success_not_found_clothes() {
+
+      // given
+      int limit = 10;
+      ClothesType typeEqual = ClothesType.BOTTOM;
+      UUID ownerId = UUID.randomUUID();
+      String sortBy = "name";
+      SortDirection sortDirection = SortDirection.ASCENDING;
+
+      // when
+      List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(null, null, limit,
+          typeEqual, ownerId, sortBy, sortDirection);
+
+      // then
+      assertEquals(List.of(), result);
     }
   }
 

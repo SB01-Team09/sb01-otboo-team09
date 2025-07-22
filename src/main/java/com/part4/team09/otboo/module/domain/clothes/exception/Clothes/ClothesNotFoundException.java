@@ -22,4 +22,10 @@ public class ClothesNotFoundException extends ClothesException {
     exception.addDetail("clothesIds", clothesIds);
     return exception;
   }
+
+  public static ClothesNotFoundException withUrl(String url) {
+    ClothesNotFoundException exception = new ClothesNotFoundException();
+    exception.addDetail("url", url);
+    return exception;
+  }
 }

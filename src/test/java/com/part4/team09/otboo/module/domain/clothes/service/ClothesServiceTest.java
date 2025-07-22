@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.clothes.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -37,10 +38,13 @@ import com.part4.team09.otboo.module.domain.file.service.FileStorage;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -50,6 +54,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -299,6 +305,20 @@ class ClothesServiceTest {
       then(fileStorage).should().upload(image, FileDomain.CLOTHES_IMAGE);
       then(clothesRepository).should().save(any(Clothes.class));
 
+    }
+
+    @Test
+    @DisplayName("사용자가 일치하지 않을 경우 실패")
+    void create_not_equals_user_id() {
+
+      // given
+      UUID userId = UUID.randomUUID();
+      ClothesCreateRequest request = new ClothesCreateRequest(user.getId(), clothes1.getName(),
+          clothes1.getType(), List.of(new ClothesAttributeDto(def1.getId(), value1.getItem()),
+          new ClothesAttributeDto(def2.getId(), value3.getItem())));
+
+      // when, then
+      assertThrows(AccessDeniedException.class, () -> clothesService.create(userId, request, image));
     }
   }
 
@@ -603,12 +623,10 @@ class ClothesServiceTest {
       // given
       ClothesUpdateRequest request = new ClothesUpdateRequest("하의", ClothesType.BOTTOM,
           List.of(new ClothesAttributeDto(def1.getId(), "S")));
-      String newUrl = "newUrl";
+      MultipartFile image = null;
 
       given(clothesRepository.findById(clothesWithoutImage.getId())).willReturn(Optional.of(clothesWithoutImage));
       given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
-
-      given(fileStorage.upload(image, FileDomain.CLOTHES_IMAGE)).willReturn(newUrl);
 
       List<SelectableValue> values = List.of(value1, value2);
 
@@ -628,7 +646,7 @@ class ClothesServiceTest {
       List<String> items = values.stream().map(SelectableValue::getItem).toList();
       ClothesAttributeWithDefDto defDto = new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), items, "M");
       List<ClothesAttributeWithDefDto> attributes = List.of(defDto);
-      ClothesDto dto = new ClothesDto(clothesWithoutImage.getId(), user.getId(), request.name(), newUrl,
+      ClothesDto dto = new ClothesDto(clothesWithoutImage.getId(), user.getId(), request.name(), null,
           request.type(), clothesWithoutImage.getCreatedAt(), attributes);
       given(clothesDtoAssembler.assemble(clothesWithAttributesDtos)).willReturn(dto);
 
@@ -642,7 +660,53 @@ class ClothesServiceTest {
       then(clothesRepository).should().findById(clothesWithoutImage.getId());
       then(userRepository).should().findById(user.getId());
       then(fileStorage).should(times(0)).remove(imageUrl);
-      then(fileStorage).should().upload(image, FileDomain.CLOTHES_IMAGE);
+    }
+
+    @Test
+    @DisplayName("의상 수정 성공 - 이미지 empty")
+    void update_success_empty_image() {
+
+      // given
+      ClothesUpdateRequest request = new ClothesUpdateRequest("하의", ClothesType.BOTTOM,
+          List.of(new ClothesAttributeDto(def1.getId(), "S")));
+      MultipartFile image = new MockMultipartFile("image", "",
+          "image/png", new byte[0]);
+
+      given(clothesRepository.findById(clothesWithoutImage.getId())).willReturn(Optional.of(clothesWithoutImage));
+      given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+
+      List<SelectableValue> values = List.of(value1, value2);
+
+      List<UUID> selectedValueIds = List.of(value1.getId());
+      List<ClothesAttribute> clothesAttributes = List.of(clothesAttribute1);
+      given(clothesAttributeService.create(clothesWithoutImage.getId(), selectedValueIds)).willReturn(clothesAttributes);
+
+      List<ClothesAttributeRowDto> clothesWithAttributesDtos = List.of(
+          new ClothesAttributeRowDto(clothesWithoutImage.getId(), clothesWithoutImage.getCreatedAt(),
+              clothesWithoutImage.getOwnerId(), clothesWithoutImage.getName(), clothesWithoutImage.getImageUrl(),
+              clothesWithoutImage.getType(), def1.getId(), def1.getName(), "S")
+      );
+      List<SelectableValue> selectableValues = List.of(value1, value2, value3, value4);
+      given(clothesRepository.findByClothesId(clothesWithoutImage.getId())).willReturn(clothesWithAttributesDtos);
+      given(selectableValueService.findAll()).willReturn(selectableValues);
+
+      List<String> items = values.stream().map(SelectableValue::getItem).toList();
+      ClothesAttributeWithDefDto defDto = new ClothesAttributeWithDefDto(def1.getId(), def1.getName(), items, "M");
+      List<ClothesAttributeWithDefDto> attributes = List.of(defDto);
+      ClothesDto dto = new ClothesDto(clothesWithoutImage.getId(), user.getId(), request.name(), null,
+          request.type(), clothesWithoutImage.getCreatedAt(), attributes);
+      given(clothesDtoAssembler.assemble(clothesWithAttributesDtos)).willReturn(dto);
+
+      // when
+      ClothesDto result = clothesService.update(user.getId(), clothesWithoutImage.getId(), request, image);
+
+      // then
+      assertEquals(dto, result);
+      assertEquals(attributes, result.attributes());
+
+      then(clothesRepository).should().findById(clothesWithoutImage.getId());
+      then(userRepository).should().findById(user.getId());
+      then(fileStorage).should(times(0)).remove(imageUrl);
     }
 
     @Test
@@ -800,6 +864,47 @@ class ClothesServiceTest {
       then(clothesAttributeService).should(times(0)).deleteAllByClothesId(requestClothesId);
       then(fileStorage).should(times(0)).remove(anyString());
       then(clothesRepository).should(times(0)).deleteById(requestClothesId);
+
+    }
+  }
+
+  @Nested
+  @DisplayName("url로 의상 불러오기")
+  class Extraction {
+
+    @Test
+    @DisplayName("url로 불러오기 성공")
+    void extraction_success() throws IOException {
+
+      // given
+      UUID userId = user.getId();
+      String url = "https://www.musinsa.com/products/4992830";
+      Document doc = Jsoup.connect(url)
+          .userAgent("Mozilla/5.0")
+          .get();
+
+      String name = doc.selectFirst("meta[property=og:title]").attr("content");
+      String imageUrl = doc.selectFirst("meta[property=og:image]").attr("content");
+
+      // when
+      ClothesDto result = clothesService.extraction(userId, url);
+
+      // then
+      assertNotNull(result);
+      assertEquals(name, result.name());
+      assertEquals(imageUrl, result.imageUrl());
+    }
+
+    @Test
+    @DisplayName("url 내부 프로퍼티가 존재하지 않을 경우 실패")
+    void extraction_no_property() {
+
+      // given
+      UUID userId = user.getId();
+      String url = "https://www.google.com/?hl=ko";
+
+      // when, then
+      assertThrows(ClothesNotFoundException.class, () -> clothesService.extraction(userId, url));
 
     }
   }

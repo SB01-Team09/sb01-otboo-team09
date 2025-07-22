@@ -8,6 +8,7 @@ import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesDtoCurso
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
 import com.part4.team09.otboo.module.domain.clothes.service.ClothesService;
 import jakarta.validation.Valid;
+import java.io.IOException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -113,7 +114,7 @@ public class ClothesController {
   @GetMapping("/extractions")
   public ResponseEntity<ClothesDto> extraction(
       @AuthenticationPrincipal CustomUserDetails userDetails,
-      @RequestParam String url) {
+      @RequestParam String url) throws IOException {
     log.info("구매 링크 의상 정보 불러오기 요청: url = {}", userDetails);
 
     ClothesDto response = clothesService.extraction(userDetails.getId(), url);
