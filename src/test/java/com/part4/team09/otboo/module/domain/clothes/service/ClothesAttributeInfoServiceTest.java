@@ -3,6 +3,7 @@ package com.part4.team09.otboo.module.domain.clothes.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -18,6 +19,7 @@ import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesAttribute
 import com.part4.team09.otboo.module.domain.clothes.dto.response.ClothesAttributeDefDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
+import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefMapper;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
@@ -300,6 +302,22 @@ class ClothesAttributeInfoServiceTest {
       then(clothesAttributeService).should()
           .deleteBySelectableValueIdIn(oldValues.stream().map(BaseEntity::getId).toList());
     }
+
+    @Test
+    @DisplayName("의상 속성이 없을 경우 실패")
+    void update_not_found_clothes_def() {
+
+      // given
+      UUID defId = UUID.randomUUID();
+      ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("색상", List.of());
+
+      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.empty());
+
+      // when, then
+      assertThrows(ClothesAttributeDefNotFoundException.class,
+          () -> clothesAttributeInfoService.update(defId, request));
+
+    }
   }
 
   @Nested
@@ -330,6 +348,21 @@ class ClothesAttributeInfoServiceTest {
       then(clothesAttributeService).should().deleteBySelectableValueIdIn(valueIds);
       then(selectableValueService).should().deleteByIdIn(valueIds);
       then(clothesAttributeDefService).should().delete(defId);
+    }
+
+    @Test
+    @DisplayName("의상 속성이 없을 경우 실패")
+    void delete_not_found_clothes_def() {
+
+      // given
+      UUID defId = UUID.randomUUID();
+
+      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.empty());
+
+      // when, then
+      assertThrows(ClothesAttributeDefNotFoundException.class,
+          () -> clothesAttributeInfoService.delete(defId));
+
     }
   }
 }
