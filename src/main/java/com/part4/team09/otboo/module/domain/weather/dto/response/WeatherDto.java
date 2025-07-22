@@ -8,7 +8,7 @@ import java.util.UUID;
 public record WeatherDto(
   UUID id,
   LocalDateTime forecastedAt,
-  LocalDateTime forecasteAt,
+  LocalDateTime forecastAt,
   WeatherAPILocation location,
   SkyStatus skyStatus,
   PrecipitationDto precipitation,
