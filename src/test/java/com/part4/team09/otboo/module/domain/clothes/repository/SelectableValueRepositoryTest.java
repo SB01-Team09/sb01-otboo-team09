@@ -33,7 +33,7 @@ class SelectableValueRepositoryTest {
   private EntityManager entityManager;
 
   @Nested
-  @DisplayName("속성 정의 id로 속성 값들 찾기")
+  @DisplayName("속성 정의 id로 속성 값들 조회")
   class FindAllByAttributeDefId {
 
     @Test
@@ -61,53 +61,16 @@ class SelectableValueRepositoryTest {
   }
 
   @Nested
-  @DisplayName("정의 id 리스트로 속성 값 리스트 반환")
-  class FindAllByAttributeDefIdIn {
+  @DisplayName("생성일 순으로 속성 값 조회")
+  class FindAllByOrderByCreatedAtAsc {
 
     @Test
     @DisplayName("조회 성공")
-    void find_all_by_attribute_def_id_in_success() {
-
-      // given
-      UUID defId1 = UUID.randomUUID();
-      List<SelectableValue> selectableValues1 = Stream.of("S", "M", "L")
-          .map(value -> SelectableValue.create(defId1, value))
-          .toList();
-      UUID defId2 = UUID.randomUUID();
-      List<SelectableValue> selectableValues2 = Stream.of("없음", "있음", "조금 있음")
-          .map(value -> SelectableValue.create(defId2, value))
-          .toList();
-
-      List<UUID> defIds = List.of(defId1, defId2);
-
-      selectableValueRepository.saveAll(selectableValues1);
-      selectableValueRepository.saveAll(selectableValues2);
-      entityManager.flush();
-      entityManager.clear();
-
-      List<SelectableValue> selectableValues = selectableValueRepository.findAll();
-
-      // when
-      List<SelectableValue> results = selectableValueRepository.findAllByAttributeDefIdIn(defIds);
-
-      // then
-      assertEquals(results, selectableValues);
-    }
-  }
-
-  @Nested
-  @DisplayName("의상 속성 정의 id로 속성 값 전부 삭제")
-  class DeleteAllByAttributeDefId {
-
-    @Test
-    @DisplayName("삭제 성공")
-    void deleteAllByAttributeDefId_success() {
+    void find_all_by_order_by_created_at_asc_success() {
 
       // given
       UUID defId = UUID.randomUUID();
-      List<String> values = List.of("S", "M", "L");
-
-      List<SelectableValue> selectableValues = values.stream()
+      List<SelectableValue> selectableValues = Stream.of("S", "M", "L")
           .map(value -> SelectableValue.create(defId, value))
           .toList();
 
@@ -116,11 +79,13 @@ class SelectableValueRepositoryTest {
       entityManager.clear();
 
       // when
-      selectableValueRepository.deleteAllByAttributeDefId(defId);
-      List<SelectableValue> result = selectableValueRepository.findAll();
+      List<SelectableValue> results = selectableValueRepository.findAllByOrderByCreatedAtAsc();
 
       // then
-      assertTrue(result.isEmpty());
+      assertEquals(
+          results.stream().map(SelectableValue::getItem).toList(),
+          selectableValues.stream().map(SelectableValue::getItem).toList()
+      );
     }
   }
 

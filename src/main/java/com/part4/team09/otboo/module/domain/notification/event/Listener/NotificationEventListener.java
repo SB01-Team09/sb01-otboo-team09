@@ -9,7 +9,7 @@ import com.part4.team09.otboo.module.domain.notification.event.ClothesAttributeD
 import com.part4.team09.otboo.module.domain.notification.event.ClothesAttributeDefUpdatedEvent;
 import com.part4.team09.otboo.module.domain.notification.event.DirectMessageReceivedEvent;
 import com.part4.team09.otboo.module.domain.notification.event.FeedCommentedEvent;
-import com.part4.team09.otboo.module.domain.notification.event.FeedCreatedEvent;
+import com.part4.team09.otboo.module.domain.notification.event.FeedCreatedFollowerEvent;
 import com.part4.team09.otboo.module.domain.notification.event.FeedLikedEvent;
 import com.part4.team09.otboo.module.domain.notification.event.FollowedEvent;
 import com.part4.team09.otboo.module.domain.notification.event.RapidTemperatureDropEvent;
@@ -117,7 +117,7 @@ public class NotificationEventListener {
   // 팔로우한 사용자가 피드 등록
   @Async
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleFeedCreatedEvent(FeedCreatedEvent event) {
+  public void handleFeedCreatedEvent(FeedCreatedFollowerEvent event) {
     String title = String.format("%s님이 새로운 피드를 작성했어요.", event.authorName());
     String content = event.content();
 

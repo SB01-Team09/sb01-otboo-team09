@@ -5,6 +5,7 @@ import com.part4.team09.otboo.module.common.security.jwt.AuthTokenRepository;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
+import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
 import com.part4.team09.otboo.module.domain.auth.exception.AccountLockedException;
 import com.part4.team09.otboo.module.domain.auth.exception.InvalidTokenException;
 import com.part4.team09.otboo.module.domain.auth.mapper.AuthUserMapper;
@@ -16,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
+/**
+ * 토큰 인증 관련 서비스
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -63,12 +67,16 @@ public class AuthService {
     // 잠금 확인
     checkUserNotLockedOrThrow(user);
 
-    // accessToken 가져오기
+    // token 정보 확인
     findAuthTokenByUserIdAndRefreshTokenOrThrow(user.getId(), refreshToken);
+
+    // 토큰에서 임시 비밀번호 정보 가져오기
+    TempPasswordMetadata tempPassword = jwtTokenProvider.getTempPasswordMetaDataFromToken(
+      refreshToken);
 
     AuthUserDto authUserDto = authUserMapper.toAuthUserDto(user);
 
-    return jwtTokenProvider.generateToken(authUserDto);
+    return jwtTokenProvider.generateToken(authUserDto, tempPassword);
   }
 
   public void forceLogout(UUID userId) {

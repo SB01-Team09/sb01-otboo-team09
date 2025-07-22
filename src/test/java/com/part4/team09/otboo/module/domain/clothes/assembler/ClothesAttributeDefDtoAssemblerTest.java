@@ -70,18 +70,17 @@ class ClothesAttributeDefDtoAssemblerTest {
   void assembler_success() {
 
     // given
-    List<UUID> defIds = defs.stream()
-        .map(ClothesAttributeDef::getId)
-        .toList();
 
     List<SelectableValue> values = List.of(value1, value2, value3, value4);
-    given(selectableValueService.findAllByAttributeDefIdIn(defIds)).willReturn(values);
+    given(selectableValueService.findAll()).willReturn(values);
 
     List<ClothesAttributeDefDto> dtos = List.of(
         new ClothesAttributeDefDto(def1.getId(), def1.getName(),
-            List.of(value1.getItem(), value2.getItem())),
+            List.of(value1.getItem(), value2.getItem())
+        ),
         new ClothesAttributeDefDto(def2.getId(), def2.getName(),
-            List.of(value3.getItem(), value4.getItem()))
+            List.of(value3.getItem(), value4.getItem())
+        )
     );
 
     // when
@@ -89,14 +88,14 @@ class ClothesAttributeDefDtoAssemblerTest {
 
     // then
     assertEquals(result, dtos);
-    then(selectableValueService).should().findAllByAttributeDefIdIn(defIds);
+    then(selectableValueService).should().findAll();
     then(clothesAttributeDefMapper).should(times(2))
         .toDto(any(UUID.class), anyString(), anyList());
   }
 
   @Test
-  @DisplayName("dto로 변환 성공 - 빈리스트")
-  void assembler_success_empty_list() {
+  @DisplayName("빈 리스트를 받았을 경우")
+  void assembler_success_by_empty_list() {
 
     // given
     List<ClothesAttributeDef> defs = List.of();
@@ -106,6 +105,7 @@ class ClothesAttributeDefDtoAssemblerTest {
 
     // then
     assertEquals(List.of(), result);
-    then(selectableValueService).should(times(0)).findAllByAttributeDefIdIn(anyList());
+
+    then(selectableValueService).should(times(0)).findAll();
   }
 }
