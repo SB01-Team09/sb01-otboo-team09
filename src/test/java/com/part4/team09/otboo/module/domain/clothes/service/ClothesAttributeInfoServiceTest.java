@@ -35,6 +35,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +58,9 @@ class ClothesAttributeInfoServiceTest {
 
   @Mock
   private ClothesAttributeDefDtoAssembler clothesAttributeDefDtoAssembler;
+
+  @Spy
+  private ApplicationEventPublisher eventPublisher;
 
   @Spy
   private ClothesAttributeDefMapper clothesAttributeDefMapper;

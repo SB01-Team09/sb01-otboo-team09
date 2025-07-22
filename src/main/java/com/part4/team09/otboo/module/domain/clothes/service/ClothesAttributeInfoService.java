@@ -13,6 +13,8 @@ import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDe
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefMapper;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
+import com.part4.team09.otboo.module.domain.notification.event.ClothesAttributeDefCreatedEvent;
+import com.part4.team09.otboo.module.domain.notification.event.ClothesAttributeDefUpdatedEvent;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +22,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +45,8 @@ public class ClothesAttributeInfoService {
 
   private final ClothesAttributeDefDtoAssembler clothesAttributeDefDtoAssembler;
 
+  private final ApplicationEventPublisher eventPublisher;
+
   // 의상 속성 정의 생성
   public ClothesAttributeDefDto create(ClothesAttributeDefCreateRequest request) {
 
@@ -58,6 +63,8 @@ public class ClothesAttributeInfoService {
     // 반환 값 생성
     ClothesAttributeDefDto response = clothesAttributeDefMapper.toDto(def.getId(), def.getName(),
         valueItems);
+
+    eventPublisher.publishEvent(new ClothesAttributeDefCreatedEvent(response.name()));
 
     log.debug("의상 속성 정의 생성 완료: defId = {}, name = {}, values = {}", response.id(), response.name(),
         response.selectableValues());
@@ -181,6 +188,8 @@ public class ClothesAttributeInfoService {
         .toList();
 
     ClothesAttributeDefDto response = clothesAttributeDefMapper.toDto(defId, def.getName(), values);
+
+    eventPublisher.publishEvent(new ClothesAttributeDefUpdatedEvent(response.name()));
 
     log.debug("의상 속성 정의 수정 완료: defId = {}, name = {}, valuesSize = {}", response.id(),
         response.name(),
