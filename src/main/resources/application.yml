@@ -2,7 +2,7 @@ spring:
   application:
     name: otboo
   profiles:
-    active: dev
+    active: prod
   config:
     import: optional:file:.env[.properties]
   jpa:
@@ -20,10 +20,6 @@ spring:
   batch:
     job:
       enabled: false
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
   cache:
     type: redis
     cache-names:
@@ -72,7 +68,7 @@ jwt:
     validity-seconds: 900 # 15분
   refresh-token:
     validity-seconds: 2592000 # 30일
-  secret: ${JWT_SECRET:dev-jwt-secret-key-must-be-at-least-32-characters-long}
+  secret: ${JWT_SECRET:SXX8OdfdoXHTckVkK/0Ec5499hTUEU3qXqbFJcW1BPKg5KyXlu59r0uiIaRl45173KIAKfriIEztNEu1sicQiw==}
 
 # ?? ?? ??
 logging:
