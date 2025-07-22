@@ -17,6 +17,8 @@ import com.part4.team09.otboo.module.domain.recommendation.dto.ClothingOption;
 import com.part4.team09.otboo.module.domain.recommendation.dto.response.RecommendationClothesAttributeDto;
 import com.part4.team09.otboo.module.domain.recommendation.dto.response.RecommendationClothesDto;
 import com.part4.team09.otboo.module.domain.recommendation.dto.response.RecommendationDto;
+import com.part4.team09.otboo.module.domain.recommendation.exception.RecommendationErrorCode;
+import com.part4.team09.otboo.module.domain.recommendation.exception.RecommendationException;
 import com.part4.team09.otboo.module.domain.recommendation.external.LLMApiClient;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
@@ -231,7 +233,7 @@ public class RecommendationInteranlService {
       list = mapper.readValue(cleaned, new TypeReference<List<ClothingOption>>() {
       });
     } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
+      throw new RecommendationException(RecommendationErrorCode.LLM_RESPONSE_PARSE_FAILED);
     }
     return list;
   }
