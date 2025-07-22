@@ -9,6 +9,7 @@ import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
 import com.part4.team09.otboo.module.domain.auth.exception.AccountLockedException;
 import com.part4.team09.otboo.module.domain.auth.exception.InvalidTokenException;
 import com.part4.team09.otboo.module.domain.auth.mapper.AuthUserMapper;
+import com.part4.team09.otboo.module.domain.notification.sse.SseService;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.UUID;
@@ -29,6 +30,7 @@ public class AuthService {
   private final AuthTokenRepository authTokenRepository;
   private final UserRepository userRepository;
   private final AuthUserMapper authUserMapper;
+  private final SseService sseService;
 
   public String getAccessTokenByRefreshToken(String refreshToken) {
 
@@ -81,6 +83,7 @@ public class AuthService {
 
   public void forceLogout(UUID userId) {
     authTokenRepository.deleteByUserId(userId);
+    sseService.disconnectAllEmitters(userId, "강제 로그아웃으로 연결 해제");
   }
 
   // 리프레시 토큰 검증

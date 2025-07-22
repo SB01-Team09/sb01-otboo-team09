@@ -2,8 +2,11 @@ package com.part4.team09.otboo.module.domain.auth.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.part4.team09.otboo.module.common.security.exception.InvalidJwtSignatureException;
@@ -17,6 +20,7 @@ import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
 import com.part4.team09.otboo.module.domain.auth.exception.AccountLockedException;
 import com.part4.team09.otboo.module.domain.auth.exception.InvalidTokenException;
 import com.part4.team09.otboo.module.domain.auth.mapper.AuthUserMapper;
+import com.part4.team09.otboo.module.domain.notification.sse.SseService;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.Optional;
@@ -39,6 +43,8 @@ class AuthServiceTest {
   private UserRepository userRepository;
   @Mock
   private AuthTokenRepository authTokenRepository;
+  @Mock
+  private SseService sseService;
   @Spy
   private AuthUserMapper authUserMapper;
 
@@ -173,5 +179,19 @@ class AuthServiceTest {
       assertThrows(InvalidTokenException.class,
         () -> authService.getAccessTokenByRefreshToken(refreshToken));
     }
+  }
+
+  @DisplayName("강제 로그아웃 성공")
+  @Test
+  void forceLogout_success() {
+    // given
+    UUID userId = UUID.randomUUID();
+
+    // when
+    authService.forceLogout(userId);
+
+    // then
+    verify(authTokenRepository).deleteByUserId(userId);
+    verify(sseService).disconnectAllEmitters(eq(userId), any(String.class));
   }
 }

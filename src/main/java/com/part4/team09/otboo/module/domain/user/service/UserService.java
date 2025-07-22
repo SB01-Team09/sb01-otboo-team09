@@ -7,6 +7,7 @@ import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedExcep
 import com.part4.team09.otboo.module.domain.file.service.FileStorage;
 import com.part4.team09.otboo.module.domain.location.dto.response.WeatherAPILocation;
 import com.part4.team09.otboo.module.domain.location.service.LocationService;
+import com.part4.team09.otboo.module.domain.notification.event.RoleChangedEvent;
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
 import com.part4.team09.otboo.module.domain.user.dto.UserDtoCursorResponse;
@@ -209,8 +210,10 @@ public class UserService {
     if (oldRole != newRole) {
       user.changeRole(newRole);
       authService.forceLogout(id);
+      eventPublisher.publishEvent(new RoleChangedEvent(id, oldRole, newRole));
       log.info("{} -> {} 권한이 변경되었습니다. (userId: {})", oldRole, newRole, id);
     }
+
     return userMapper.toDto(user, null);
   }
 

@@ -98,6 +98,7 @@ public class SecurityConfig {
       .requestMatchers("/api/auth/**").permitAll()
       .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
       .requestMatchers("/file/**").permitAll()
+      .requestMatchers("/api/sse").permitAll()
 
       .requestMatchers("/api/**").hasRole(Role.USER.name())
 
