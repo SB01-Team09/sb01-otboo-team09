@@ -129,6 +129,43 @@ class ClothesDtoAssemblerTest {
       then(clothesMapper).should().toDto(clothes1.getId(), clothes1.getOwnerId(), clothes1.getName(),
           clothes1.getImageUrl(), clothes1.getType(), clothes1.getCreatedAt(), attributes);
     }
+
+    @Test
+    @DisplayName("의상의 속성이 없을 경우")
+    void assemble_success_without_def_id() {
+
+      // given
+      List<ClothesAttributeRowDto> dtos = List.of(
+          new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(), clothes1.getOwnerId(),
+              clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), null, null,
+              null
+          ),
+          new ClothesAttributeRowDto(clothes1.getId(), clothes1.getCreatedAt(), clothes1.getOwnerId(),
+              clothes1.getName(), clothes1.getImageUrl(), clothes1.getType(), null, null,
+              null
+          )
+      );
+
+      List<SelectableValue> selectableValues = List.of(value1, value2, value3, value4);
+
+      given(selectableValueService.findAll()).willReturn(selectableValues);
+
+      List<ClothesAttributeWithDefDto> attributes = List.of();
+
+      ClothesDto dto = new ClothesDto(clothes1.getId(), clothes1.getOwnerId(), clothes1.getName(),
+          clothes1.getImageUrl(), clothes1.getType(), clothes1.getCreatedAt(), attributes);
+
+      // when
+      ClothesDto result = clothesDtoAssembler.assemble(dtos);
+
+      // then
+      assertEquals(dto, result);
+
+      then(clothesAttributeWithDefMapper).should(times(0)).toDto(any(UUID.class),
+          anyString(), anyList(), anyString());
+      then(clothesMapper).should().toDto(clothes1.getId(), clothes1.getOwnerId(), clothes1.getName(),
+          clothes1.getImageUrl(), clothes1.getType(), clothes1.getCreatedAt(), attributes);
+    }
   }
 
   @Nested
