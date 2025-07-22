@@ -4,6 +4,9 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST}
 
 otboo:
   admin:
@@ -14,9 +17,9 @@ otboo:
 jwt:
   secret: ${JWT_SECRET}
 
-cloud:
-  aws:
-    region:
-      static: ap-northeast-2
-    s3:
-      bucket: sb01-otboo-team09
+#cloud:
+#  aws:
+#    region:
+#      static: ap-northeast-2
+#    s3:
+#      bucket: sb01-otboo-team09

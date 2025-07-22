@@ -51,7 +51,7 @@ jobs:
         id: taskdef
         run: |
           aws ecs describe-task-definition \
-            --task-definition sb01-monew-team5-task \
+            --task-definition sb01-otboo-team09 \
             --query 'taskDefinition' \
             | jq 'del(
               .taskDefinitionArn,
@@ -75,6 +75,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: task-def.json
-          service: sb01-monew-team5-fargate-service-ezlex9f6
-          cluster: sb01-monew-team5-cluster
+          service: sb01-otboo-team09-service-txz08f27
+          cluster: sb01-otboo-team09
           wait-for-service-stability: true
