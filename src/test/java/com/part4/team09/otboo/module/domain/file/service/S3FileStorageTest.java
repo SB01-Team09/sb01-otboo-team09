@@ -60,7 +60,7 @@ class S3FileStorageTest {
     verify(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
   }
 
-  @DisplayName("s3 파일 삭제를 성공하면 ture를 반환한다.")
+  @DisplayName("s3 파일 삭제를 성공하면 true를 반환한다.")
   @Test
   void remove_shouldCallDeleteObject_andReturnTrue() {
     // given
