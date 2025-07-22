@@ -224,7 +224,7 @@ public class ClothesService {
     log.debug("의상 삭제 완료: clothesId = {}", clothesId);
   }
 
-  public ClothesDto extraction(UUID userId, String url) {
+  public ClothesDto extraction(UUID userId, String url) throws IOException{
     try {
       Document doc = Jsoup.connect(url)
           .userAgent("Mozilla/5.0")
@@ -234,8 +234,8 @@ public class ClothesService {
       String imageUrl = doc.selectFirst("meta[property=og:image]").attr("content");
 
       return clothesMapper.toDto(null, userId, name, imageUrl, ClothesType.TOP, null, List.of());
-    } catch (IOException e) {
-      throw new RuntimeException("상품 정보를 불러올 수 없습니다.", e);
+    } catch (RuntimeException e) {
+      throw ClothesNotFoundException.withUrl(url);
     }
   }
 
