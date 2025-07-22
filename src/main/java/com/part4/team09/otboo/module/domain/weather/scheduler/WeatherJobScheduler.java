@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.weather.scheduler;
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -23,6 +24,7 @@ public class WeatherJobScheduler {
   @Qualifier("weatherJob")
   private final Job weatherJob;
 
+  @SchedulerLock(name = "weatherJobScheduler", lockAtLeastFor = "PT20M")
   @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul") // 초 분 시 일 월 요일 매일 새벽 3시
   public void runWeatherJob()
     throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {

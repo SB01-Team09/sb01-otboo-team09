@@ -230,6 +230,15 @@ create table auth_tokens
     updated_at    TIMESTAMP WITH TIME ZONE
 );
 
+
+CREATE TABLE shedlock
+(
+    name       VARCHAR(64) PRIMARY KEY,
+    lock_until TIMESTAMP(3) NULL,
+    locked_at  TIMESTAMP(3) NULL,
+    locked_by  VARCHAR(255)
+);
+
 CREATE TABLE user_temp_passwords
 (
     id                 UUID PRIMARY KEY,
