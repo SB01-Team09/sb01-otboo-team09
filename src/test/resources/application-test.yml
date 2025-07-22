@@ -23,3 +23,12 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+otboo:
+  file:
+    storage:
+      s3:
+        access-key: ${AWS_ACCESS_KEY_ID:test}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+        region: ${AWS_S3_REGION:ap-northeast-2}
+        bucket: ${AWS_S3_BUCKET:test}

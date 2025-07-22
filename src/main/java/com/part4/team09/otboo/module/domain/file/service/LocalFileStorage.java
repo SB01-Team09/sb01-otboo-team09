@@ -27,7 +27,7 @@ public class LocalFileStorage implements FileStorage {
   private String resourcePath;
 
   // 기본 경로 (ex: fileStorage)
-  @Value("${otboo.file.storage.path}")
+  @Value("${otboo.file.storage.local.path}")
   private Path saveBasePath;
 
   @PostConstruct
