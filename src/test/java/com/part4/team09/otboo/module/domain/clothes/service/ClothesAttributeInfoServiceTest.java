@@ -20,8 +20,10 @@ import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
 import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefDtoCursorResponseMapper;
 import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeDefMapper;
+import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +51,9 @@ class ClothesAttributeInfoServiceTest {
 
   @Mock
   private ClothesAttributeService clothesAttributeService;
+
+  @Mock
+  private ClothesAttributeDefRepository clothesAttributeDefRepository;
 
   @Mock
   private ClothesAttributeDefDtoAssembler clothesAttributeDefDtoAssembler;
@@ -228,7 +233,7 @@ class ClothesAttributeInfoServiceTest {
       ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest(def1.getName(),
           List.of("S", "M", "XL"));
 
-      given(clothesAttributeDefService.findById(defId)).willReturn(def1);
+      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.of(def1));
 
       List<SelectableValue> oldValues = List.of(value1, value2, value3);
 
@@ -237,14 +242,12 @@ class ClothesAttributeInfoServiceTest {
           .filter(oldValue -> !newValuesSet.contains(oldValue.getItem()))
           .map(BaseEntity::getId)
           .toList();
-      System.out.println("valueIdsForDelete: " + valueIdsForDelete);
+
       List<SelectableValue> newSelectableValues = List.of(SelectableValue.create(defId, "XL"));
-      given(selectableValueService.updateWhenNameSame(defId, valueIdsForDelete,
-          request.selectableValues())).willReturn(newSelectableValues);
 
       List<SelectableValue> values = List.of(value1, value2, newSelectableValues.get(0));
       given(selectableValueService.findAllByAttributeDefId(defId))
-          .willReturn(oldValues)    // 첫 호출 때 (delete 대상 판단용)
+          .willReturn(oldValues)
           .willReturn(values);
 
       // when
@@ -255,10 +258,8 @@ class ClothesAttributeInfoServiceTest {
       assertEquals(result.selectableValues(), values.stream()
           .map(SelectableValue::getItem)
           .toList());
-      then(clothesAttributeDefService).should().findById(defId);
+      then(clothesAttributeDefRepository).should().findById(defId);
       then(selectableValueService).should(times(2)).findAllByAttributeDefId(defId);
-      then(selectableValueService).should()
-          .updateWhenNameSame(defId, valueIdsForDelete, request.selectableValues());
       then(clothesAttributeService).should().deleteBySelectableValueIdIn(valueIdsForDelete);
     }
 
@@ -271,22 +272,21 @@ class ClothesAttributeInfoServiceTest {
       ClothesAttributeDefUpdateRequest request = new ClothesAttributeDefUpdateRequest("newName",
           List.of("S", "M", "XL"));
 
-      given(clothesAttributeDefService.findById(defId)).willReturn(def1);
+      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.of(def1));
 
       List<SelectableValue> oldValues = List.of(value1, value2, value3);
-      given(selectableValueService.findAllByAttributeDefId(defId)).willReturn(oldValues);
 
       ClothesAttributeDef updatedDef = ClothesAttributeDef.create(request.name());
       ReflectionTestUtils.setField(updatedDef, "id", UUID.randomUUID());
       given(clothesAttributeDefService.update(defId, request.name())).willReturn(updatedDef);
 
-      List<SelectableValue> newSelectableValues = List.of(
-          SelectableValue.create(defId, "S"),
-          SelectableValue.create(defId, "M"),
-          SelectableValue.create(defId, "XL")
-      );
-      given(selectableValueService.updateWhenNameChanged(updatedDef.getId(), request.selectableValues()))
-          .willReturn(newSelectableValues);
+      List<SelectableValue> newSelectableValues = List.of(SelectableValue.create(defId, "XL"));
+
+      List<SelectableValue> values = List.of(value1, value2, newSelectableValues.get(0));
+
+      given(selectableValueService.findAllByAttributeDefId(defId))
+          .willReturn(oldValues)
+          .willReturn(values);
 
       // when
       ClothesAttributeDefDto result = clothesAttributeInfoService.update(defId, request);
@@ -294,12 +294,11 @@ class ClothesAttributeInfoServiceTest {
       // then
       assertNotNull(result);
       assertEquals(request.selectableValues(), result.selectableValues());
-      then(clothesAttributeDefService).should().findById(defId);
-      then(selectableValueService).should().findAllByAttributeDefId(defId);
+      then(clothesAttributeDefRepository).should().findById(defId);
+      then(selectableValueService).should(times(2)).findAllByAttributeDefId(defId);
       then(clothesAttributeDefService).should().update(defId, request.name());
       then(clothesAttributeService).should()
           .deleteBySelectableValueIdIn(oldValues.stream().map(BaseEntity::getId).toList());
-      then(selectableValueService).should().updateWhenNameChanged(updatedDef.getId(), request.selectableValues());
     }
   }
 
@@ -313,7 +312,7 @@ class ClothesAttributeInfoServiceTest {
 
       // given
       UUID defId = def1.getId();
-      given(clothesAttributeDefService.findById(defId)).willReturn(def1);
+      given(clothesAttributeDefRepository.findById(defId)).willReturn(Optional.of(def1));
 
       List<SelectableValue> values = List.of(value1, value2, value3);
       given(selectableValueService.findAllByAttributeDefId(defId)).willReturn(values);
@@ -326,7 +325,7 @@ class ClothesAttributeInfoServiceTest {
       clothesAttributeInfoService.delete(defId);
 
       // then
-      then(clothesAttributeDefService).should().findById(defId);
+      then(clothesAttributeDefRepository).should().findById(defId);
       then(selectableValueService).should().findAllByAttributeDefId(defId);
       then(clothesAttributeService).should().deleteBySelectableValueIdIn(valueIds);
       then(selectableValueService).should().deleteByIdIn(valueIds);

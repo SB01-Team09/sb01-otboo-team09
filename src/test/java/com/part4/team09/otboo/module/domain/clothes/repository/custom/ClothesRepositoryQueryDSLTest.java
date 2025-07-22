@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.part4.team09.otboo.config.QueryDslConfig;
 import com.part4.team09.otboo.module.common.enums.SortDirection;
-import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesWithAttributesDto;
+import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeRowDto;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
 import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
@@ -118,7 +118,7 @@ class ClothesRepositoryQueryDSLTest {
 
 
       // when
-      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
+      List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
         typeEqual,
           ownerId, sortBy, sortDirection);
 
@@ -151,7 +151,7 @@ class ClothesRepositoryQueryDSLTest {
       SortDirection sortDirection = SortDirection.DESCENDING;
 
       // when
-      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
+      List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
         typeEqual,
           ownerId, sortBy, sortDirection);
 
@@ -178,7 +178,7 @@ class ClothesRepositoryQueryDSLTest {
       SortDirection sortDirection = SortDirection.ASCENDING;
 
       // when
-      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
+      List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
         typeEqual,
           ownerId, sortBy, sortDirection);
 
@@ -211,7 +211,7 @@ class ClothesRepositoryQueryDSLTest {
       SortDirection sortDirection = SortDirection.DESCENDING;
 
       // when
-      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
+      List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
         typeEqual,
           ownerId, sortBy, sortDirection);
 
@@ -235,8 +235,6 @@ class ClothesRepositoryQueryDSLTest {
     void find_by_cursor_success_without_cursor() {
 
       // given
-      String cursor = null;
-      UUID idAfter = null;
       int limit = 10;
       ClothesType typeEqual = ClothesType.BOTTOM;
       UUID ownerId = userId;
@@ -244,7 +242,7 @@ class ClothesRepositoryQueryDSLTest {
       SortDirection sortDirection = SortDirection.ASCENDING;
 
       // when
-      List<ClothesWithAttributesDto> result = clothesRepository.findByCursor(cursor, idAfter, limit,
+      List<ClothesAttributeRowDto> result = clothesRepository.findByCursor(null, null, limit,
         typeEqual,
           ownerId, sortBy, sortDirection);
 
@@ -282,7 +280,7 @@ class ClothesRepositoryQueryDSLTest {
       UUID clothesId = clothes1.getId();
 
       // when
-      List<ClothesWithAttributesDto> result = clothesRepository.findByClothesId(clothesId);
+      List<ClothesAttributeRowDto> result = clothesRepository.findByClothesId(clothesId);
 
       // then
       assertNotNull(result);

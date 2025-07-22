@@ -32,6 +32,7 @@ public class ClothesAttributeService {
 
     getClothesOrThrow(clothesId);
 
+    // 연관 생성
     List<ClothesAttribute> clothesAttributes = selectedValueIds.stream()
         .map(selectedValueId -> ClothesAttribute.create(clothesId, selectedValueId))
         .toList();
@@ -46,7 +47,7 @@ public class ClothesAttributeService {
   }
 
   @Transactional(readOnly = true)
-  public List<ClothesAttribute> findByClothesId(UUID clothesId) {
+  public List<ClothesAttribute> findAllByClothesId(UUID clothesId) {
     log.debug("의상 속성 값 - 의상 연관 조회 시작: clothesId = {}", clothesId);
 
     getClothesOrThrow(clothesId);
@@ -59,27 +60,29 @@ public class ClothesAttributeService {
   }
 
   public void deleteBySelectableValueIdIn(List<UUID> valueIds) {
-    log.debug("의상 속성 값 - 의상 연관 삭제 시작: valueIdsSize = {}", valueIds.size());
+    log.debug("의상 속성 값 - 의상 연관 의상 속성 값들로 삭제 시작: valueIdsSize = {}", valueIds.size());
 
     clothesAttributeRepository.deleteBySelectableValueIdIn(valueIds);
 
-    log.debug("의상 속성 값 - 의상 연관 삭제 완료");
+    log.debug("의상 속성 값 - 의상 연관 의상 속성 값들로 삭제 완료");
   }
 
 
   public void deleteAllByClothesId(UUID clothesId) {
-    log.debug("의상 속성 값 - 의상 연관 삭제 시작: clothesId = {}", clothesId);
+    log.debug("의상 속성 값 - 의상 연관 의상 id로 삭제 시작: clothesId = {}", clothesId);
+
+    getClothesOrThrow(clothesId);
 
     clothesAttributeRepository.deleteAllByClothesId(clothesId);
 
-    log.debug("의상 속성 값 - 의상 연관 삭제 완료");
+    log.debug("의상 속성 값 - 의상 연관 의상 id로 삭제 완료");
   }
 
   private Clothes getClothesOrThrow(UUID clothesId) {
     return clothesRepository.findById(clothesId)
-      .orElseThrow(() -> {
-        log.warn("의상을 찾을 수 없습니다. clothesId = {}", clothesId);
-        return ClothesNotFoundException.withId(clothesId);
-      });
+        .orElseThrow(() -> {
+          log.warn("의상을 찾을 수 없습니다. clothesId = {}", clothesId);
+          return ClothesNotFoundException.withId(clothesId);
+        });
   }
 }

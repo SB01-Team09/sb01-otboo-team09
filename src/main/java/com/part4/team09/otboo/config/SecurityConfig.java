@@ -100,9 +100,6 @@ public class SecurityConfig {
       .requestMatchers("/file/**").permitAll()
       .requestMatchers("/api/sse").permitAll()
 
-      // 의상 속성 정의는 관리자만 접근 가능
-      .requestMatchers("/api/clothes/attribute-defs/**").hasRole(Role.ADMIN.name())
-
       .requestMatchers("/api/**").hasRole(Role.USER.name())
 
       .anyRequest().permitAll();

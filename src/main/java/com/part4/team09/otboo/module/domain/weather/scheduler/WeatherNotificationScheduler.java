@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -45,6 +46,7 @@ public class WeatherNotificationScheduler implements CommandLineRunner {
 //    sendWeatherNotification();
   }
 
+  @SchedulerLock(name = "WeatherNotificationScheduler", lockAtLeastFor = "PT20M")
   @Scheduled(cron = "0 0 5 * * *", zone = "Asia/Seoul") // 초 분 시 일 월 요일 매일 새벽 5시
   @Transactional(readOnly = true)
   public void sendWeatherNotification() {

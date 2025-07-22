@@ -30,7 +30,6 @@ public class ClothesAttributeDefService {
 
     log.debug("의상 속성 정의 명 생성 시작: name = {}", name);
 
-    // 프로토타입에는 없지만 이름 중복 검사
     if (clothesAttributeDefRepository.existsByName(name)) {
       log.warn("이미 존재하는 의상 속성 정의 명입니다. name = {}", name);
       throw ClothesAttributeDefAlreadyExistsException.withName(name);
@@ -49,7 +48,7 @@ public class ClothesAttributeDefService {
   public ClothesAttributeDef findById(UUID defId) {
     log.debug("의상 속성 정의 명 조회 시작: defId = {}", defId);
 
-    ClothesAttributeDef def = getOrDefThrow(defId);
+    ClothesAttributeDef def = getClothesAttributeDefOrThrow(defId);
 
     log.debug("의상 속성 정의 명 조회 완료: defId = {}, name = {}", def.getId(), def.getName());
     return def;
@@ -58,7 +57,6 @@ public class ClothesAttributeDefService {
   // 키워드로 id 찾기
   @Transactional(readOnly = true)
   public List<UUID> findIdsByKeyword(String keyword) {
-
     log.debug("의상 속성 키워드로 조회 시작: keyword = {}", keyword);
 
     List<UUID> defIds;
@@ -80,9 +78,7 @@ public class ClothesAttributeDefService {
 
   // 커서 기반 페이지네이션
   @Transactional(readOnly = true)
-  public List<ClothesAttributeDef> findByCursor(List<UUID> defIds,
-      ClothesAttributeDefFindRequest request) {
-
+  public List<ClothesAttributeDef> findByCursor(List<UUID> defIds, ClothesAttributeDefFindRequest request) {
     log.debug("의상 속성 페이지네이션 시작: defIdsSize = {}, request = {}", defIds.size(), request);
 
     if (request.limit() <= 0) {
@@ -106,30 +102,13 @@ public class ClothesAttributeDefService {
     return defs;
   }
 
-  // defIds로 조회
-  @Transactional(readOnly = true)
-  public List<ClothesAttributeDef> findAllByIds(List<UUID> defIds) {
-
-    if (defIds == null || defIds.isEmpty()) {
-      log.trace("defIds가 비어있습니다. return = {}", List.of());
-      return List.of();
-    }
-
-    log.trace("defIds로 def 리스트 조회 시작: defIdsSize = {}", defIds.size());
-    List<ClothesAttributeDef> clothesAttributeDefs = clothesAttributeDefRepository.findAllById(
-        defIds);
-
-    log.trace("defIds로 def 리스트 조회 완료: clothesAttributeDefsSize = {}", clothesAttributeDefs.size());
-    return clothesAttributeDefs;
-  }
-
   // 의상 속성 정의 명 수정
   public ClothesAttributeDef update(UUID defId, String newName) {
 
     log.debug("의상 속성 정의 명 수정 시작: defId = {}, newName = {}", defId, newName);
 
     // id 검사
-    ClothesAttributeDef def = getOrDefThrow(defId);
+    ClothesAttributeDef def = getClothesAttributeDefOrThrow(defId);
 
     // 이름 변경
     def.update(newName);
@@ -142,20 +121,18 @@ public class ClothesAttributeDefService {
   public void delete(UUID defId) {
     log.debug("의상 속성 정의 명 삭제 시작: defId = {}", defId);
 
-    if (!clothesAttributeDefRepository.existsById(defId)) {
-      log.warn("의상 속성 정의가 존재하지 않습니다. id = {}", defId);
-      throw  ClothesAttributeDefNotFoundException.withId(defId);
-    }
+    getClothesAttributeDefOrThrow(defId);
 
     clothesAttributeDefRepository.deleteById(defId);
 
     log.debug("의상 속성 정의 명 삭제 완료");
   }
 
-  private ClothesAttributeDef getOrDefThrow(UUID defId) {
+  private ClothesAttributeDef getClothesAttributeDefOrThrow(UUID defId) {
+
     return clothesAttributeDefRepository.findById(defId)
         .orElseThrow(() -> {
-          log.warn("의상 속성 정의가 존재하지 않습니다. id = {}", defId);
+          log.warn("의상 속성 정의를 찾을 수 없습니다. defId = {}", defId);
           return ClothesAttributeDefNotFoundException.withId(defId);
         });
   }
