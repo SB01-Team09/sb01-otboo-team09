@@ -1,5 +1,7 @@
 package com.part4.team09.otboo.module.domain.notification.sse;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.domain.notification.dto.NotificationDto;
 import java.io.IOException;
 import java.util.List;
@@ -7,6 +9,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -20,6 +23,8 @@ public class SseService {
   private long timeout;
 
   private final SseEmitterRepository sseEmitterRepository;
+  private final StringRedisTemplate redisTemplate;
+  private final ObjectMapper objectMapper;
 
   public SseEmitter connect(UUID receiverId) {
 
@@ -44,19 +49,13 @@ public class SseService {
   }
 
   public void send(NotificationDto notificationDto) {
-    UUID receiverId = notificationDto.receiverId();
-    List<SseEmitter> emitters = sseEmitterRepository.findByReceiverId(receiverId);
-
-    emitters.forEach(emitter -> {
-      try {
-        emitter.send(SseEmitter.event()
-          .id(notificationDto.id().toString())
-          .name("notifications")
-          .data(notificationDto));
-      } catch (IOException e) {
-        sseEmitterRepository.delete(receiverId, emitter);
-      }
-    });
+    try {
+      String payload = objectMapper.writeValueAsString(notificationDto);
+      redisTemplate.convertAndSend("notification-channel", payload);
+    } catch (JsonProcessingException e) {
+      log.error("NotificationDto 직렬화 실패: notificationId={}, receiverId={}",
+          notificationDto.id(), notificationDto.receiverId(), e);
+    }
   }
 
   public void sendToUsers(List<NotificationDto> notificationDtos) {
