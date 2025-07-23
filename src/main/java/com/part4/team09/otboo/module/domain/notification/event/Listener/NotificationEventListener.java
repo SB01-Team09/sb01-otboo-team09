@@ -169,7 +169,7 @@ public class NotificationEventListener {
   @Async
   @EventListener
   public void handleRapidTemperatureRiseEvent(RapidTemperatureRiseEvent event) {
-    String title = "어제보다 기온이 급격히 높아졌어요";
+    String title = "어제보다 기온이 급격히 높아졌어요.";
     String content = "외출 시 옷차림에 유의하세요.";
 
     NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
@@ -186,7 +186,7 @@ public class NotificationEventListener {
   @Async
   @EventListener
   public void handleRapidTemperatureDropEvent(RapidTemperatureDropEvent event) {
-    String title = "어제보다 기온이 급격히 낮아졌어요..";
+    String title = "어제보다 기온이 급격히 낮아졌어요.";
     String content = "외출 시 옷차림에 유의하세요.";
 
     NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
@@ -202,7 +202,7 @@ public class NotificationEventListener {
   // 비, 눈, 소나기 등 예정
   @Async
   @EventListener
-  public void handlePrecipitationStartedEvent(WeatherNotificationCreateEvent event) {
+  public void handleWeatherNotificationCreateEvent(WeatherNotificationCreateEvent event) {
     NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
       event.locationId(),
       event.title(),
