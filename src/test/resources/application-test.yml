@@ -18,6 +18,9 @@ spring:
       mode: never
   cache:
     type: none
+  kafka:
+    listener:
+      auto-startup: false
 
 logging:
   level:
