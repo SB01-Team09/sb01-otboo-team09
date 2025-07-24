@@ -85,6 +85,7 @@ public class SecurityConfig {
           .userService(customOAuth2UserService)
         )
         .successHandler(customOAuth2SuccessHandler)
+        .failureUrl("/")
       )
 
       // 예외 핸들러
