@@ -15,7 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RedisSseSubscriber {
+public class RedisSseSendSubscriber {
 
   private final SseEmitterRepository sseEmitterRepository;
   private final ObjectMapper objectMapper;

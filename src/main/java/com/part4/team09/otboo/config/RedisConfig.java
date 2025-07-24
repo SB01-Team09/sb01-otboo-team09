@@ -1,6 +1,6 @@
 package com.part4.team09.otboo.config;
 
-import com.part4.team09.otboo.module.domain.notification.sse.RedisSseSubscriber;
+import com.part4.team09.otboo.module.domain.notification.sse.RedisSseSendSubscriber;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +12,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 @RequiredArgsConstructor
 public class RedisConfig {
 
-  private final RedisSseSubscriber redisSseSubscriber;
+  private final RedisSseSendSubscriber redisSseSubscriber;
 
   @Bean
   public RedisMessageListenerContainer redisContainer(RedisConnectionFactory redisConnectionFactory) {
