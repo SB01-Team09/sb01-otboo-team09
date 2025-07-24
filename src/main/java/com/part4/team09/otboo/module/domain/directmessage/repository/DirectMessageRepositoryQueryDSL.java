@@ -54,6 +54,7 @@ public class DirectMessageRepositoryQueryDSL {
                     .from(dm)
                     .where(
                             dm.senderId.eq(currentUserId).and(dm.receiverId.eq(userId))
+                                    .or(dm.senderId.eq(userId).and(dm.receiverId.eq(currentUserId)))
                     )
                     .fetchOne()
         );
