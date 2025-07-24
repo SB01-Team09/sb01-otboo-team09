@@ -27,7 +27,6 @@ public class SseService {
   private final ObjectMapper objectMapper;
 
   public SseEmitter connect(UUID receiverId) {
-
     log.debug("userId: {}, emitter 수: {}", receiverId,
       sseEmitterRepository.findByReceiverId(receiverId).size());
 
@@ -62,36 +61,24 @@ public class SseService {
     notificationDtos.forEach(this::send);
   }
 
+  // sse 연결 해제
+  public void disconnectAllEmitters(UUID userId, String reason) {
+    log.debug("Emitter 제거 작업 시작, userId: {}, reason: {}", userId, reason);
+    redisTemplate.convertAndSend("disconnect-channel", userId.toString());
+  }
+
   @Scheduled(cron = "0 */30 * * * *")
   public void cleanUp() {
     sseEmitterRepository.findAll()
-      .forEach(emitter -> {
-        try {
-          emitter.send(SseEmitter.event()
-            .name("ping")
-            .data("keep-alive"));
-        } catch (IOException e) {
-          emitter.completeWithError(e);
-        }
-      });
-  }
-
-  // sse 연결 해제
-  public void disconnectAllEmitters(UUID userId, String reason) {
-    log.debug("Emitter 제거 작업 시작, userId: {}", userId);
-    List<SseEmitter> emitters = sseEmitterRepository.findByReceiverId(userId);
-    log.debug("기존 Emitter 연결 수: {}", emitters.size());
-    for (SseEmitter emitter : emitters) {
-      try {
-        emitter.complete();
-      } catch (Exception e) {
-        log.warn("Emitter 종료 중 예외 발생: userId = {}, error = {}", userId, e.getMessage());
-      } finally {
-        sseEmitterRepository.delete(userId, emitter);
-      }
-    }
-    log.debug("모든 Emitter 제거 완료: userId = {}, Emitter 수: {}, 이유 = {}", userId,
-      sseEmitterRepository.findByReceiverId(userId).size(), reason);
+        .forEach(emitter -> {
+          try {
+            emitter.send(SseEmitter.event()
+                .name("ping")
+                .data("keep-alive"));
+          } catch (IOException e) {
+            emitter.completeWithError(e);
+          }
+        });
   }
 
   // sse 연결종료 시
