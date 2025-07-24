@@ -98,14 +98,15 @@ public class NotificationService {
     );
   }
 
+  // 알림 목록 조회
   @Transactional(readOnly = true)
-  public NotificationDtoCursorResponse get(String cursor, UUID idAfter, int limit){
+  public NotificationDtoCursorResponse get(UUID loginUserId, String cursor, UUID idAfter, int limit){
     // 쿼리
     // cursor을 LocalDateTime으로 디코딩
     LocalDateTime decodedCursor = decodeCursor(cursor);
 
-    List<Notification> notifications = notificationRepositoryQueryDSL.getNotifications(decodedCursor, idAfter, limit + 1);
-    int totalCount = notificationRepositoryQueryDSL.countNotifications();
+    List<Notification> notifications = notificationRepositoryQueryDSL.getNotifications(loginUserId ,decodedCursor, idAfter, limit + 1);
+    int totalCount = notificationRepositoryQueryDSL.countNotifications(loginUserId);
 
     // Dto 리스트로 변환
     List<NotificationDto> notificationDtos = notifications.stream()
@@ -175,7 +176,6 @@ public class NotificationService {
       throw NotificationNotFoundException.withId(notificationId);
     }
   }
-
 
   // cursor 인코딩 로직 (LocalDateTime -> String)
   private String encodeCursor(LocalDateTime cursor) {

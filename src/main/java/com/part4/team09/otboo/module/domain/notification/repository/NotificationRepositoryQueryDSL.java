@@ -19,31 +19,36 @@ public class NotificationRepositoryQueryDSL {
     private final JPAQueryFactory queryFactory;
     private final QNotification note = QNotification.notification;
 
-    // DM 목록 조회
-    public List<Notification> getNotifications(LocalDateTime cursor, UUID idAfter, int limit) {
+    // 알림 목록 조회
+    public List<Notification> getNotifications(UUID loginUserId, LocalDateTime cursor, UUID idAfter, int limit) {
+        BooleanBuilder condition = new BooleanBuilder();
+        condition.and(note.receiverId.eq(loginUserId)); // 알림 수신자 기준
+
         // 커서 페이징 조건
-        BooleanBuilder cursorCond = new BooleanBuilder();
         if (cursor != null) {
+            BooleanBuilder cursorCond = new BooleanBuilder();
             cursorCond.or(note.createdAt.lt(cursor));
             if (idAfter != null) {
                 cursorCond.or(note.createdAt.eq(cursor).and(note.id.lt(idAfter)));
             }
+            condition.and(cursorCond);
         }
 
         return queryFactory
                 .selectFrom(note)
-                .where(cursorCond)
+                .where(condition)
                 .orderBy(note.createdAt.desc(), note.id.desc())
                 .limit(limit)
                 .fetch();
     }
 
-    // DM 개수
-    public int countNotifications() {
+    // 알림 개수
+    public int countNotifications(UUID loginUserId) {
         return Math.toIntExact(
                 queryFactory
                         .select(note.count())
                         .from(note)
+                        .where(note.receiverId.eq(loginUserId))
                         .fetchOne()
         );
     }
