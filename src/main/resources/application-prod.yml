@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST}
+  mail:
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+
+otboo:
+  admin:
+    name: ${ADMIN_NAME}
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
+
+jwt:
+  secret: ${JWT_SECRET}

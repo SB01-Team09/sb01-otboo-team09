@@ -1,0 +1,125 @@
+package com.part4.team09.otboo.module.domain.notification.sse;
+
+import com.part4.team09.otboo.module.domain.notification.dto.NotificationDto;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class SseService {
+
+  @Value("${sse.timeout}")
+  private long timeout;
+
+  private final SseEmitterRepository sseEmitterRepository;
+
+  public SseEmitter connect(UUID receiverId) {
+
+    log.debug("userId: {}, emitter 수: {}", receiverId,
+      sseEmitterRepository.findByReceiverId(receiverId).size());
+
+    SseEmitter sseEmitter = new SseEmitter(timeout);
+
+    sseEmitter.onCompletion(() -> handleCompletion(receiverId, sseEmitter));
+    sseEmitter.onTimeout(() -> handleTimeout(receiverId, sseEmitter));
+    sseEmitter.onError(e -> handleError(receiverId, sseEmitter, e));
+
+    try {
+      sseEmitter.send(SseEmitter.event().name("connect").data("connected"));
+    } catch (IOException e) {
+      sseEmitterRepository.delete(receiverId, sseEmitter);
+    }
+
+    sseEmitterRepository.save(receiverId, sseEmitter);
+
+    return sseEmitter;
+  }
+
+  public void send(NotificationDto notificationDto) {
+    UUID receiverId = notificationDto.receiverId();
+    List<SseEmitter> emitters = sseEmitterRepository.findByReceiverId(receiverId);
+
+    emitters.forEach(emitter -> {
+      try {
+        emitter.send(SseEmitter.event()
+          .id(notificationDto.id().toString())
+          .name("notifications")
+          .data(notificationDto));
+      } catch (IOException e) {
+        sseEmitterRepository.delete(receiverId, emitter);
+      }
+    });
+  }
+
+  public void sendToUsers(List<NotificationDto> notificationDtos) {
+    notificationDtos.forEach(this::send);
+  }
+
+  @Scheduled(cron = "0 */30 * * * *")
+  public void cleanUp() {
+    sseEmitterRepository.findAll()
+      .forEach(emitter -> {
+        try {
+          emitter.send(SseEmitter.event()
+            .name("ping")
+            .data("keep-alive"));
+        } catch (IOException e) {
+          emitter.completeWithError(e);
+        }
+      });
+  }
+
+  // sse 연결 해제
+  public void disconnectAllEmitters(UUID userId, String reason) {
+    log.debug("Emitter 제거 작업 시작, userId: {}", userId);
+    List<SseEmitter> emitters = sseEmitterRepository.findByReceiverId(userId);
+    log.debug("기존 Emitter 연결 수: {}", emitters.size());
+    for (SseEmitter emitter : emitters) {
+      try {
+        emitter.complete();
+      } catch (Exception e) {
+        log.warn("Emitter 종료 중 예외 발생: userId = {}, error = {}", userId, e.getMessage());
+      } finally {
+        sseEmitterRepository.delete(userId, emitter);
+      }
+    }
+    log.debug("모든 Emitter 제거 완료: userId = {}, Emitter 수: {}, 이유 = {}", userId,
+      sseEmitterRepository.findByReceiverId(userId).size(), reason);
+  }
+
+  // sse 연결종료 시
+  private void handleCompletion(UUID receiverId, SseEmitter emitter) {
+    log.info("SSE 연결 종료됨: receiverId={}", receiverId);
+    sseEmitterRepository.delete(receiverId, emitter);
+  }
+
+  // sse 타임아웃 시 종료 처리
+  private void handleTimeout(UUID receiverId, SseEmitter emitter) {
+    log.warn("SSE 타임아웃 발생: receiverId={}", receiverId);
+    sseEmitterRepository.delete(receiverId, emitter);
+    try {
+      emitter.complete();
+    } catch (Exception ex) {
+      log.info("emitter.complete() 중 예외 발생: {}", ex.getMessage());
+    }
+  }
+
+  // 오류 발생 시
+  private void handleError(UUID receiverId, SseEmitter emitter, Throwable e) {
+    log.info("SSE 오류 발생: receiverId={}, error={}", receiverId, e.getMessage(), e);
+    sseEmitterRepository.delete(receiverId, emitter);
+    try {
+      emitter.completeWithError(e);
+    } catch (Exception ex) {
+      log.info("emitter.completeWithError() 중 예외 발생: {}", ex.getMessage());
+    }
+  }
+}

@@ -1,10 +1,6 @@
 ## Issue Number
 
-
-
 ## 요약(Summary)
-
-
 
 ## PR 유형
 
@@ -24,9 +20,8 @@
 
 ## 스크린샷 (선택)
 
-
-
 ## 공유사항 to 리뷰어
 
+## Close Issue
 
-
+close #이슈번호
