@@ -19,7 +19,14 @@ spring:
         org.apache.kafka.common.security.plain.PlainLoginModule required
         username=${KAFKA_KEY}
         password=${KAFKA_SECRET};
-
+    consumer:
+      group-id: my-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 otboo:
   admin:
     name: ${ADMIN_NAME}
@@ -28,3 +35,4 @@ otboo:
 
 jwt:
   secret: ${JWT_SECRET}
+
