@@ -2,7 +2,7 @@ spring:
   application:
     name: otboo
   profiles:
-    active: dev
+    active: ${SPRING_PROFILE:dev} # 환경변수에 설정되어 있는 값으로 덮어씌워짐. ECS 환경변수에 SPRING_PROFILE=prod로 설정되어 있음
   config:
     import: optional:file:.env[.properties]
   jpa:

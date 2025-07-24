@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.domain.location.batch;
 
 import com.part4.team09.otboo.module.domain.location.repository.LocationRepository;
 import java.util.UUID;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -12,9 +13,11 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("!test")
 public class LocationJobRunner implements CommandLineRunner {
 
   private final JobLauncher jobLauncher;
@@ -29,6 +32,7 @@ public class LocationJobRunner implements CommandLineRunner {
   }
 
   @Override
+  @SchedulerLock(name = "LocationJobRunner", lockAtLeastFor = "PT20M")
   public void run(String... args) throws Exception {
     init();
   }

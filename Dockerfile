@@ -1,3 +1,5 @@
+# Spring Boot용 Dockerfile
+
 # 1. 경량 OpenJDK 베이스 이미지
 FROM openjdk:17-jdk-slim
 
