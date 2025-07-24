@@ -13,6 +13,7 @@ import com.part4.team09.otboo.module.common.security.handler.JsonLoginFailureHan
 import com.part4.team09.otboo.module.common.security.handler.JsonLoginSuccessHandler;
 import com.part4.team09.otboo.module.common.security.jwt.JwtProperty;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
+import com.part4.team09.otboo.module.common.security.oauth.CustomOAuth2SuccessHandler;
 import com.part4.team09.otboo.module.common.security.oauth.CustomOAuth2UserService;
 import com.part4.team09.otboo.module.domain.auth.repository.UserTempPasswordRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
@@ -33,7 +34,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -53,6 +53,8 @@ public class SecurityConfig {
   private final CustomUserDetailsService customUserDetailsService;
   private final UserTempPasswordRepository tempPasswordRepository;
   private final CustomOAuth2UserService customOAuth2UserService;
+  private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+  private final PasswordEncoder passwordEncoder;
 
   @Bean
   public SecurityFilterChain filterChain(
@@ -79,10 +81,10 @@ public class SecurityConfig {
       )
 
       .oauth2Login(oauth2Login -> oauth2Login
-          .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
-            .userService(customOAuth2UserService)
-          )
-        // TODO: 로그인 성공 핸들러 추가하기
+        .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
+          .userService(customOAuth2UserService)
+        )
+        .successHandler(customOAuth2SuccessHandler)
       )
 
       // 예외 핸들러
@@ -114,12 +116,6 @@ public class SecurityConfig {
       .anyRequest().permitAll();
   }
 
-  // 비밀번호 암호화
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
-
   // 인증 매니저 (UserDetailsService 와 PasswordEncoder 가 자동 설정됨)
   @Bean
   public AuthenticationManager authenticationManager(
@@ -129,7 +125,7 @@ public class SecurityConfig {
 
   // 인증 커스텀
   @Bean
-  public AuthenticationProvider customDaoAuthenticationProvider(PasswordEncoder passwordEncoder) {
+  public AuthenticationProvider customDaoAuthenticationProvider() {
     return new CustomDaoAuthenticationProvider(
       customUserDetailsService,
       passwordEncoder,

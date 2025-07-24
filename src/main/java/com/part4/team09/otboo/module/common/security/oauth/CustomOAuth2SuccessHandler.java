@@ -1,7 +1,5 @@
-package com.part4.team09.otboo.module.common.security.handler;
+package com.part4.team09.otboo.module.common.security.oauth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.common.util.CookieUtil;
@@ -13,7 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -22,29 +19,30 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 /**
- * 로그인 성공 시 핸들러 클래스
+ * OAuth 로그인 성공 핸들러
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JsonLoginSuccessHandler implements AuthenticationSuccessHandler {
+public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
-  private final ObjectMapper objectMapper;
   private final JwtTokenProvider jwtTokenProvider;
 
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
     Authentication authentication) throws IOException, ServletException {
 
+    log.info("oauth 인증 성공");
+
     // 인증 정보
-    CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
+    CustomOAuth2User principal = (CustomOAuth2User) authentication.getPrincipal();
     AuthUserDto authUserDto = principal.getAuthUserDto();
 
-    // 토큰 발급
-    TempPasswordMetadata tempPasswordMeta = checkTempPasswordMetadata(authentication);
+    // 토큰 생성
+    TempPasswordMetadata tempPasswordMeta = TempPasswordMetadata.notUsed();
     GeneratedToken generatedToken = jwtTokenProvider.generateToken(authUserDto, tempPasswordMeta);
 
-    // 쿠키 생성 (refresh token)
+    // 쿠키 설정
     Cookie refreshTokenCookie = CookieUtil.createRefreshTokenCookie(generatedToken.refreshToken());
     response.addCookie(refreshTokenCookie);
 
@@ -53,13 +51,6 @@ public class JsonLoginSuccessHandler implements AuthenticationSuccessHandler {
     response.setCharacterEncoding(StandardCharsets.UTF_8.name());
     response.setStatus(HttpServletResponse.SC_OK);
 
-    // 액세스 토큰 응답
-    objectMapper.writeValue(response.getWriter(), generatedToken.accessToken());
-  }
-
-  // Authentication 객체에서 임시 비빌번호 인증인지 확인
-  private TempPasswordMetadata checkTempPasswordMetadata(Authentication authentication) {
-    Map<String, Object> details = (Map<String, Object>) authentication.getDetails();
-    return (TempPasswordMetadata) details.get("tempPassword");
+    response.sendRedirect("/");
   }
 }

@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,7 +12,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 /**
  * SecurityContext에 저장할 인증 사용자 정보 클래스
  */
-@Getter
 public class CustomUserDetails implements UserDetails, CustomUserPrincipal {
 
   private final AuthUserDto userDto;
