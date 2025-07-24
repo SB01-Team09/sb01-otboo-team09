@@ -1,5 +1,7 @@
 package com.part4.team09.otboo.module.domain.notification.event.Listener;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateAllRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateFollowerRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateLocationRequest;
@@ -18,198 +20,279 @@ import com.part4.team09.otboo.module.domain.notification.event.RoleChangedEvent;
 import com.part4.team09.otboo.module.domain.notification.event.WeatherNotificationCreateEvent;
 import com.part4.team09.otboo.module.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class NotificationEventListener {
 
   private final NotificationService notificationService;
+  private final ObjectMapper objectMapper;
 
   // 권한 변경
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleRoleChangedEvent(RoleChangedEvent event) {
-    String title = "내 권한이 변경되었어요.";
-    String content = String.format("내 권한이 [%s]에서 [%s](으)로 변경되었어요.",
-      event.previousRole(), event.newRole());
+  @KafkaListener(topics = "otboo.role_change")
+  public void handleRoleChangedEvent(String kafkaEvent) {
+    try {
+      RoleChangedEvent event = objectMapper.readValue(kafkaEvent, RoleChangedEvent.class);
 
-    NotificationCreateRequest request = new NotificationCreateRequest(
-      event.receiverId(),
-      title,
-      content,
-      Level.INFO
-    );
+      String title = "내 권한이 변경되었어요.";
+      String content = String.format("내 권한이 [%s]에서 [%s](으)로 변경되었어요.",
+          event.previousRole(), event.newRole());
 
-    notificationService.create(request);
+      NotificationCreateRequest request = new NotificationCreateRequest(
+          event.receiverId(),
+          title,
+          content,
+          Level.INFO
+      );
+
+      notificationService.create(request);
+    } catch (JsonProcessingException e) {
+      log.error("Kafka 역직렬화 실패: RoleChangedEvent - payload={}", kafkaEvent, e);
+    } catch (Exception e) {
+      log.error("Kafka 처리 실패: RoleChangedEvent - payload={}", kafkaEvent, e);
+    }
   }
 
   // 의상 속성 추가
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleClothesAttributeDefCreatedEvent(ClothesAttributeDefCreatedEvent event) {
-    String title = "새로운 의상 속성이 추가되었어요.";
-    String content = String.format("내 의상에 [%s] 속성을 추가해보세요.", event.name());
+  @KafkaListener(topics = "otboo.clothes_attribute_def_create")
+  public void handleClothesAttributeDefCreatedEvent(String kafkaEvent) {
+    try {
+      ClothesAttributeDefCreatedEvent event = objectMapper.readValue(kafkaEvent, ClothesAttributeDefCreatedEvent.class);
 
-    NotificationCreateAllRequest request = new NotificationCreateAllRequest(
-      title,
-      content,
-      Level.INFO
-    );
+      String title = "새로운 의상 속성이 추가되었어요.";
+      String content = String.format("내 의상에 [%s] 속성을 추가해보세요.", event.name());
 
-    notificationService.createAll(request);
+      NotificationCreateAllRequest request = new NotificationCreateAllRequest(
+          title,
+          content,
+          Level.INFO
+      );
+
+      notificationService.createAll(request);
+    } catch (JsonProcessingException e) {
+      log.error("Kafka 역직렬화 실패: ClothesAttributeDefCreatedEvent - payload={}", kafkaEvent, e);
+    } catch (Exception e) {
+      log.error("Kafka 처리 실패: ClothesAttributeDefCreatedEvent - payload={}", kafkaEvent, e);
+    }
   }
 
   // 의상 속성 변경
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleClothesAttributeDefUpdatedEvent(ClothesAttributeDefUpdatedEvent event) {
-    String title = "의상 속성이 변경되었어요.";
-    String content = String.format("[%s] 속성을 확인해보세요.", event.name());
+  @KafkaListener(topics = "otboo.clothes_attribute_def_update")
+  public void handleClothesAttributeDefUpdatedEvent(String kafkaEvent) {
+    try {
+      ClothesAttributeDefUpdatedEvent event = objectMapper.readValue(kafkaEvent, ClothesAttributeDefUpdatedEvent.class);
 
-    NotificationCreateAllRequest request = new NotificationCreateAllRequest(
-      title,
-      content,
-      Level.INFO
-    );
+      String title = "의상 속성이 변경되었어요.";
+      String content = String.format("[%s] 속성을 확인해보세요.", event.name());
 
-    notificationService.createAll(request);
+      NotificationCreateAllRequest request = new NotificationCreateAllRequest(
+          title,
+          content,
+          Level.INFO
+      );
+
+      notificationService.createAll(request);
+    } catch (JsonProcessingException e) {
+      log.error("Kafka 역직렬화 실패: ClothesAttributeDefUpdatedEvent - payload={}", kafkaEvent, e);
+    } catch (Exception e) {
+      log.error("Kafka 처리 실패: ClothesAttributeDefUpdatedEvent - payload={}", kafkaEvent, e);
+    }
   }
 
   // 내 피드에 좋아요
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleFeedLikedEvent(FeedLikedEvent event) {
-    String title = String.format("%s님이 내 피드를 좋아합니다.", event.username());
-    String content = event.feedContent();
+  @KafkaListener(topics = "otboo.feed_like")
+  public void handleFeedLikedEvent(String kafkaEvent) {
+    try {
+      FeedLikedEvent event = objectMapper.readValue(kafkaEvent, FeedLikedEvent.class);
 
-    NotificationCreateRequest request = new NotificationCreateRequest(
-      event.receiverId(),
-      title,
-      content,
-      Level.INFO
-    );
+      String title = String.format("%s님이 내 피드를 좋아합니다.", event.username());
+      String content = event.feedContent();
 
-    notificationService.create(request);
+      NotificationCreateRequest request = new NotificationCreateRequest(
+          event.receiverId(),
+          title,
+          content,
+          Level.INFO
+      );
+
+      notificationService.create(request);
+    } catch (JsonProcessingException e) {
+      log.error("Kafka 역직렬화 실패: FeedLikedEvent - payload={}", kafkaEvent, e);
+    } catch (Exception e) {
+      log.error("Kafka 처리 실패: FeedLikedEvent - payload={}", kafkaEvent, e);
+    }
   }
 
   // 내 피드에 댓글 등록
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleFeedCommentedEvent(FeedCommentedEvent event) {
-    String title = String.format("%s님이 댓글을 달았어요.", event.username());
-    String content = event.content();
+  @KafkaListener(topics = "otboo.feed_comment")
+  public void handleFeedCommentedEvent(String kafkaEvent) {
+    try {
+      FeedCommentedEvent event = objectMapper.readValue(kafkaEvent, FeedCommentedEvent.class);
 
-    NotificationCreateRequest request = new NotificationCreateRequest(
-      event.receiverId(),
-      title,
-      content,
-      Level.INFO
-    );
+      String title = String.format("%s님이 댓글을 달았어요.", event.username());
+      String content = event.content();
 
-    notificationService.create(request);
+      NotificationCreateRequest request = new NotificationCreateRequest(
+          event.receiverId(),
+          title,
+          content,
+          Level.INFO
+      );
+
+      notificationService.create(request);
+    } catch (JsonProcessingException e) {
+      log.error("Kafka 역직렬화 실패: FeedCommentedEvent - payload={}", kafkaEvent, e);
+    } catch (Exception e) {
+      log.error("Kafka 처리 실패: FeedCommentedEvent - payload={}", kafkaEvent, e);
+    }
   }
 
   // 팔로우한 사용자가 피드 등록
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleFeedCreatedEvent(FeedCreatedFollowerEvent event) {
-    String title = String.format("%s님이 새로운 피드를 작성했어요.", event.authorName());
-    String content = event.content();
+  @KafkaListener(topics = "otboo.feed_create_follower")
+  public void handleFeedCreatedEvent(String kafkaEvent) {
+    try {
+      FeedCreatedFollowerEvent event = objectMapper.readValue(kafkaEvent, FeedCreatedFollowerEvent.class);
 
-    NotificationCreateFollowerRequest request = new NotificationCreateFollowerRequest(
-      event.authorId(),
-      title,
-      content,
-      Level.INFO
-    );
+      String title = String.format("%s님이 새로운 피드를 작성했어요.", event.authorName());
+      String content = event.content();
 
-    notificationService.createFollower(request);
+      NotificationCreateFollowerRequest request = new NotificationCreateFollowerRequest(
+          event.authorId(),
+          title,
+          content,
+          Level.INFO
+      );
+
+      notificationService.createFollower(request);
+    } catch (JsonProcessingException e) {
+      log.error("Kafka 역직렬화 실패: FeedCreatedFollowerEvent - payload={}", kafkaEvent, e);
+    } catch (Exception e) {
+      log.error("Kafka 처리 실패: FeedCreatedFollowerEvent - payload={}", kafkaEvent, e);
+    }
   }
 
   // 다른 사용자가 나를 팔로우
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleFollowedEvent(FollowedEvent event) {
-    String title = String.format("%s님이 나를 팔로우했어요.", event.followerName());
-    String content = "";
+  @KafkaListener(topics = "otboo.follow")
+  public void handleFollowedEvent(String kafkaEvent) {
+    try {
+      FollowedEvent event = objectMapper.readValue(kafkaEvent, FollowedEvent.class);
 
-    NotificationCreateRequest request = new NotificationCreateRequest(
-      event.receiverId(),
-      title,
-      content,
-      Level.INFO
-    );
+      String title = String.format("%s님이 나를 팔로우했어요.", event.followerName());
+      String content = "";
 
-    notificationService.create(request);
+      NotificationCreateRequest request = new NotificationCreateRequest(
+          event.receiverId(),
+          title,
+          content,
+          Level.INFO
+      );
+
+      notificationService.create(request);
+    } catch (JsonProcessingException e) {
+      log.error("Kafka 역직렬화 실패: FollowedEvent - payload={}", kafkaEvent, e);
+    } catch (Exception e) {
+      log.error("Kafka 처리 실패: FollowedEvent - payload={}", kafkaEvent, e);
+    }
   }
 
   // DM 수신
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleDirectMessageReceivedEvent(DirectMessageReceivedEvent event) {
-    String title = String.format("[DM] %s", event.senderName());
-    String content = event.content();
+  @KafkaListener(topics = "otboo.direct_message_receive")
+  public void handleDirectMessageReceivedEvent(String kafkaEvent) {
+    try {
+      DirectMessageReceivedEvent event = objectMapper.readValue(kafkaEvent, DirectMessageReceivedEvent.class);
 
-    NotificationCreateRequest request = new NotificationCreateRequest(
-      event.receiverId(),
-      title,
-      content,
-      Level.INFO
-    );
+      String title = String.format("[DM] %s", event.senderName());
+      String content = event.content();
 
-    notificationService.create(request);
+      NotificationCreateRequest request = new NotificationCreateRequest(
+          event.receiverId(),
+          title,
+          content,
+          Level.INFO
+      );
+
+      notificationService.create(request);
+    } catch (JsonProcessingException e) {
+      log.error("Kafka 역직렬화 실패: DirectMessageReceivedEvent - payload={}", kafkaEvent, e);
+    } catch (Exception e) {
+      log.error("Kafka 처리 실패: DirectMessageReceivedEvent - payload={}", kafkaEvent, e);
+    }
   }
 
   // 급격한 기온 상승 예정
-  @Async
-  @EventListener
-  public void handleRapidTemperatureRiseEvent(RapidTemperatureRiseEvent event) {
-    String title = "어제보다 기온이 급격히 높아졌어요";
-    String content = "외출 시 옷차림에 유의하세요.";
+  @KafkaListener(topics = "otboo.rapid_temperature_rise")
+  public void handleRapidTemperatureRiseEvent(String kafkaEvent) {
+    try {
+      RapidTemperatureRiseEvent event = objectMapper.readValue(kafkaEvent, RapidTemperatureRiseEvent.class);
 
-    NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
-      event.locationId(),
-      title,
-      content,
-      Level.WARNING
-    );
+      String title = "어제보다 기온이 급격히 높아졌어요.";
+      String content = "외출 시 옷차림에 유의하세요.";
 
-    notificationService.createLocation(request);
+      NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
+          event.locationId(),
+          title,
+          content,
+          Level.WARNING
+      );
+
+      notificationService.createLocation(request);
+    } catch (JsonProcessingException e) {
+      log.error("Kafka 역직렬화 실패: RapidTemperatureRiseEvent - payload={}", kafkaEvent, e);
+    } catch (Exception e) {
+      log.error("Kafka 처리 실패: RapidTemperatureRiseEvent - payload={}", kafkaEvent, e);
+    }
   }
 
   // 급격한 기온 하강 예정
-  @Async
-  @EventListener
-  public void handleRapidTemperatureDropEvent(RapidTemperatureDropEvent event) {
-    String title = "어제보다 기온이 급격히 낮아졌어요..";
-    String content = "외출 시 옷차림에 유의하세요.";
+  @KafkaListener(topics = "otboo.rapid_temperature_drop")
+  public void handleRapidTemperatureDropEvent(String kafkaEvent) {
+    try {
+      RapidTemperatureDropEvent event = objectMapper.readValue(kafkaEvent, RapidTemperatureDropEvent.class);
 
-    NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
-      event.locationId(),
-      title,
-      content,
-      Level.WARNING
-    );
+      String title = "어제보다 기온이 급격히 낮아졌어요.";
+      String content = "외출 시 옷차림에 유의하세요.";
 
-    notificationService.createLocation(request);
+      NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
+          event.locationId(),
+          title,
+          content,
+          Level.WARNING
+      );
+
+      notificationService.createLocation(request);
+    } catch (JsonProcessingException e) {
+      log.error("Kafka 역직렬화 실패: RapidTemperatureDropEvent - payload={}", kafkaEvent, e);
+    } catch (Exception e) {
+      log.error("Kafka 처리 실패: RapidTemperatureDropEvent - payload={}", kafkaEvent, e);
+    }
   }
 
   // 비, 눈, 소나기 등 예정
-  @Async
-  @EventListener
-  public void handlePrecipitationStartedEvent(WeatherNotificationCreateEvent event) {
-    NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
-      event.locationId(),
-      event.title(),
-      event.content(),
-      Level.WARNING
-    );
+  @KafkaListener(topics = "otboo.weather_notification_create")
+  public void handleWeatherNotificationCreateEvent(String kafkaEvent) {
+    try {
+      WeatherNotificationCreateEvent event = objectMapper.readValue(kafkaEvent, WeatherNotificationCreateEvent.class);
 
-    notificationService.createLocation(request);
+      NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
+          event.locationId(),
+          event.title(),
+          event.content(),
+          Level.WARNING
+      );
+
+      notificationService.createLocation(request);
+    } catch (JsonProcessingException e) {
+      log.error("Kafka 역직렬화 실패: WeatherNotificationCreateEvent - payload={}", kafkaEvent, e);
+    } catch (Exception e) {
+      log.error("Kafka 처리 실패: WeatherNotificationCreateEvent - payload={}", kafkaEvent, e);
+    }
   }
 }
