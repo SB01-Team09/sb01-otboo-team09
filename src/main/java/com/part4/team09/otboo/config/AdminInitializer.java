@@ -4,6 +4,7 @@ import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
 import com.part4.team09.otboo.module.domain.user.exception.EmailAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -31,6 +32,7 @@ public class AdminInitializer implements ApplicationRunner {
   }
 
   @Override
+  @SchedulerLock(name = "AdminInitializer", lockAtLeastFor = "PT20M")
   public void run(ApplicationArguments args) throws Exception {
     initializeAdmin();
   }
