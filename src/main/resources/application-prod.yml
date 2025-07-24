@@ -15,10 +15,7 @@ spring:
     properties:
       security.protocol: SASL_SSL
       sasl.mechanism: PLAIN
-      sasl.jaas.config: >
-        org.apache.kafka.common.security.plain.PlainLoginModule required
-        username=${KAFKA_KEY}
-        password=${KAFKA_SECRET};
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_KEY}" password="${KAFKA_SECRET}";
     consumer:
       group-id: my-consumer-group
       auto-offset-reset: earliest
@@ -27,6 +24,7 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
 otboo:
   admin:
     name: ${ADMIN_NAME}

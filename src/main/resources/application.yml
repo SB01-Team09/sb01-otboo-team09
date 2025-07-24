@@ -2,7 +2,7 @@ spring:
   application:
     name: otboo
   profiles:
-    active: dev
+    active: prod
   config:
     import: optional:file:.env[.properties]
   jpa:
