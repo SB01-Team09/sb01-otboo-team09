@@ -51,6 +51,7 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation 'org.springframework.boot:spring-boot-starter-batch'
   implementation 'org.springframework.boot:spring-boot-starter-mail'
+  implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
@@ -99,7 +100,7 @@ dependencies {
   // Shedlock
   implementation 'net.javacrumbs.shedlock:shedlock-spring:6.3.0'
   implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.3.0'
-  
+
   // HTML 파싱
   implementation 'org.jsoup:jsoup:1.17.2'
 }

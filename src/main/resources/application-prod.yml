@@ -16,6 +16,9 @@ otboo:
     name: ${ADMIN_NAME}
     email: ${ADMIN_EMAIL}
     password: ${ADMIN_PASSWORD}
+  file:
+    storage:
+      type: ${FILE_STORAGE_TYPE:s3}
 
 jwt:
   secret: ${JWT_SECRET}

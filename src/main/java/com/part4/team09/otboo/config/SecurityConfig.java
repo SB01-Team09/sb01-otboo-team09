@@ -13,6 +13,7 @@ import com.part4.team09.otboo.module.common.security.handler.JsonLoginFailureHan
 import com.part4.team09.otboo.module.common.security.handler.JsonLoginSuccessHandler;
 import com.part4.team09.otboo.module.common.security.jwt.JwtProperty;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
+import com.part4.team09.otboo.module.common.security.oauth.CustomOAuth2UserService;
 import com.part4.team09.otboo.module.domain.auth.repository.UserTempPasswordRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,7 @@ public class SecurityConfig {
   private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
   private final CustomUserDetailsService customUserDetailsService;
   private final UserTempPasswordRepository tempPasswordRepository;
+  private final CustomOAuth2UserService customOAuth2UserService;
 
   @Bean
   public SecurityFilterChain filterChain(
@@ -74,6 +76,13 @@ public class SecurityConfig {
         .logoutUrl("/api/auth/sign-out")
         .addLogoutHandler(customLogoutHandler)
         .logoutSuccessHandler(customLogoutSuccessHandler)
+      )
+
+      .oauth2Login(oauth2Login -> oauth2Login
+          .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
+            .userService(customOAuth2UserService)
+          )
+        // TODO: 로그인 성공 핸들러 추가하기
       )
 
       // 예외 핸들러
