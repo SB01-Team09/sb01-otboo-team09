@@ -32,8 +32,6 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
     Authentication authentication) throws IOException, ServletException {
 
-    log.info("oauth 인증 성공");
-
     // 인증 정보
     CustomOAuth2User principal = (CustomOAuth2User) authentication.getPrincipal();
     AuthUserDto authUserDto = principal.getAuthUserDto();

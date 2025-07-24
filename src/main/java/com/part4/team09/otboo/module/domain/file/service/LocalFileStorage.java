@@ -89,6 +89,10 @@ public class LocalFileStorage implements FileStorage {
   @Override
   public boolean remove(String path) {
     Path filePath = toStoragePath(path);
+
+    if (filePath == null) {
+      return true;
+    }
     try {
       Files.deleteIfExists(filePath);
       log.info("파일 삭제에 성공하였습니다.(path: {})", filePath);
@@ -106,12 +110,13 @@ public class LocalFileStorage implements FileStorage {
   }
 
   // 삭제를 위한 파일 경로 추출
-  Path toStoragePath(String fileUrl) {
+  protected Path toStoragePath(String fileUrl) {
 
     String resourcePrefix = resourcePath + "/";
     int index = fileUrl.indexOf(resourcePrefix);
     if (index == -1) {
-      throw new IllegalArgumentException("잘못된 파일 URL : " + resourcePrefix + "/ 경로가 포함되어 있지 않습니다.");
+      log.info("잘못된 path이거나 외부 파일 url로 삭제 불가: {}", fileUrl);
+      return null;
     }
 
     String relativePath = fileUrl.substring(index + resourcePrefix.length());

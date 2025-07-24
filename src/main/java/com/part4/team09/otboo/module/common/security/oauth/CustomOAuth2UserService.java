@@ -38,8 +38,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
   @Transactional
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
-    log.info("outh 인증시작");
-
     // 로그인이 성공하면 spring 이 알아서 userRequest 데이터를 보내준다. (accessToken, provider 정보)
     // 액세스 토큰으로 사용자 정보 조회
     OAuth2User oAuth2User = super.loadUser(userRequest);
@@ -62,8 +60,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     // provider, providerId로 유저 정보 가져오기
     User user = getOrCreateUser(socialType, oAuthAttributes);
     AuthUserDto authUserDto = authUserMapper.toAuthUserDto(user);
-
-    log.info("outh 유저 정보 조회까지 성공");
 
     // principal
     return CustomOAuth2User.create(authUserDto, attributes, userNameAttributeName);
@@ -88,8 +84,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     // 소셜 로그인 정보가 없는 경우
     if (oAuthProvider.isEmpty()) {
 
-      log.info("기존 소셜 로그인 정보 없음");
-
       // 일반 로그인 유저 확인
       userRepository.findByEmail(oAuth2UserDto.getEmail()).ifPresent(user -> {
         log.info("이미 가입된 이메일: {}", oAuth2UserDto.getEmail());
@@ -100,14 +94,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
       return createNewUserFromSocial(socialType, oAuthAttributes);
     }
 
-    log.info("기존 소셜 로그인 정보 있음");
     return findUserByEmailOrThrow(oAuth2UserDto.getEmail());
   }
 
   // 새로운 유저 생성
   private User createNewUserFromSocial(SocialType socialType, OAuthAttributes oAuthAttributes) {
-
-    log.info("새로운 유저 생성 진입");
 
     OAuth2UserDto oAuth2UserDto = oAuthAttributes.getOAuth2UserDto();
     String dummyPassword = passwordEncoder.encode(UUID.randomUUID().toString());
