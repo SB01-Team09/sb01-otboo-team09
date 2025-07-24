@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -65,20 +64,6 @@ public class SseService {
   public void disconnectAllEmitters(UUID userId, String reason) {
     log.debug("Emitter 제거 작업 시작, userId: {}, reason: {}", userId, reason);
     redisTemplate.convertAndSend("disconnect-channel", userId.toString());
-  }
-
-  @Scheduled(cron = "0 */30 * * * *")
-  public void cleanUp() {
-    sseEmitterRepository.findAll()
-        .forEach(emitter -> {
-          try {
-            emitter.send(SseEmitter.event()
-                .name("ping")
-                .data("keep-alive"));
-          } catch (IOException e) {
-            emitter.completeWithError(e);
-          }
-        });
   }
 
   // sse 연결종료 시
