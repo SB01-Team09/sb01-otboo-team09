@@ -3,6 +3,7 @@ package com.part4.team09.otboo.module.domain.directmessage.controller;
 import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.directmessage.dto.DirectMessageDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.directmessage.service.DirectMessageService;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class DirectMessageController {
       @AuthenticationPrincipal CustomUserDetails currentUser,
       @RequestParam(required = false) String cursor,
       @RequestParam(required = false) UUID idAfter,
-      @RequestParam(defaultValue = "10") int limit
+      @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit은 0보다 커야합니다.") int limit
   ) {
 
     DirectMessageDtoCursorResponse response = directMessageService.getDirectMessages(userId,
