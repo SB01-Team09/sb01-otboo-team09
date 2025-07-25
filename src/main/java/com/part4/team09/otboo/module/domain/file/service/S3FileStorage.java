@@ -54,6 +54,10 @@ public class S3FileStorage implements FileStorage {
 
     String key = extractKeyFromUrl(url);
 
+    if (key == null) {
+      return true;
+    }
+
     DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
       .bucket(bucket)
       .key(key)
@@ -129,7 +133,8 @@ public class S3FileStorage implements FileStorage {
   private String extractKeyFromUrl(String url) {
     String baseUrl = getBaseUrl();
     if (!url.startsWith(baseUrl)) {
-      throw new IllegalArgumentException("잘못된 S3 URL 형식: " + url);
+      log.info("잘못된 S3 URL 형식이거나 외부 파일 url로 삭제 불가 : {}", url);
+      return null;
     }
     return url.substring(baseUrl.length());
   }
