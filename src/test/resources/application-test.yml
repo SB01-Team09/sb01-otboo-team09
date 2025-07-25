@@ -21,6 +21,9 @@ spring:
   kafka:
     listener:
       auto-startup: false
+  mail:
+    username: dummy
+    password: dummy_password
 
 logging:
   level:

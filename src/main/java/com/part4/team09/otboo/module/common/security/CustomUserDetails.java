@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,8 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 /**
  * SecurityContext에 저장할 인증 사용자 정보 클래스
  */
-@Getter
-public class CustomUserDetails implements UserDetails {
+public class CustomUserDetails implements UserDetails, CustomUserPrincipal {
 
   private final AuthUserDto userDto;
   private final String password;
@@ -32,26 +30,37 @@ public class CustomUserDetails implements UserDetails {
     this.password = password;
   }
 
+  @Override
   public UUID getId() {
-    return userDto.userId();
+    return this.userDto.userId();
+  }
+
+  @Override
+  public AuthUserDto getAuthUserDto() {
+    return this.userDto;
+  }
+
+  @Override
+  public LoginType getLoginType() {
+    return LoginType.BASIC;
   }
 
   // 사용자의 권한 정보
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return List.of(new SimpleGrantedAuthority("ROLE_" + userDto.role()));
+    return List.of(new SimpleGrantedAuthority("ROLE_" + this.userDto.role()));
   }
 
   // 사용자의 비밀번호
   @Override
   public String getPassword() {
-    return password;
+    return this.password;
   }
 
   // 사용자의 아이디
   @Override
   public String getUsername() {
-    return userDto.email();
+    return this.userDto.email();
   }
 
   /**
