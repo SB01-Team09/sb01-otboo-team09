@@ -25,6 +25,9 @@ spring:
     redis:
       host: dummy
       port: 6379
+  mail:
+    username: dummy
+    password: dummy_password
 
 logging:
   level:

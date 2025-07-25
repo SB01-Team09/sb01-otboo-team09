@@ -180,9 +180,11 @@ CREATE TABLE users
 
 CREATE TABLE oauth_providers
 (
-    id       UUID PRIMARY KEY,
-    user_id  UUID        NOT NULL,
-    provider VARCHAR(50) NOT NULL
+    id          UUID PRIMARY KEY,
+    user_id     UUID                     NOT NULL,
+    provider    VARCHAR(50)              NOT NULL,
+    provider_id VARCHAR(255)             NOT NULL,
+    created_at  TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
 CREATE TABLE clothes

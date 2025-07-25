@@ -38,7 +38,7 @@ public class JsonLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     // 인증 정보
     CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
-    AuthUserDto authUserDto = principal.getUserDto();
+    AuthUserDto authUserDto = principal.getAuthUserDto();
 
     // 토큰 발급
     TempPasswordMetadata tempPasswordMeta = checkTempPasswordMetadata(authentication);
