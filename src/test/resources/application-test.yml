@@ -21,6 +21,10 @@ spring:
   kafka:
     listener:
       auto-startup: false
+  data:
+    redis:
+      host: dummy
+      port: 6379
 
 logging:
   level:
