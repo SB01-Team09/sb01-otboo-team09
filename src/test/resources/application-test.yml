@@ -35,3 +35,7 @@ otboo:
         secret-key: ${AWS_SECRET_ACCESS_KEY:test}
         region: ${AWS_S3_REGION:ap-northeast-2}
         bucket: ${AWS_S3_BUCKET:test}
+
+sse:
+  redis:
+    enabled: false
