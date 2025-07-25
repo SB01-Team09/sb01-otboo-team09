@@ -51,7 +51,7 @@ spring:
             client-id: ${KAKAO_CLIENT_ID}
             client-secret: ${KAKAO_CLIENT_SECRET}
             client-authentication-method: client_secret_post
-            redirect-uri: ${KAKAO_REDIRECT_URI}
+            redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/login/oauth2/code/kakao
             authorization-grant-type: authorization_code
             client-name: kakao
             scope: profile_nickname, profile_image
@@ -92,7 +92,7 @@ jwt:
     validity-seconds: 900 # 15분
   refresh-token:
     validity-seconds: 2592000 # 30일
-  secret: ${JWT_SECRET:SXX8OdfdoXHTckVkK/0Ec5499hTUEU3qXqbFJcW1BPKg5KyXlu59r0uiIaRl45173KIAKfriIEztNEu1sicQiw==}
+  secret: ${JWT_SECRET:test-jwt-secret-key-for-test-should-be-long-enough}
 
 logging:
   level:
