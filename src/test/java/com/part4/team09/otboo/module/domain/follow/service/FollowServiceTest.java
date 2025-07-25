@@ -14,6 +14,7 @@ import com.part4.team09.otboo.module.domain.follow.mapper.FollowMapper;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.user.dto.UserSummary;
+import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -22,8 +23,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -88,8 +89,18 @@ class FollowServiceTest {
         UserSummary follower = new UserSummary(followerId, name, null);
         FollowDto dto = new FollowDto(fakeId, followee, follower);
 
+        User mockFollowee = User.createUser("dusrud@email.com", name, "password");
+        ReflectionTestUtils.setField(mockFollowee, "id", followeeId);
+        ReflectionTestUtils.setField(mockFollowee, "profileImageUrl", null);
+
+        User mockFollower = User.createUser("dmstn@email.com", name, "password");
+        ReflectionTestUtils.setField(mockFollower, "id", followerId);
+        ReflectionTestUtils.setField(mockFollower, "profileImageUrl", null);
+
 
         when(userRepository.existsById(any(UUID.class))).thenReturn(true); // 유저가 정상적으로 존재할 때를 가정해줌
+        lenient().when(userRepository.findById(followeeId)).thenReturn(Optional.of(mockFollowee));
+        lenient().when(userRepository.findById(followerId)).thenReturn(Optional.of(mockFollower)); // CI 통과를 위한 stub이므로 예외로 stub 허용하기 위한 lenient
         when(followRepository.save(any(Follow.class))).thenReturn(follow);
         when(followMapper.toDto(any(Follow.class))).thenReturn(dto);
         doNothing().when(eventPublisher).publishEvent(any(FollowCreatedEvent.class));
