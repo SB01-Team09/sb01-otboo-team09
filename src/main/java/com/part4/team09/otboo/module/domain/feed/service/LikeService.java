@@ -3,6 +3,7 @@ package com.part4.team09.otboo.module.domain.feed.service;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.entity.Like;
+import com.part4.team09.otboo.module.domain.feed.event.FeedLikeDeletedEvent;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.exception.like.LikeAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.feed.exception.like.LikeNotFoundException;
@@ -13,11 +14,12 @@ import com.part4.team09.otboo.module.domain.notification.event.FeedLikedEvent;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -61,10 +63,14 @@ public class LikeService {
     Like like = getLikeOrThrow(userId, feedId);
     likeRepository.deleteById(like.getId());
     feed.decreaseLikeCount();
+
+    eventPublisher.publishEvent(new FeedLikeDeletedEvent());
   }
 
   public void deleteAllByFeedId(UUID feedId) {
     likeRepository.deleteAllByFeedId(feedId);
+
+    eventPublisher.publishEvent(new FeedLikeDeletedEvent());
   }
 
   private Like getLikeOrThrow(UUID userId, UUID feedId) {

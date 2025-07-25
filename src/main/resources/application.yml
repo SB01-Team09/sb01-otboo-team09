@@ -31,14 +31,38 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:dummy}
-    password: ${MAIL_PASSWORD:dummy_password}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: profile, email
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            client-authentication-method: client_secret_post
+            redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/login/oauth2/code/kakao
+            authorization-grant-type: authorization_code
+            client-name: kakao
+            scope: profile_nickname, profile_image
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
 
 otboo:
   admin:
@@ -68,15 +92,13 @@ jwt:
     validity-seconds: 900 # 15분
   refresh-token:
     validity-seconds: 2592000 # 30일
-  secret: ${JWT_SECRET:SXX8OdfdoXHTckVkK/0Ec5499hTUEU3qXqbFJcW1BPKg5KyXlu59r0uiIaRl45173KIAKfriIEztNEu1sicQiw==}
+  secret: ${JWT_SECRET:test-jwt-secret-key-for-test-should-be-long-enough}
 
-# ?? ?? ??
 logging:
   level:
     root: info
 #    org.hibernate.SQL: debug // p6spy로 대신 로깅
 
-# ?????
 management:
   endpoints:
     web:
@@ -88,3 +110,4 @@ management:
 
 sse:
   timeout: 300_000
+

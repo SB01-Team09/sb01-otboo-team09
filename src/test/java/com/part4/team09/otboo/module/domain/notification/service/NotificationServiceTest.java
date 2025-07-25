@@ -1,20 +1,19 @@
 package com.part4.team09.otboo.module.domain.notification.service;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-
+import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
+import com.part4.team09.otboo.module.domain.notification.dto.NotificationDto;
+import com.part4.team09.otboo.module.domain.notification.dto.NotificationDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateAllRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateFollowerRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateLocationRequest;
 import com.part4.team09.otboo.module.domain.notification.dto.request.NotificationCreateRequest;
+import com.part4.team09.otboo.module.domain.notification.entity.Notification;
 import com.part4.team09.otboo.module.domain.notification.entity.Notification.Level;
 import com.part4.team09.otboo.module.domain.notification.mapper.NotificationMapper;
 import com.part4.team09.otboo.module.domain.notification.repository.NotificationRepository;
+import com.part4.team09.otboo.module.domain.notification.repository.NotificationRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,12 +22,29 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
 
   @Mock
   private NotificationRepository notificationRepository;
+
+  @Mock
+  private NotificationRepositoryQueryDSL notificationRepositoryQueryDSL;
 
   @Mock
   private NotificationMapper notificationMapper;
@@ -157,6 +173,77 @@ class NotificationServiceTest {
       verify(notificationRepository).saveAll(any());
     }
   }
+
+  @Test
+  @DisplayName("알림 목록 조회 성공")
+  void getNotificationListSuccess() {
+    // given
+    UUID receiverId = UUID.randomUUID();
+    UUID idAfter = UUID.randomUUID();
+    int limit = 5;
+    LocalDateTime cursorTime = LocalDateTime.now().minusDays(1);
+    String cursor = cursorTime.toString();
+
+    // mock 알림 6개 (limit + 1)
+    List<Notification> fakeNotifications = IntStream.range(0, 6)
+            .mapToObj(i -> Notification.create(
+                    receiverId,
+                    "제목 " + i,
+                    "내용 " + i,
+                    Notification.Level.INFO
+            ))
+            .collect(Collectors.toList());
+
+    // id, createdAt 설정
+    for (int i = 0; i < fakeNotifications.size(); i++) {
+      Notification noti = fakeNotifications.get(i);
+      UUID id = UUID.randomUUID();
+      LocalDateTime createdAt = cursorTime.plusMinutes(i);
+      ReflectionTestUtils.setField(noti, "id", id);
+      ReflectionTestUtils.setField(noti, "createdAt", createdAt);
+    }
+
+    // DTO mock
+    List<NotificationDto> fakeDtos = fakeNotifications.stream()
+            .map(noti -> new NotificationDto(
+                    (UUID) ReflectionTestUtils.getField(noti, "id"),
+                    noti.getCreatedAt(),
+                    noti.getReceiverId(),
+                    noti.getTitle(),
+                    noti.getContent(),
+                    noti.getLevel()
+            ))
+            .collect(Collectors.toList());
+
+    // when
+    when(notificationRepositoryQueryDSL.getNotifications(eq(receiverId), any(), any(), eq(limit + 1)))
+            .thenReturn(fakeNotifications);
+    when(notificationRepositoryQueryDSL.countNotifications(eq(receiverId))).thenReturn(123);
+
+    for (int i = 0; i < fakeNotifications.size(); i++) {
+      when(notificationMapper.toDto(fakeNotifications.get(i))).thenReturn(fakeDtos.get(i));
+    }
+
+    // when
+    NotificationDtoCursorResponse result = notificationService.get(receiverId, cursor, idAfter, limit);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.data()).hasSize(limit); // limit만큼 잘린지 확인
+    assertThat(result.hasNext()).isTrue();
+    assertThat(result.totalCount()).isEqualTo(123);
+    assertThat(result.sortBy()).isEqualTo("createdAt, id");
+    assertThat(result.sortDirection()).isEqualTo(SortDirection.DESCENDING);
+
+    NotificationDto lastDto = fakeDtos.get(limit - 1);
+    assertThat(result.nextCursor()).isEqualTo(lastDto.createdAt().toString());
+    assertThat(result.nextIdAfter()).isEqualTo(lastDto.id());
+
+    // verify
+    verify(notificationRepositoryQueryDSL).getNotifications(eq(receiverId), any(), any(), eq(limit + 1));
+    verify(notificationRepositoryQueryDSL).countNotifications(eq(receiverId));
+  }
+
 
   @Nested
   @DisplayName("알림 삭제")

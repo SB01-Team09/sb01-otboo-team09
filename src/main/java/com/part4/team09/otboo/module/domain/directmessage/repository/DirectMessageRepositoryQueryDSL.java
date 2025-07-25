@@ -25,6 +25,7 @@ public class DirectMessageRepositoryQueryDSL {
 
         condition.and(
                 dm.senderId.eq(currentUserId).and(dm.receiverId.eq(userId))
+                        .or(dm.senderId.eq(userId).and(dm.receiverId.eq(currentUserId)))
         );
 
         // 커서 페이징 조건
@@ -53,6 +54,7 @@ public class DirectMessageRepositoryQueryDSL {
                     .from(dm)
                     .where(
                             dm.senderId.eq(currentUserId).and(dm.receiverId.eq(userId))
+                                    .or(dm.senderId.eq(userId).and(dm.receiverId.eq(currentUserId)))
                     )
                     .fetchOne()
         );

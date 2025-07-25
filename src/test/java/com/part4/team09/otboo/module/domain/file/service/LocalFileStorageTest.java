@@ -75,13 +75,15 @@ class LocalFileStorageTest {
     }
 
     @Test
-    @DisplayName("잘못된 URL은 IllegalArgumentException")
+    @DisplayName("파일 저장경로 추출 시 잘못된 URL은 Null 반환")
     void toStoragePath_invalidUrl() {
       // given
       String url = "http://localhost/wrongpath/test.png";
 
       // when + then
-      assertThrows(IllegalArgumentException.class, () -> localFileStorage.toStoragePath(url));
+      Path path = localFileStorage.toStoragePath(url);
+
+      assertThat(path).isNull();
     }
   }
 }
