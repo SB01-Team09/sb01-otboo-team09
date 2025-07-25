@@ -1,10 +1,12 @@
 package com.part4.team09.otboo.module.domain.clothes.dto.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record ClothesDto(
 
   // 의상 id
