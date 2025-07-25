@@ -12,6 +12,7 @@ import com.part4.team09.otboo.module.domain.follow.exception.FollowNotFoundExcep
 import com.part4.team09.otboo.module.domain.follow.mapper.FollowMapper;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepositoryQueryDSL;
+import com.part4.team09.otboo.module.domain.notification.event.FollowedEvent;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,10 @@ public class FollowService {
     // 팔로우 등록
     @Transactional
     public FollowDto create(UUID followeeId, UUID followerId) {
+        // 알림 발송용 파라미터 준비
+        UUID receiverId = followeeId;
+        String followerName = userRepository.findById(followeeId).orElseThrow().getName();
+
         // 예외처리 1. existsById시 유저가 존재 x    2. 자기자신은 팔로우 불가
         if (!userRepository.existsById(followeeId)) {
             throw UserNotFoundException.withId(followeeId);
@@ -56,6 +61,7 @@ public class FollowService {
         log.info("팔로우 저장 완료: id={}", savedFollow.getId());
 
         eventPublisher.publishEvent(new FollowCreatedEvent(followeeId, followerId)); // 캐시 무효화 이벤트
+        eventPublisher.publishEvent(new FollowedEvent(receiverId, followerName)); // 알림 발송
 
         return followMapper.toDto(savedFollow);
     }
