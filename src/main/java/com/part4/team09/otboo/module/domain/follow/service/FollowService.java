@@ -14,16 +14,17 @@ import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -54,8 +55,7 @@ public class FollowService {
 
         log.info("팔로우 저장 완료: id={}", savedFollow.getId());
 
-        // 캐시 무효화 이벤트 pub TODO: 팔로우 당한 사람(팔로이)한테 알림 발송 리스너 추가
-        eventPublisher.publishEvent(new FollowCreatedEvent(followeeId, followerId));
+        eventPublisher.publishEvent(new FollowCreatedEvent(followeeId, followerId)); // 캐시 무효화 이벤트
 
         return followMapper.toDto(savedFollow);
     }
