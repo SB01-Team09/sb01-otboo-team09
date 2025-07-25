@@ -16,7 +16,6 @@ public record ClothesCreateRequest(
 
   // 의상 이름
   @NotBlank(message = "의상 이름은 필수입니다.")
-  @Size(max = 50, message = "의상 이름은 50자 이하여야 합니다.")
   String name,
 
   // 의상 타입
