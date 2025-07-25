@@ -233,7 +233,7 @@ public class ClothesService {
       String name = doc.selectFirst("meta[property=og:title]").attr("content");
       String imageUrl = doc.selectFirst("meta[property=og:image]").attr("content");
 
-      return clothesMapper.toDto(null, userId, name, imageUrl, ClothesType.TOP, null, List.of());
+      return clothesMapper.toDto(null, userId, name, imageUrl, null, null, null);
     } catch (RuntimeException e) {
       throw ClothesNotFoundException.withUrl(url);
     }
