@@ -119,8 +119,8 @@ public class ClothesController {
 
     ClothesDto response = clothesService.extraction(userDetails.getId(), url);
 
-    log.info("구매 링크 의상 정보 불러오기 응답: name = {}, type = {}, attributeSize = {}, imageUrl = {}",
-        response.name(), response.type(), response.attributes().size(), response.imageUrl());
+    log.info("구매 링크 의상 정보 불러오기 응답: name = {}, type = {}, attribute = {}, imageUrl = {}",
+        response.name(), response.type(), response.attributes(), response.imageUrl());
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 }
