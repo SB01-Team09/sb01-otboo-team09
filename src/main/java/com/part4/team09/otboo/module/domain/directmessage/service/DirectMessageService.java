@@ -10,21 +10,20 @@ import com.part4.team09.otboo.module.domain.directmessage.entity.DirectMessage;
 import com.part4.team09.otboo.module.domain.directmessage.mapper.DirectMessageDtoAssembler;
 import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessageRepository;
 import com.part4.team09.otboo.module.domain.directmessage.repository.DirectMessageRepositoryQueryDSL;
-import com.part4.team09.otboo.module.domain.feed.entity.Feed;
-import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.notification.event.DirectMessageReceivedEvent;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
