@@ -65,7 +65,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     return CustomOAuth2User.create(authUserDto, attributes, userNameAttributeName);
   }
 
-  private SocialType getSocialType(String registrationId) {
+  protected SocialType getSocialType(String registrationId) {
     try {
       return SocialType.valueOf(registrationId.toUpperCase());
     } catch (IllegalArgumentException e) {
@@ -74,7 +74,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
   }
 
-  private User getOrCreateUser(SocialType socialType, OAuthAttributes oAuthAttributes) {
+  protected User getOrCreateUser(SocialType socialType, OAuthAttributes oAuthAttributes) {
     OAuth2UserDto oAuth2UserDto = oAuthAttributes.getOAuth2UserDto();
     String providerId = oAuth2UserDto.getId();
 
@@ -98,7 +98,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
   }
 
   // 새로운 유저 생성
-  private User createNewUserFromSocial(SocialType socialType, OAuthAttributes oAuthAttributes) {
+  protected User createNewUserFromSocial(SocialType socialType, OAuthAttributes oAuthAttributes) {
 
     OAuth2UserDto oAuth2UserDto = oAuthAttributes.getOAuth2UserDto();
     String dummyPassword = passwordEncoder.encode(UUID.randomUUID().toString());
@@ -109,11 +109,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     OAuthProvider oAuthProvider = OAuthProvider.create(savedUser.getId(), socialType,
       oAuth2UserDto.getId());
-
-    userRepository.save(user);
     oAuthProviderRepository.save(oAuthProvider);
 
-    return user;
+    return savedUser;
   }
 
   private User findUserByEmailOrThrow(String email) {
