@@ -97,7 +97,6 @@ class FollowServiceTest {
         ReflectionTestUtils.setField(mockFollower, "id", followerId);
         ReflectionTestUtils.setField(mockFollower, "profileImageUrl", null);
 
-
         when(userRepository.existsById(any(UUID.class))).thenReturn(true); // 유저가 정상적으로 존재할 때를 가정해줌
         lenient().when(userRepository.findById(followeeId)).thenReturn(Optional.of(mockFollowee));
         lenient().when(userRepository.findById(followerId)).thenReturn(Optional.of(mockFollower)); // CI 통과를 위한 stub이므로 예외로 stub 허용하기 위한 lenient
