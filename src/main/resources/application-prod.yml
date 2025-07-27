@@ -40,8 +40,8 @@ jwt:
 opensearch:
   host: ${OPENSEARCH_HOST}
   port: 443
+  ssl: true
+  verify_certs: true
   auth:
     username: ${OPENSEARCH_AUTH_USERNAME}
     password: ${OPENSEARCH_AUTH_PASSWORD}
-  ssl: true
-  verify_certs: true

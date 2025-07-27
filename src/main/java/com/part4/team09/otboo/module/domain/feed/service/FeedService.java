@@ -7,7 +7,6 @@ import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedListRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
-import com.part4.team09.otboo.module.domain.feed.event.FeedCreatedEvent;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
@@ -63,9 +62,9 @@ public class FeedService {
     Feed savedFeed = feedRepository.save(feed);
     ootdService.create(savedFeed.getId(), request.clothesIds());
 
-    // feedSearchIndexService.index(savedFeed); // 피드 생성시 OpenSearch 인덱싱
+    feedSearchIndexService.index(savedFeed); // 피드 생성시 OpenSearch 인덱싱
 
-    eventPublisher.publishEvent(new FeedCreatedEvent()); // 캐시 무효화 이벤트
+//    eventPublisher.publishEvent(new FeedCreatedEvent()); // 캐시 무효화 이벤트
     eventPublisher.publishEvent(
         new FeedCreatedFollowerEvent(
             request.authorId(),

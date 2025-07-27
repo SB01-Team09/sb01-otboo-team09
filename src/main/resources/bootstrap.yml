@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: otboo
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      secretsmanager:
+        enabled: true
+        default-context: prod/otboo/Keys
