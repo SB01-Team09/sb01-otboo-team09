@@ -41,6 +41,7 @@ logging:
     com.nimbusds.jwt: debug
     org.springframework.web.socket: debug
 
+# docker-compose 실행 필수
 opensearch:
   host: localhost
   port: 9200
