@@ -40,7 +40,7 @@ public class FollowService {
     public FollowDto create(UUID followeeId, UUID followerId) {
         // 알림 발송용 파라미터 준비
         UUID receiverId = followeeId;
-        String followerName = userRepository.findById(followeeId).orElseThrow().getName(); // TODO: followerId로 수정
+        String followerName = userRepository.findById(followerId).orElseThrow().getName();
 
         // 예외처리 1. existsById시 유저가 존재 x    2. 자기자신은 팔로우 불가
         if (!userRepository.existsById(followeeId)) {
