@@ -1,5 +1,6 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
+import com.part4.team09.otboo.module.domain.feed.document.FeedSearchDocument;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
@@ -29,7 +30,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -39,6 +44,8 @@ public class FeedService {
   private final FeedRepository feedRepository;
   private final FeedDtoAssembler feedDtoAssembler;
   private final FeedRepositoryQueryDSL feedRepositoryQueryDSL;
+  private final FeedSearchIndexService feedSearchIndexService;
+  private final FeedSearchService feedSearchService;
 
   private final OotdService ootdService;
 
@@ -59,6 +66,8 @@ public class FeedService {
     Feed savedFeed = feedRepository.save(feed);
     ootdService.create(savedFeed.getId(), request.clothesIds());
 
+    feedSearchIndexService.index(savedFeed); // 피드 생성시 OpenSearch 인덱싱
+
     eventPublisher.publishEvent(new FeedCreatedEvent()); // 캐시 무효화 이벤트
     eventPublisher.publishEvent(
         new FeedCreatedFollowerEvent(
@@ -78,6 +87,8 @@ public class FeedService {
     Feed feed = getFeedOrThrow(feedId);
     feed.update(request.content());
 
+    feedSearchIndexService.update(feed); // 피드 수정시 OpenSearch 인덱스 업데이트
+
     return feedDtoAssembler.assemble(feed, userId);
   }
 
@@ -90,6 +101,8 @@ public class FeedService {
     commentService.deleteAllByFeedId(feedId);
     likeService.deleteAllByFeedId(feedId);
 
+    feedSearchIndexService.delete(feedId); // 피드 삭제시 OpenSearch 인덱스 삭제
+
     eventPublisher.publishEvent(new FeedDeletedEvent(feedId)); // 캐시 무효화 이벤트
 
     feedRepository.deleteById(feedId);
@@ -100,28 +113,60 @@ public class FeedService {
   @Cacheable(value = "feeds", key = "'firstPage:' +  #request.sortBy()", condition = "#request.cursor() == null && #request.idAfter() == null") // 첫 페이지만 캐싱
   public FeedDtoCursorResponse getFeeds(UUID currentUserId, FeedListRequest request){
 
-    // 쿼리
-    // 피드 불러오기
+    // 검색어 있을 때는 OpenSearch 사용
+    boolean useOpenSearch = (
+            (request.keywordLike() != null && !request.keywordLike().isBlank()) ||
+                    request.skyStatusEqual() != null ||
+                    request.precipitationTypeEqual() != null ||
+                    request.authorIdEqual() != null
+    );
+
+    if (useOpenSearch) {
+      List<FeedSearchDocument> documents = feedSearchService.searchWithFilters(request);
+
+      List<UUID> feedIds = documents.stream()
+              .map(FeedSearchDocument::getId)
+              .toList();
+
+      List<Feed> feeds = feedRepository.findAllById(feedIds);
+
+      Map<UUID, Feed> feedMap = feeds.stream()
+              .collect(Collectors.toMap(Feed::getId, Function.identity()));
+
+      List<FeedDto> feedDtos = feedIds.stream()
+              .map(feedMap::get)
+              .filter(Objects::nonNull)
+              .map(feed -> feedDtoAssembler.assemble(feed, currentUserId))
+              .toList();
+
+      return new FeedDtoCursorResponse(
+              feedDtos,
+              null, // TODO: OpenSearch 페이징 처리
+              null,
+              false,
+              feedDtos.size(),
+              request.sortBy(),
+              request.sortDirection()
+      );
+    }
+
+    // 검색어 없으면 기존 DB 쿼리 방식 유지
     List<Feed> feeds = feedRepositoryQueryDSL.getFeeds(request);
     int totalCount = feedRepositoryQueryDSL.countFeeds(request);
 
-    // Dto 리스트로 변환
-    List<FeedDto> feedDtos = feeds.stream().map(feed -> feedDtoAssembler.assemble(feed, currentUserId)).toList();
+    List<FeedDto> feedDtos = feeds.stream()
+            .map(feed -> feedDtoAssembler.assemble(feed, currentUserId))
+            .toList();
 
-    // 반환
-    // hasNext
     boolean hasNext = feedDtos.size() > request.limit();
     if (hasNext) {
-      feedDtos = feedDtos.subList(0,request.limit());
+      feedDtos = feedDtos.subList(0, request.limit());
     }
 
-    // nextCursor, nextIdAfter
     String nextCursor = null;
     UUID nextIdAfter = null;
-    FeedDto lastFeedDto = null;
     if (hasNext && feedDtos.size() >= request.limit()) {
-      lastFeedDto = feedDtos.get(request.limit() - 1);
-
+      FeedDto lastFeedDto = feedDtos.get(request.limit() - 1);
       if (request.sortBy().equals("createdAt")) {
         nextCursor = lastFeedDto.createdAt().toString();
       } else if (request.sortBy().equals("likeCount")) {
@@ -130,8 +175,15 @@ public class FeedService {
       nextIdAfter = lastFeedDto.id();
     }
 
-    // 최종 반환
-    return new FeedDtoCursorResponse(feedDtos, nextCursor, nextIdAfter, hasNext, totalCount, request.sortBy(), request.sortDirection());
+    return new FeedDtoCursorResponse(
+            feedDtos,
+            nextCursor,
+            nextIdAfter,
+            hasNext,
+            totalCount,
+            request.sortBy(),
+            request.sortDirection()
+    );
   }
 
   private Feed getFeedOrThrow(UUID feedId) {
