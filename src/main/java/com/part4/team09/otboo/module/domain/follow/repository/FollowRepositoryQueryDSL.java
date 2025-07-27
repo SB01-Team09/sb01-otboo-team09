@@ -29,7 +29,7 @@ public class FollowRepositoryQueryDSL {
                 .join(user).on(follow.followeeId.eq(user.id))
                 .where(
                         follow.followerId.eq(request.userId()), // followerId
-                        user.name.likeIgnoreCase("%" + request.nameLike() + "%"),
+                        nameLikeCondition(request.nameLike()),
                         cursorCondition(request.cursor(), request.idAfter()) // null일 때 처리를 위해 메서드로 따로 뺐습니다
                 )
                 .orderBy(follow.createdAt.desc(), follow.id.desc())
@@ -44,7 +44,7 @@ public class FollowRepositoryQueryDSL {
                 .join(user).on(follow.followerId.eq(user.id))
                 .where(
                         follow.followeeId.eq(request.userId()), // followeeId
-                        user.name.likeIgnoreCase("%" + request.nameLike() + "%"),
+                        nameLikeCondition(request.nameLike()),
                         cursorCondition(request.cursor(), request.idAfter()) // null일 때 처리를 위해 메서드로 따로 뺐습니다
                 )
                 .orderBy(follow.createdAt.desc(), follow.id.desc())
@@ -61,7 +61,7 @@ public class FollowRepositoryQueryDSL {
                 .join(user).on(follow.followeeId.eq(user.id))
                 .where(
                         follow.followerId.eq(followerId),
-                        user.name.likeIgnoreCase("%" + nameLike + "%")
+                        nameLikeCondition(nameLike)
                 )
                 .fetchOne();
 
@@ -78,13 +78,20 @@ public class FollowRepositoryQueryDSL {
                 .join(user).on(follow.followerId.eq(user.id))
                 .where(
                         follow.followeeId.eq(followeeId),
-                        user.name.likeIgnoreCase("%" + nameLike + "%")
+                        nameLikeCondition(nameLike)
                 )
                 .fetchOne();
 
         return count != null ? Math.toIntExact(count) : 0;
     }
 
+    // nameLike이 비었을 때 조건 null 처리
+    private BooleanExpression nameLikeCondition(String nameLike) {
+        if (nameLike == null || nameLike.trim().isEmpty()) {
+            return null;
+        }
+        return user.name.likeIgnoreCase("%" + nameLike.trim() + "%");
+    }
 
     // 검색어 팔로잉 조회 커서조건
     private BooleanExpression cursorCondition(LocalDateTime cursor, UUID idAfter) {
