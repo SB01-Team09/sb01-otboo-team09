@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import com.part4.team09.otboo.module.common.security.constants.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomOAuth2User;
 import com.part4.team09.otboo.module.common.util.CookieUtil;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;

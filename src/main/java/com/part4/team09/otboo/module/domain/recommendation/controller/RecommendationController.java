@@ -1,6 +1,6 @@
 package com.part4.team09.otboo.module.domain.recommendation.controller;
 
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.recommendation.dto.response.RecommendationDto;
 import com.part4.team09.otboo.module.domain.recommendation.service.RecommendationService;
 import java.util.UUID;

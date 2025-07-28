@@ -13,22 +13,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
-import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
-import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
-import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
+import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
+import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.service.CommentService;
 import com.part4.team09.otboo.module.domain.feed.service.FeedService;
 import com.part4.team09.otboo.module.domain.feed.service.LikeService;
-import com.part4.team09.otboo.module.domain.user.dto.UserDto;
-import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
-import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -78,23 +75,23 @@ class FeedControllerTest {
       List<OotdDto> ootdDtos = List.of();
 
       FeedCreateRequest request = new FeedCreateRequest(
-          userId,
-          UUID.randomUUID(),
-          List.of(UUID.randomUUID()),
-          "content"
+        userId,
+        UUID.randomUUID(),
+        List.of(UUID.randomUUID()),
+        "content"
       );
 
       FeedDto feedDto = new FeedDto(
-          feedId,
-          LocalDateTime.now(),
-          LocalDateTime.now(),
-          mockAuthorDto,
-          mockWeather,
-          ootdDtos,
-          "content",
-          0,
-          0,
-          false
+        feedId,
+        LocalDateTime.now(),
+        LocalDateTime.now(),
+        mockAuthorDto,
+        mockWeather,
+        ootdDtos,
+        "content",
+        0,
+        0,
+        false
       );
 
       given(userDetails.getId()).willReturn(userId);
@@ -102,13 +99,13 @@ class FeedControllerTest {
 
       // when & then
       mockMvc.perform(post("/api/feeds")
-              .contentType(MediaType.APPLICATION_JSON)
-              .with(user(userDetails))
-              .content(objectMapper.writeValueAsString(request))
-              .with(csrf()))
-          .andExpect(status().isCreated())
-          .andExpect(jsonPath("$.id").value(feedId.toString()))
-          .andExpect(jsonPath("$.content").value("content"));
+          .contentType(MediaType.APPLICATION_JSON)
+          .with(user(userDetails))
+          .content(objectMapper.writeValueAsString(request))
+          .with(csrf()))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").value(feedId.toString()))
+        .andExpect(jsonPath("$.content").value("content"));
     }
   }
 
@@ -124,28 +121,28 @@ class FeedControllerTest {
       AuthorDto mockAuthorDto = mock(AuthorDto.class);
 
       CommentCreateRequest request = new CommentCreateRequest(
-          feedId,
-          UUID.randomUUID(),
-          "content"
+        feedId,
+        UUID.randomUUID(),
+        "content"
       );
 
       CommentDto commentDto = new CommentDto(
-          UUID.randomUUID(),
-          LocalDateTime.now(),
-          feedId,
-          mockAuthorDto,
-          "content"
+        UUID.randomUUID(),
+        LocalDateTime.now(),
+        feedId,
+        mockAuthorDto,
+        "content"
       );
 
       given(commentService.create(feedId, request)).willReturn(commentDto);
 
       // when & then
       mockMvc.perform(post("/api/feeds/{feedId}/comments", feedId)
-              .contentType(MediaType.APPLICATION_JSON)
-              .content(objectMapper.writeValueAsString(request))
-              .with(csrf()))
-          .andExpect(status().isCreated())
-          .andExpect(jsonPath("$.content").value("content"));
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request))
+          .with(csrf()))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.content").value("content"));
     }
   }
 
@@ -166,16 +163,16 @@ class FeedControllerTest {
       List<OotdDto> ootdDtos = List.of();
 
       FeedDto feedDto = new FeedDto(
-          feedId,
-          LocalDateTime.now(),
-          LocalDateTime.now(),
-          mockAuthorDto,
-          mockWeather,
-          ootdDtos,
-          "content",
-          0,
-          0,
-          false
+        feedId,
+        LocalDateTime.now(),
+        LocalDateTime.now(),
+        mockAuthorDto,
+        mockWeather,
+        ootdDtos,
+        "content",
+        0,
+        0,
+        false
       );
 
       given(userDetails.getId()).willReturn(userId);
@@ -183,12 +180,12 @@ class FeedControllerTest {
 
       // when & then
       mockMvc.perform(post("/api/feeds/{feedId}/like", feedId)
-              .contentType(MediaType.APPLICATION_JSON)
-              .with(user(userDetails))
-              .with(csrf()))
-          .andExpect(status().isCreated())
-          .andExpect(jsonPath("$.id").value(feedId.toString()))
-          .andExpect(jsonPath("$.content").value("content"));
+          .contentType(MediaType.APPLICATION_JSON)
+          .with(user(userDetails))
+          .with(csrf()))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").value(feedId.toString()))
+        .andExpect(jsonPath("$.content").value("content"));
     }
   }
 
@@ -211,16 +208,16 @@ class FeedControllerTest {
       FeedUpdateRequest request = new FeedUpdateRequest("newContent");
 
       FeedDto feedDto = new FeedDto(
-          feedId,
-          LocalDateTime.now(),
-          LocalDateTime.now(),
-          mockAuthorDto,
-          mockWeather,
-          ootdDtos,
-          "newContent",
-          0,
-          0,
-          false
+        feedId,
+        LocalDateTime.now(),
+        LocalDateTime.now(),
+        mockAuthorDto,
+        mockWeather,
+        ootdDtos,
+        "newContent",
+        0,
+        0,
+        false
       );
 
       given(userDetails.getId()).willReturn(userId);
@@ -228,13 +225,13 @@ class FeedControllerTest {
 
       // when & then
       mockMvc.perform(patch("/api/feeds/{feedId}", feedId)
-              .contentType(MediaType.APPLICATION_JSON)
-              .with(user(userDetails))
-              .content(objectMapper.writeValueAsString(request))
-              .with(csrf()))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.id").value(feedId.toString()))
-          .andExpect(jsonPath("$.content").value("newContent"));
+          .contentType(MediaType.APPLICATION_JSON)
+          .with(user(userDetails))
+          .content(objectMapper.writeValueAsString(request))
+          .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(feedId.toString()))
+        .andExpect(jsonPath("$.content").value("newContent"));
     }
   }
 
@@ -250,9 +247,9 @@ class FeedControllerTest {
 
       // when & then
       mockMvc.perform(delete("/api/feeds/{feedId}", feedId)
-              .contentType(MediaType.APPLICATION_JSON)
-              .with(csrf()))
-          .andExpect(status().isNoContent());
+          .contentType(MediaType.APPLICATION_JSON)
+          .with(csrf()))
+        .andExpect(status().isNoContent());
     }
   }
 
@@ -273,10 +270,10 @@ class FeedControllerTest {
 
       // when & then
       mockMvc.perform(delete("/api/feeds/{feedId}/like", feedId)
-              .contentType(MediaType.APPLICATION_JSON)
-              .with(user(userDetails))
-              .with(csrf()))
-          .andExpect(status().isNoContent());
+          .contentType(MediaType.APPLICATION_JSON)
+          .with(user(userDetails))
+          .with(csrf()))
+        .andExpect(status().isNoContent());
     }
   }
 }

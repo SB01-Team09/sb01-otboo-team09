@@ -1,13 +1,13 @@
 package com.part4.team09.otboo.module.domain.feed.controller;
 
 import com.part4.team09.otboo.module.common.enums.SortDirection;
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
+import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDtoCursorResponse;
+import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.dto.FeedDtoCursorResponse;
 import com.part4.team09.otboo.module.domain.feed.dto.request.CommentCreateRequest;
-import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
-import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedListRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.service.CommentService;
@@ -16,15 +16,22 @@ import com.part4.team09.otboo.module.domain.feed.service.LikeService;
 import com.part4.team09.otboo.module.domain.weather.entity.Precipitation;
 import com.part4.team09.otboo.module.domain.weather.entity.Weather;
 import jakarta.validation.Valid;
-import java.util.UUID;
-
 import jakarta.validation.constraints.Min;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/feeds")
@@ -38,29 +45,29 @@ public class FeedController {
   @PreAuthorize("principal.id == #request.authorId")
   @PostMapping
   public ResponseEntity<FeedDto> createFeed(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
-      @RequestBody @Valid FeedCreateRequest request
+    @AuthenticationPrincipal CustomUserDetails userDetails,
+    @RequestBody @Valid FeedCreateRequest request
   ) {
     UUID userId = userDetails.getId();
     FeedDto feedDto = feedService.create(userId, request);
 
     return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .body(feedDto);
+      .status(HttpStatus.CREATED)
+      .body(feedDto);
   }
 
   @PatchMapping("/{feedId}")
   public ResponseEntity<FeedDto> updateFeed(
-      @PathVariable UUID feedId,
-      @AuthenticationPrincipal CustomUserDetails userDetails,
-      @RequestBody @Valid FeedUpdateRequest request
+    @PathVariable UUID feedId,
+    @AuthenticationPrincipal CustomUserDetails userDetails,
+    @RequestBody @Valid FeedUpdateRequest request
   ) {
     UUID userId = userDetails.getId();
     FeedDto feedDto = feedService.update(feedId, userId, request);
 
     return ResponseEntity
-        .status(HttpStatus.OK)
-        .body(feedDto);
+      .status(HttpStatus.OK)
+      .body(feedDto);
   }
 
   @DeleteMapping("/{feedId}")
@@ -68,83 +75,84 @@ public class FeedController {
     feedService.delete(feedId);
 
     return ResponseEntity
-        .status(HttpStatus.NO_CONTENT)
-        .build();
+      .status(HttpStatus.NO_CONTENT)
+      .build();
   }
 
   // 피드 목록 조회
   @GetMapping
   public ResponseEntity<FeedDtoCursorResponse> getFeeds(
-          @AuthenticationPrincipal CustomUserDetails currentUser,
-          @RequestParam(required = false) String cursor,
-          @RequestParam(required = false) UUID idAfter,
-          @RequestParam(defaultValue = "20") @Min(value = 1, message = "limit은 0보다 커야합니다.") int limit,
-          @RequestParam(defaultValue = "createdAt") String sortBy,
-          @RequestParam(defaultValue = "DESCENDING") SortDirection sortDirection,
-          @RequestParam(required = false) String keywordLike,
-          @RequestParam(required = false) Weather.SkyStatus skyStatusEqual,
-          @RequestParam(required = false) Precipitation.PrecipitationType precipitationTypeEqual,
-          @RequestParam(required = false) UUID authorIdEqual){
+    @AuthenticationPrincipal CustomUserDetails currentUser,
+    @RequestParam(required = false) String cursor,
+    @RequestParam(required = false) UUID idAfter,
+    @RequestParam(defaultValue = "20") @Min(value = 1, message = "limit은 0보다 커야합니다.") int limit,
+    @RequestParam(defaultValue = "createdAt") String sortBy,
+    @RequestParam(defaultValue = "DESCENDING") SortDirection sortDirection,
+    @RequestParam(required = false) String keywordLike,
+    @RequestParam(required = false) Weather.SkyStatus skyStatusEqual,
+    @RequestParam(required = false) Precipitation.PrecipitationType precipitationTypeEqual,
+    @RequestParam(required = false) UUID authorIdEqual) {
 
-      FeedListRequest request = new FeedListRequest(cursor, idAfter, limit, sortBy, sortDirection, keywordLike, skyStatusEqual, precipitationTypeEqual, authorIdEqual);
-      FeedDtoCursorResponse response = feedService.getFeeds(currentUser.getId(), request);
+    FeedListRequest request = new FeedListRequest(cursor, idAfter, limit, sortBy, sortDirection,
+      keywordLike, skyStatusEqual, precipitationTypeEqual, authorIdEqual);
+    FeedDtoCursorResponse response = feedService.getFeeds(currentUser.getId(), request);
 
     return ResponseEntity
-            .status(HttpStatus.OK)
-            .body(response);
+      .status(HttpStatus.OK)
+      .body(response);
   }
 
   @PreAuthorize("principal.id == #request.authorId")
   @PostMapping("/{feedId}/comments")
   public ResponseEntity<CommentDto> createComment(
-      @PathVariable UUID feedId,
-      @RequestBody @Valid CommentCreateRequest request
+    @PathVariable UUID feedId,
+    @RequestBody @Valid CommentCreateRequest request
   ) {
     CommentDto commentDto = commentService.create(feedId, request);
 
     return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .body(commentDto);
+      .status(HttpStatus.CREATED)
+      .body(commentDto);
   }
 
   // 댓글 목록 조회
   @GetMapping("/{feedId}/comments")
   public ResponseEntity<CommentDtoCursorResponse> getComments(
-          @RequestParam UUID feedId,
-          @RequestParam(required = false) String cursor,
-          @RequestParam(required = false) UUID idAfter,
-          @RequestParam(defaultValue = "10") int limit
-  ){
+    @RequestParam UUID feedId,
+    @RequestParam(required = false) String cursor,
+    @RequestParam(required = false) UUID idAfter,
+    @RequestParam(defaultValue = "10") int limit
+  ) {
     CommentDtoCursorResponse response = commentService.getComments(feedId, cursor, idAfter, limit);
 
     return ResponseEntity
-            .status(HttpStatus.OK)
-            .body(response);
+      .status(HttpStatus.OK)
+      .body(response);
   }
 
   @PostMapping("/{feedId}/like")
   public ResponseEntity<FeedDto> createLike(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
-      @PathVariable UUID feedId
+    @AuthenticationPrincipal CustomUserDetails userDetails,
+    @PathVariable UUID feedId
   ) {
     UUID userId = userDetails.getId();
     FeedDto feedDto = likeService.create(userId, feedId);
 
     return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .body(feedDto);
+      .status(HttpStatus.CREATED)
+      .body(feedDto);
   }
 
   @DeleteMapping("/{feedId}/like")
   public ResponseEntity<Void> deleteLike(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
-      @PathVariable UUID feedId
+    @AuthenticationPrincipal CustomUserDetails userDetails,
+    @PathVariable UUID feedId
   ) {
     UUID userId = userDetails.getId();
     likeService.delete(userId, feedId);
 
     return ResponseEntity
-        .status(HttpStatus.NO_CONTENT)
-        .build();
+      .status(HttpStatus.NO_CONTENT)
+      .build();
   }
 }

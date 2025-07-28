@@ -10,6 +10,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.part4.team09.otboo.module.common.security.basic.CustomDaoAuthenticationProvider;
+import com.part4.team09.otboo.module.common.security.basic.CustomUserDetailsService;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.entity.UserTempPassword;
 import com.part4.team09.otboo.module.domain.auth.repository.UserTempPasswordRepository;

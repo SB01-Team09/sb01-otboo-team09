@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.common.security;
+package com.part4.team09.otboo.module.common.security.userdetails;
 
 import com.part4.team09.otboo.module.common.security.constants.LoginType;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;

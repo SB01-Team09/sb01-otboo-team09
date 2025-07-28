@@ -1,5 +1,6 @@
-package com.part4.team09.otboo.module.common.security;
+package com.part4.team09.otboo.module.common.security.basic;
 
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
 import com.part4.team09.otboo.module.domain.auth.entity.UserTempPassword;
 import com.part4.team09.otboo.module.domain.auth.repository.UserTempPasswordRepository;

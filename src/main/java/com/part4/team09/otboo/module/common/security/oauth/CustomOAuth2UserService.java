@@ -1,9 +1,9 @@
 package com.part4.team09.otboo.module.common.security.oauth;
 
 import com.part4.team09.otboo.module.common.security.oauth.dto.OAuth2UserDto;
-import com.part4.team09.otboo.module.common.security.oauth.dto.OAuthAttributes;
 import com.part4.team09.otboo.module.common.security.oauth.entity.OAuthProvider;
 import com.part4.team09.otboo.module.common.security.oauth.entity.OAuthProvider.SocialType;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomOAuth2User;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.mapper.AuthUserMapper;
 import com.part4.team09.otboo.module.domain.user.entity.User;
