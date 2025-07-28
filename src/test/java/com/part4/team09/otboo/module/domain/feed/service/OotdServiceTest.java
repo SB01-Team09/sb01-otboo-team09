@@ -67,7 +67,7 @@ class OotdServiceTest {
 
     @Test
     @DisplayName("오오티디 생성 실패 - 존재하지 않는 의상 ID")
-    void create_feed_throwsClothesNotFoundException_whenClothesDoseNotExist() {
+    void create_ootd_throwsClothesNotFoundException_whenClothesDoseNotExist() {
       // given
       UUID feedId = UUID.randomUUID();
       UUID nonExistClothesId = UUID.randomUUID();
@@ -108,6 +108,21 @@ class OotdServiceTest {
 
       //then
       assertThat(result).isEqualTo(ootdDtos);
+    }
+
+    @Test
+    @DisplayName("오오티디 조회 실패 - 존재하지 않는 의상 ID")
+    void get_ootds_throwsClothesNotFoundException_whenClothesDoseNotExist() {
+      // given
+      UUID feedId = UUID.randomUUID();
+      UUID nonExistClothesId = UUID.randomUUID();
+      List<UUID> clothesIds = List.of(nonExistClothesId);
+
+      given(clothesRepository.findAllById(clothesIds)).willReturn(List.of());
+
+      // when & then
+      assertThrows(ClothesNotFoundException.class,
+          () -> ootdService.create(feedId, clothesIds));
     }
   }
 
