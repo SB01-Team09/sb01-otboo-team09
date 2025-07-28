@@ -201,4 +201,22 @@ class LikeServiceTest {
           () -> likeService.delete(userId, feedId));
     }
   }
+
+  @Nested
+  @DisplayName("피드 아이디로 좋아요 모두 삭제")
+  public class DeleteAllByFeedIdTest {
+
+    @Test
+    @DisplayName("좋아요 삭제 성공")
+    void delete_all_by_feedId_success() {
+      // given
+      UUID feedId = UUID.randomUUID();
+
+      // when
+      likeService.deleteAllByFeedId(feedId);
+
+      // then
+      verify(likeRepository).deleteAllByFeedId(feedId);
+    }
+  }
 }
