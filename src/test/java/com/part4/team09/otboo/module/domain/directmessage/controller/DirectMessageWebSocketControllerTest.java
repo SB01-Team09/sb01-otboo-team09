@@ -112,7 +112,8 @@ class DirectMessageWebSocketControllerTest {
 
       // when & then
       assertThatThrownBy(() -> directMessageWebSocketController.send(request, principal))
-          .isInstanceOf(AccessDeniedException.class);
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessage("본인만 메시지를 보낼 수 있습니다.");
     }
   }
 
