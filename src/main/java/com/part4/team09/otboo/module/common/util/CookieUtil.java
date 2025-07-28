@@ -1,6 +1,6 @@
 package com.part4.team09.otboo.module.common.util;
 
-import com.part4.team09.otboo.module.common.security.AuthCookieNames;
+import com.part4.team09.otboo.module.common.security.constants.AuthCookieNames;
 import jakarta.servlet.http.Cookie;
 
 public class CookieUtil {

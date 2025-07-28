@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.config.TestSseServiceConfig;
+import com.part4.team09.otboo.module.common.security.constants.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.jwt.AuthTokenRepository;
 import com.part4.team09.otboo.module.domain.auth.dto.LoginRequest;
 import com.part4.team09.otboo.module.domain.user.entity.User;

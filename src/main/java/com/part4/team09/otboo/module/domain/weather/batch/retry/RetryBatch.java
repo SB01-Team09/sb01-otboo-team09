@@ -1,8 +1,6 @@
 package com.part4.team09.otboo.module.domain.weather.batch.retry;
 
 import com.part4.team09.otboo.module.common.monitoring.BatchMonitoringListener;
-import com.part4.team09.otboo.module.domain.location.repository.DongRepository;
-import com.part4.team09.otboo.module.domain.weather.batch.WeatherCache;
 import com.part4.team09.otboo.module.domain.weather.batch.WeatherProcessor;
 import com.part4.team09.otboo.module.domain.weather.batch.WeatherReader;
 import com.part4.team09.otboo.module.domain.weather.batch.WeatherWriter;
@@ -11,7 +9,6 @@ import com.part4.team09.otboo.module.domain.weather.dto.WeatherApiData;
 import com.part4.team09.otboo.module.domain.weather.dto.WeatherData;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherReadException;
 import com.part4.team09.otboo.module.domain.weather.external.WeatherApiClient;
-import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -30,9 +27,6 @@ public class RetryBatch {
   private final WeatherProcessor weatherProcessor;
   private final WeatherWriter weatherWriter;
   private final WeatherApiClient weatherApiClient;
-  private final DongRepository dongRepository;
-  private final WeatherRepository weatherRepository;
-  private final WeatherCache weatherCache;
   private final FailedLocationReader failedLocationReader;
   private final BatchMonitoringListener batchMonitoringListener;
   private final RetryJobListener retryJobListener;

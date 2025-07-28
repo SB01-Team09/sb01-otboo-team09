@@ -1,6 +1,9 @@
-package com.part4.team09.otboo.module.common.security.oauth.dto;
+package com.part4.team09.otboo.module.common.security.oauth;
 
-import com.part4.team09.otboo.module.common.security.oauth.OAuthProvider.SocialType;
+import com.part4.team09.otboo.module.common.security.oauth.dto.GoogleOAuth2UserDto;
+import com.part4.team09.otboo.module.common.security.oauth.dto.KakaoOAuth2UserDto;
+import com.part4.team09.otboo.module.common.security.oauth.dto.OAuth2UserDto;
+import com.part4.team09.otboo.module.common.security.oauth.entity.OAuthProvider.SocialType;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
