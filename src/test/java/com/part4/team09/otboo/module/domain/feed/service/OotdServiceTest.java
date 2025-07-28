@@ -1,5 +1,7 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -7,8 +9,12 @@ import static org.mockito.Mockito.verify;
 
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
+import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
+import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
+import com.part4.team09.otboo.module.domain.feed.exception.like.LikeAlreadyExistsException;
+import com.part4.team09.otboo.module.domain.feed.mapper.OotdDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.mapper.OotdMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
 import java.util.List;
@@ -28,7 +34,7 @@ class OotdServiceTest {
   private OotdRepository ootdRepository;
 
   @Mock
-  private OotdMapper ootdMapper;
+  private OotdDtoAssembler ootdDtoAssembler;
 
   @Mock
   private ClothesRepository clothesRepository;
@@ -57,6 +63,51 @@ class OotdServiceTest {
 
       // then
       verify(ootdRepository).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("오오티디 생성 실패 - 존재하지 않는 의상 ID")
+    void create_feed_throwsClothesNotFoundException_whenClothesDoseNotExist() {
+      // given
+      UUID feedId = UUID.randomUUID();
+      UUID nonExistClothesId = UUID.randomUUID();
+      List<UUID> clothesIds = List.of(nonExistClothesId);
+
+      given(clothesRepository.findAllById(clothesIds)).willReturn(List.of());
+
+      // when & then
+      assertThrows(ClothesNotFoundException.class,
+          () -> ootdService.create(feedId, clothesIds));
+    }
+  }
+
+  @Nested
+  @DisplayName("오오티디 조회")
+  public class GetOotdsTest {
+
+    @Test
+    @DisplayName("오오티디 조회 성공")
+    void get_ootds_success() {
+      // given
+      UUID feedId = UUID.randomUUID();
+      UUID clothesId = UUID.randomUUID();
+      Clothes mockClothes = mock(Clothes.class);
+      OotdDto mockOotdDto = mock(OotdDto.class);
+
+      List<UUID> clothesIds = List.of(clothesId);
+      List<Clothes> clothes = List.of(mockClothes);
+      List<OotdDto> ootdDtos = List.of(mockOotdDto);
+
+      given(ootdRepository.findClothesIdsByFeedId(feedId)).willReturn(clothesIds);
+      given(clothesRepository.findAllById(clothesIds)).willReturn(clothes);
+      given(mockClothes.getId()).willReturn(clothesId);
+      given(ootdDtoAssembler.assemble(clothes)).willReturn(ootdDtos);
+
+      // when
+      List<OotdDto> result = ootdService.getOotds(feedId);
+
+      //then
+      assertThat(result).isEqualTo(ootdDtos);
     }
   }
 
