@@ -251,5 +251,6 @@ CREATE TABLE user_temp_passwords
     created_at         TIMESTAMP NOT NULL
 );
 
-CREATE INDEX idx_selectable_value_attribute_def_id ON selectable_values (attribute_def_id);
 CREATE INDEX idx_clothes_attribute_clothes_id ON clothes_attributes (clothes_id);
+CREATE INDEX idx_clothes_owner_type_created_id ON clothes (owner_id, type, created_at, id);
+CREATE INDEX idx_clothes_owner_type_name_id ON clothes (owner_id, type, name, id);
