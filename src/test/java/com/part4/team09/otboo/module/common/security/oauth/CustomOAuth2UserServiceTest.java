@@ -8,10 +8,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.part4.team09.otboo.module.common.security.oauth.OAuthProvider.SocialType;
 import com.part4.team09.otboo.module.common.security.oauth.dto.GoogleOAuth2UserDto;
 import com.part4.team09.otboo.module.common.security.oauth.dto.OAuth2UserDto;
 import com.part4.team09.otboo.module.common.security.oauth.dto.OAuthAttributes;
+import com.part4.team09.otboo.module.common.security.oauth.entity.OAuthProvider;
+import com.part4.team09.otboo.module.common.security.oauth.entity.OAuthProvider.SocialType;
 import com.part4.team09.otboo.module.domain.auth.mapper.AuthUserMapper;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
