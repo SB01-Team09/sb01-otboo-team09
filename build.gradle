@@ -32,6 +32,9 @@ jacocoTestReport {
               'com/part4/team09/otboo/module/domain/**/assembler/**',
               'com/part4/team09/otboo/module/domain/**/exception/**',
               'com/part4/team09/otboo/module/domain/notification/event/*Event.class',
+              'com/part4/team09/otboo/module/domain/weather/batch/listener/**',
+              'com/part4/team09/otboo/module/domain/weather/batch/retry/*Launcher.class',
+              'com/part4/team09/otboo/module/domain/weather/batch/*Launcher.class',
               'com/part4/team09/otboo/module/domain/**/Q*.class'
       ])
     }))
