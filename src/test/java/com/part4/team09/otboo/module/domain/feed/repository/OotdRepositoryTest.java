@@ -41,4 +41,26 @@ class OotdRepositoryTest {
     // then
     assertThat(result).containsExactly(clothesId);
   }
+
+  @Test
+  void deleteAllByFeedId() {
+    // given
+    UUID feedId1 = UUID.randomUUID();
+    UUID feedId2 = UUID.randomUUID();
+    UUID clothesId = UUID.randomUUID();
+
+    entityManager.persist(Ootd.create(feedId1, clothesId));
+    entityManager.persist(Ootd.create(feedId2, clothesId));
+    entityManager.flush();
+
+    // when
+    ootdRepository.deleteAllByFeedId(feedId1);
+    entityManager.flush();
+    entityManager.clear();
+
+    // then
+    List<Ootd> remaining = ootdRepository.findAll();
+    assertThat(remaining).hasSize(1);
+    assertThat(remaining.get(0).getFeedId()).isEqualTo(feedId2);
+  }
 }
