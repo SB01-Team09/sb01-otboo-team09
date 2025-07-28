@@ -1,6 +1,7 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -24,8 +25,10 @@ import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.user.entity.User;
+import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
+import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundException;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -120,6 +123,48 @@ class FeedServiceTest {
       // then
       assertThat(result).isEqualTo(feedDto);
       verify(feedRepository).save(any());
+    }
+
+    @Test
+    @DisplayName("피드 생성 실패 - 존재하지 않는 날씨 ID")
+    void create_feed_throwsWeatherNotFoundException_whenWeatherDoseNotExist() {
+      // given
+      UUID nonExistWeatherId = UUID.randomUUID();
+      UUID userId = UUID.randomUUID();
+      User mockUser = mock(User.class);
+
+      FeedCreateRequest request = new FeedCreateRequest(
+          userId,
+          UUID.randomUUID(),
+          List.of(),
+          "content"
+      );
+
+      given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
+
+      // when & then
+      assertThrows(WeatherNotFoundException.class,
+          () -> feedService.create(userId, request));
+    }
+
+    @Test
+    @DisplayName("피드 생성 실패 - 존재하지 않는 유저 ID")
+    void create_feed_throwsUserNotFoundException_whenUserDoseNotExist() {
+      // given
+      UUID nonExistUserId = UUID.randomUUID();
+
+      FeedCreateRequest request = new FeedCreateRequest(
+          nonExistUserId,
+          UUID.randomUUID(),
+          List.of(),
+          "content"
+      );
+
+      given(userRepository.findById(nonExistUserId)).willReturn(Optional.empty());
+
+      // when & then
+      assertThrows(UserNotFoundException.class,
+          () -> feedService.create(nonExistUserId, request));
     }
   }
 
@@ -288,7 +333,6 @@ class FeedServiceTest {
     }
   }
 
-
   @Nested
   @DisplayName("피드 삭제")
   public class DeleteFeedTest {
@@ -298,8 +342,9 @@ class FeedServiceTest {
     void delete_feed_success() {
       // given
       UUID feedId = UUID.randomUUID();
+      Feed mockFeed = mock(Feed.class);
 
-      given(feedRepository.existsById(feedId)).willReturn(true);
+      given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
       doNothing().when(eventPublisher).publishEvent(any(FeedDeletedEvent.class));
 
       // when
