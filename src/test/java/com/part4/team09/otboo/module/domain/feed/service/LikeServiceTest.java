@@ -13,6 +13,7 @@ import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.entity.Like;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
+import com.part4.team09.otboo.module.domain.feed.exception.like.LikeAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.feed.exception.like.LikeNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
@@ -83,6 +84,7 @@ class LikeServiceTest {
           true
       );
 
+      given(likeRepository.existsByUserIdAndFeedId(userId, feedId)).willReturn(false);
       given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
       given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
       given(feedDtoAssembler.assemble(feedId, userId)).willReturn(feedDto);
@@ -93,6 +95,20 @@ class LikeServiceTest {
       // then
       assertThat(result).isEqualTo(feedDto);
       verify(likeRepository).save(any());
+    }
+
+    @Test
+    @DisplayName("좋아요 생성 실패 - 이미 존재하는 좋아요")
+    void create_like_throwsLikeAlreadyExistsException_whenLikeAlreadyExist() {
+      // given
+      UUID feedId = UUID.randomUUID();
+      UUID userId = UUID.randomUUID();
+
+      given(likeRepository.existsByUserIdAndFeedId(userId, feedId)).willReturn(true);
+
+      // when & then
+      assertThrows(LikeAlreadyExistsException.class,
+          () -> likeService.create(userId, feedId));
     }
 
     @Test
