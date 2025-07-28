@@ -84,7 +84,7 @@ public class FeedService {
   @PreAuthorize("hasRole('ADMIN') or @feedPermissionEvaluator.isFeedAuthor(principal.id, #feedId)")
   @Transactional
   public void delete(UUID feedId) {
-    validateFeedExists(feedId);
+    getFeedOrThrow(feedId);
 
     ootdService.deleteAllByFeedId(feedId);
     commentService.deleteAllByFeedId(feedId);
@@ -142,12 +142,6 @@ public class FeedService {
   private User getUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
         .orElseThrow(() -> UserNotFoundException.withId(userId));
-  }
-
-  private void validateFeedExists(UUID feedId) {
-    if (!feedRepository.existsById(feedId)) {
-      throw FeedNotFoundException.withId(feedId);
-    }
   }
 
   private void validateWeatherExists(UUID weatherId) {
