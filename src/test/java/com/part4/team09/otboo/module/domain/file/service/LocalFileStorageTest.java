@@ -86,5 +86,36 @@ class LocalFileStorageTest {
       assertThat(path).isNull();
     }
   }
+
+  @Nested
+  @DisplayName("파일 삭제")
+  class removeFile {
+
+    @Test
+    @DisplayName("파일 경로 추출이 Null 이면 true 반환")
+    void remove_returnsTrue_whenPathIsNull() {
+      // given
+      String wrongUrl = "wrong/test.png";
+
+      // when
+      boolean result = localFileStorage.remove(wrongUrl);
+
+      // then
+      assertThat(result).isTrue();
+    }
+
+//    @Test
+//    @DisplayName("파일 경로 추출이 Null 이면 true 반환")
+//    void remove_returnsTrue_whenPathIsNull() {
+//      // given
+//      String wrongUrl = "wrong/test.png";
+//
+//      // when + then
+//      boolean result = localFileStorage.remove(wrongUrl);
+//
+//      assertThat(result).isTrue();
+//    }
+  }
+
 }
 

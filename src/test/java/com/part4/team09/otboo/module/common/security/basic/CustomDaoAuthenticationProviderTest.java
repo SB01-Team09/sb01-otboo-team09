@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.common.security;
+package com.part4.team09.otboo.module.common.security.basic;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -10,8 +10,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.part4.team09.otboo.module.common.security.basic.CustomDaoAuthenticationProvider;
-import com.part4.team09.otboo.module.common.security.basic.CustomUserDetailsService;
 import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.entity.UserTempPassword;
