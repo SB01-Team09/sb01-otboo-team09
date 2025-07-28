@@ -223,7 +223,7 @@ class LikeServiceTest {
   public class DeleteAllByFeedIdTest {
 
     @Test
-    @DisplayName("좋아요 삭제 성공")
+    @DisplayName("좋아요 모두 삭제 성공")
     void delete_all_by_feedId_success() {
       // given
       UUID feedId = UUID.randomUUID();
