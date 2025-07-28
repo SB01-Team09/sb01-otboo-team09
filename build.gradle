@@ -22,9 +22,12 @@ jacocoTestReport {
       fileTree(dir: it, exclude: [
               'com/part4/team09/otboo/config/**',
               'com/part4/team09/otboo/module/common/exception/**',
-              'com/part4/team09/otboo/module/common/dto/**',
+              'com/part4/team09/otboo/module/common/**/dto/**',
+              'com/part4/team09/otboo/module/common/**/entity/**',
               'com/part4/team09/otboo/module/common/enums/**',
               'com/part4/team09/otboo/module/common/monitoring/**',
+              'com/part4/team09/otboo/module/common/security/constants/**',
+              'com/part4/team09/otboo/module/common/security/userdetails/**',
               'com/part4/team09/otboo/OtbooApplication.class',
               'com/part4/team09/otboo/module/domain/**/dto/**',
               'com/part4/team09/otboo/module/domain/**/entity/**',

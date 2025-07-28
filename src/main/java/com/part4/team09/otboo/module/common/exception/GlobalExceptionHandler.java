@@ -1,7 +1,7 @@
 package com.part4.team09.otboo.module.common.exception;
 
 import com.part4.team09.otboo.module.common.dto.ErrorResponse;
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.common.util.CookieUtil;
 import com.part4.team09.otboo.module.domain.auth.exception.AuthErrorCode;
 import com.part4.team09.otboo.module.domain.auth.exception.AuthException;

@@ -1,6 +1,6 @@
 package com.part4.team09.otboo.module.domain.clothes.controller;
 
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesCreateRequest;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesUpdateRequest;
@@ -113,14 +113,14 @@ public class ClothesController {
 
   @GetMapping("/extractions")
   public ResponseEntity<ClothesDto> extraction(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
-      @RequestParam String url) throws IOException {
+    @AuthenticationPrincipal CustomUserDetails userDetails,
+    @RequestParam String url) throws IOException {
     log.info("구매 링크 의상 정보 불러오기 요청: url = {}", userDetails);
 
     ClothesDto response = clothesService.extraction(userDetails.getId(), url);
 
     log.info("구매 링크 의상 정보 불러오기 응답: name = {}, type = {}, attribute = {}, imageUrl = {}",
-        response.name(), response.type(), response.attributes(), response.imageUrl());
+      response.name(), response.type(), response.attributes(), response.imageUrl());
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 }
