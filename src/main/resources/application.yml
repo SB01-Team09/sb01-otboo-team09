@@ -4,7 +4,14 @@ spring:
   profiles:
     active: ${SPRING_PROFILE:dev} # 환경변수에 설정되어 있는 값으로 덮어씌워짐. ECS 환경변수에 SPRING_PROFILE=prod로 설정되어 있음
   config:
-    import: optional:file:.env[.properties]
+    import:
+      - optional:file:.env[.properties]
+      - aws-secretsmanager:prod/otboo/Keys
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
