@@ -25,6 +25,7 @@ jacocoTestReport {
               'com/part4/team09/otboo/module/common/dto/**',
               'com/part4/team09/otboo/module/common/enums/**',
               'com/part4/team09/otboo/module/common/monitoring/**',
+              'com/part4/team09/otboo/module/common/security/constants/**',
               'com/part4/team09/otboo/OtbooApplication.class',
               'com/part4/team09/otboo/module/domain/**/dto/**',
               'com/part4/team09/otboo/module/domain/**/entity/**',
