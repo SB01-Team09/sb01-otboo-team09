@@ -40,8 +40,3 @@ logging:
     p6spy: debug
     com.nimbusds.jwt: debug
     org.springframework.web.socket: debug
-
-# docker-compose up 실행 필수
-opensearch:
-  host: localhost
-  port: 9200

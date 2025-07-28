@@ -24,7 +24,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class LikeService {
-  private final FeedSearchIndexService feedSearchIndexService;
 
   private final LikeRepository likeRepository;
 
@@ -45,8 +44,6 @@ public class LikeService {
     likeRepository.save(like);
     feed.increaseLikeCount();
 
-    feedSearchIndexService.update(feed); // 좋아요 등록시 OpenSearch 인덱스 업데이트
-
     eventPublisher.publishEvent(
         new FeedLikedEvent(
             feed.getAuthorId(),
@@ -66,8 +63,6 @@ public class LikeService {
     Like like = getLikeOrThrow(userId, feedId);
     likeRepository.deleteById(like.getId());
     feed.decreaseLikeCount();
-
-    feedSearchIndexService.update(feed); // 좋아요 삭제시 OpenSearch 인덱스 업데이트
 
     eventPublisher.publishEvent(new FeedLikeDeletedEvent());
   }

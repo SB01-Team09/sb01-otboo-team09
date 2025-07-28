@@ -35,7 +35,14 @@ public class FeedRepositoryQueryDSL {
     public List<Feed> getFeeds(FeedListRequest request) {
         return queryFactory
                 .selectFrom(feed)
+                .join(ootd).on(feed.id.eq(ootd.feedId)) // feed, ootd 조인
+                .join(weather).on(feed.weatherId.eq(weather.id)) // feed, weather 조인
+                .join(precipitation).on(weather.precipitationId.eq(precipitation.id)) // weather, precipitation 조인
                 .where(
+                        keywordLikeCondition(request.keywordLike()),
+                        skyStatusCondition(request.skyStatusEqual()),
+                        precipitationCondition(request.precipitationTypeEqual()),
+                        equalAuthorId(request.authorIdEqual()),
                         cursorCondition(request.cursor(), request.idAfter(), request.sortBy(), request.sortDirection())
                 )
                 .orderBy(getSortOrder(request.sortBy(), request.sortDirection()))
@@ -134,5 +141,3 @@ public class FeedRepositoryQueryDSL {
         return null;
     }
 }
-
-
