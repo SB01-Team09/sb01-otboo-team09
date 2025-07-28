@@ -1,5 +1,7 @@
 package com.part4.team09.otboo.module.domain.notification.sse;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.domain.notification.dto.NotificationDto;
 import java.io.IOException;
 import java.util.List;
@@ -7,7 +9,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -20,9 +22,10 @@ public class SseService {
   private long timeout;
 
   private final SseEmitterRepository sseEmitterRepository;
+  private final StringRedisTemplate redisTemplate;
+  private final ObjectMapper objectMapper;
 
   public SseEmitter connect(UUID receiverId) {
-
     log.debug("userId: {}, emitter 수: {}", receiverId,
       sseEmitterRepository.findByReceiverId(receiverId).size());
 
@@ -44,55 +47,23 @@ public class SseService {
   }
 
   public void send(NotificationDto notificationDto) {
-    UUID receiverId = notificationDto.receiverId();
-    List<SseEmitter> emitters = sseEmitterRepository.findByReceiverId(receiverId);
-
-    emitters.forEach(emitter -> {
-      try {
-        emitter.send(SseEmitter.event()
-          .id(notificationDto.id().toString())
-          .name("notifications")
-          .data(notificationDto));
-      } catch (IOException e) {
-        sseEmitterRepository.delete(receiverId, emitter);
-      }
-    });
+    try {
+      String payload = objectMapper.writeValueAsString(notificationDto);
+      redisTemplate.convertAndSend("notification-channel", payload);
+    } catch (JsonProcessingException e) {
+      log.error("NotificationDto 직렬화 실패: notificationId={}, receiverId={}",
+          notificationDto.id(), notificationDto.receiverId(), e);
+    }
   }
 
   public void sendToUsers(List<NotificationDto> notificationDtos) {
     notificationDtos.forEach(this::send);
   }
 
-  @Scheduled(cron = "0 */30 * * * *")
-  public void cleanUp() {
-    sseEmitterRepository.findAll()
-      .forEach(emitter -> {
-        try {
-          emitter.send(SseEmitter.event()
-            .name("ping")
-            .data("keep-alive"));
-        } catch (IOException e) {
-          emitter.completeWithError(e);
-        }
-      });
-  }
-
   // sse 연결 해제
   public void disconnectAllEmitters(UUID userId, String reason) {
-    log.debug("Emitter 제거 작업 시작, userId: {}", userId);
-    List<SseEmitter> emitters = sseEmitterRepository.findByReceiverId(userId);
-    log.debug("기존 Emitter 연결 수: {}", emitters.size());
-    for (SseEmitter emitter : emitters) {
-      try {
-        emitter.complete();
-      } catch (Exception e) {
-        log.warn("Emitter 종료 중 예외 발생: userId = {}, error = {}", userId, e.getMessage());
-      } finally {
-        sseEmitterRepository.delete(userId, emitter);
-      }
-    }
-    log.debug("모든 Emitter 제거 완료: userId = {}, Emitter 수: {}, 이유 = {}", userId,
-      sseEmitterRepository.findByReceiverId(userId).size(), reason);
+    log.debug("Emitter 제거 작업 시작, userId: {}, reason: {}", userId, reason);
+    redisTemplate.convertAndSend("disconnect-channel", userId.toString());
   }
 
   // sse 연결종료 시
