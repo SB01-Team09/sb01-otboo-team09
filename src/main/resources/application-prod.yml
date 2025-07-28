@@ -7,6 +7,7 @@ spring:
   data:
     redis:
       host: ${REDIS_HOST}
+
   mail:
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
@@ -32,7 +33,7 @@ otboo:
     password: ${ADMIN_PASSWORD}
   file:
     storage:
-      type: ${FILE_STORAGE_TYPE:s3}
+      type: ${FILE_STORAGE_TYPE}
 
 jwt:
   secret: ${JWT_SECRET}

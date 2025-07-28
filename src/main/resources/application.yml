@@ -6,7 +6,7 @@ spring:
   config:
     import:
       - optional:file:.env[.properties]
-      - aws-secretsmanager:prod/otboo/Keys
+      - optional:aws-secretsmanager:/prod/otboo/Keys
   cloud:
     aws:
       region:
@@ -100,7 +100,6 @@ jwt:
   refresh-token:
     validity-seconds: 2592000 # 30일
   secret: ${JWT_SECRET:test-jwt-secret-key-for-test-should-be-long-enough}
-
 logging:
   level:
     root: info
