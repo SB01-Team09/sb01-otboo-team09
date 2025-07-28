@@ -37,7 +37,7 @@ class OotdServiceTest {
   private OotdService ootdService;
 
   @Nested
-  @DisplayName("오오티디 생성 테스트")
+  @DisplayName("오오티디 생성")
   public class CreateOotdTest {
 
     @Test
@@ -57,6 +57,24 @@ class OotdServiceTest {
 
       // then
       verify(ootdRepository).saveAll(any());
+    }
+  }
+
+  @Nested
+  @DisplayName("피드 아이디로 오오티디 모두 삭제")
+  public class DeleteAllByFeedIdTest {
+
+    @Test
+    @DisplayName("오오티디 삭제 성공")
+    void delete_all_by_feedId_success() {
+      // given
+      UUID feedId = UUID.randomUUID();
+
+      // when
+      ootdService.deleteAllByFeedId(feedId);
+
+      // then
+      verify(ootdRepository).deleteAllByFeedId(feedId);
     }
   }
 }
