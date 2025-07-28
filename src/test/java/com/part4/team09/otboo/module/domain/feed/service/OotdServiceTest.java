@@ -8,14 +8,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
-import com.part4.team09.otboo.module.domain.clothes.entity.Clothes.ClothesType;
 import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
-import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
-import com.part4.team09.otboo.module.domain.feed.exception.like.LikeAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.feed.mapper.OotdDtoAssembler;
-import com.part4.team09.otboo.module.domain.feed.mapper.OotdMapper;
 import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
 import java.util.List;
 import java.util.UUID;

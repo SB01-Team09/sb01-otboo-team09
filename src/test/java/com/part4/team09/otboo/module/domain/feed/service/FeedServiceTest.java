@@ -21,7 +21,6 @@ import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.event.FeedCreatedEvent;
 import com.part4.team09.otboo.module.domain.feed.event.FeedDeletedEvent;
-import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepositoryQueryDSL;
@@ -333,7 +332,6 @@ class FeedServiceTest {
       assertThat(result.nextIdAfter()).isEqualTo(feedDtos.get(0).id());
     }
   }
-
 
   @Nested
   @DisplayName("피드 삭제")
