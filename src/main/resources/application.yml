@@ -97,7 +97,7 @@ jwt:
 logging:
   level:
     root: info
-#    org.hibernate.SQL: debug // p6spy로 대신 로깅
+    org.apache.kafka: warn
 
 management:
   endpoints:

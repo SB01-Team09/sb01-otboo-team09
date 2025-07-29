@@ -39,6 +39,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
   @Transactional
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
+    log.warn("Oauth 로그인 진입");
+
     // 로그인이 성공하면 spring 이 알아서 userRequest 데이터를 보내준다. (accessToken, provider 정보)
     // 액세스 토큰으로 사용자 정보 조회
     OAuth2User oAuth2User = super.loadUser(userRequest);
