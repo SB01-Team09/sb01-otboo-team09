@@ -76,6 +76,17 @@ otboo:
     name: ${ADMIN_NAME:admin}
     email: ${ADMIN_EMAIL:admin@admin.com}
     password: ${ADMIN_PASSWORD:admin1234}
+  file:
+    storage:
+      type: ${FILE_STORAGE_TYPE:local}
+      local:
+        path: ${FILE_STORAGE_PATH:${user.dir}/fileStorage}
+      s3:
+        access-key: ${AWS_ACCESS_KEY_ID}
+        secret-key: ${AWS_SECRET_ACCESS_KEY}
+        region: ${AWS_S3_REGION}
+        bucket: ${AWS_S3_BUCKET}
+        image-prefix: ${AWS_S3_IMAGE_PREFIX:images}
   resource:
     path: files
   auth:

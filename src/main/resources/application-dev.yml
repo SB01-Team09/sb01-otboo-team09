@@ -33,8 +33,6 @@ otboo:
   file:
     storage:
       type: local
-      local:
-        path: ${FILE_STORAGE_PATH:${user.dir}/fileStorage}
 
 management:
   endpoints:
