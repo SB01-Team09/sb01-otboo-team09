@@ -117,3 +117,5 @@ management:
 sse:
   timeout: 300_000
 
+server:
+  forward-headers-strategy: framework
