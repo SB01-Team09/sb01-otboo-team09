@@ -114,7 +114,7 @@ public class WeatherNotificationScheduler implements CommandLineRunner {
       for (String locationId : locationIdsForCoord) {
         if (precipitation.getType() != PrecipitationType.NONE) {
           String title = "오늘은 " + precipitation.getType().getKorean() + "가(이) 올 예정입니다.";
-          String content = "외출 시 우산을 챙기세요";
+          String content = "외출 시 우산을 챙기세요.";
           publisher.publishEvent(new WeatherNotificationCreateEvent(
             locationId, title, content
           ));
