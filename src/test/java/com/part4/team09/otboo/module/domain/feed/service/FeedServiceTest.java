@@ -1,14 +1,5 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
@@ -19,21 +10,16 @@ import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedListRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
-import com.part4.team09.otboo.module.domain.feed.event.FeedCreatedEvent;
-import com.part4.team09.otboo.module.domain.feed.event.FeedDeletedEvent;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepositoryQueryDSL;
+import com.part4.team09.otboo.module.domain.notification.event.FeedCreatedFollowerEvent;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.weather.dto.response.WeatherSummaryDto;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundException;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -42,6 +28,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class FeedServiceTest {
@@ -115,7 +113,8 @@ class FeedServiceTest {
       given(weatherRepository.existsById(any())).willReturn(true);
       given(feedRepository.save(any(Feed.class))).willReturn(mockFeed);
       given(feedDtoAssembler.assemble(any(Feed.class), eq(userId))).willReturn(feedDto);
-      doNothing().when(eventPublisher).publishEvent(any(FeedCreatedEvent.class));
+//      doNothing().when(eventPublisher).publishEvent(any(FeedCreatedEvent.class)); TODO: 캐시 연결 후 주석 해제 예정
+      doNothing().when(eventPublisher).publishEvent(any(FeedCreatedFollowerEvent.class));
 
       // when
       FeedDto result = feedService.create(userId, request);
@@ -345,7 +344,7 @@ class FeedServiceTest {
       Feed mockFeed = mock(Feed.class);
 
       given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
-      doNothing().when(eventPublisher).publishEvent(any(FeedDeletedEvent.class));
+      // doNothing().when(eventPublisher).publishEvent(any(FeedDeletedEvent.class)); TODO: 캐시 연결 후 주석 해제 예정
 
       // when
       feedService.delete(feedId);

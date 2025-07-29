@@ -1,14 +1,5 @@
 package com.part4.team09.otboo.module.domain.follow.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListRequest;
@@ -16,8 +7,6 @@ import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowSummaryDto;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
 import com.part4.team09.otboo.module.domain.follow.event.FollowCacheEvictListener;
-import com.part4.team09.otboo.module.domain.follow.event.FollowCreatedEvent;
-import com.part4.team09.otboo.module.domain.follow.event.FollowDeletedEvent;
 import com.part4.team09.otboo.module.domain.follow.exception.FollowNotFoundException;
 import com.part4.team09.otboo.module.domain.follow.mapper.FollowMapper;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
@@ -26,10 +15,6 @@ import com.part4.team09.otboo.module.domain.user.dto.UserSummary;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +25,16 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -106,7 +101,7 @@ class FollowServiceTest {
       .thenReturn(Optional.of(mockFollower)); // CI 통과를 위한 stub이므로 예외로 stub 허용하기 위한 lenient
     when(followRepository.save(any(Follow.class))).thenReturn(follow);
     when(followMapper.toDto(any(Follow.class))).thenReturn(dto);
-    doNothing().when(eventPublisher).publishEvent(any(FollowCreatedEvent.class));
+    // doNothing().when(eventPublisher).publishEvent(any(FollowCreatedEvent.class)); TODO: 캐시 연결 후 주석 해제 예정
 
     // when
     FollowDto result = followService.create(followeeId, followerId);
@@ -310,7 +305,7 @@ class FollowServiceTest {
     when(followRepository.existsById(followId)).thenReturn(true);
     when(followRepository.findById(followId)).thenReturn(Optional.of(follow));
     doNothing().when(followRepository).deleteById(followId);
-    doNothing().when(eventPublisher).publishEvent(any(FollowDeletedEvent.class));
+//    doNothing().when(eventPublisher).publishEvent(any(FollowDeletedEvent.class)); TODO: 캐시 연결 후 주석 해제 예정
 
     // when
     followService.deleteFollow(followId);
