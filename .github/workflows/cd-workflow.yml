@@ -75,6 +75,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: task-def.json
-          service: sb01-otboo-team09-service-txz08f27
-          cluster: sb01-otboo-team09
+          service: sb01-otboo-team09-service-sb
+          cluster: obtoo-cluster
           wait-for-service-stability: true
