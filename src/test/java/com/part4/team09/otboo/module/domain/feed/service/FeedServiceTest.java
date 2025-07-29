@@ -10,8 +10,6 @@ import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedListRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
-import com.part4.team09.otboo.module.domain.feed.event.FeedCreatedEvent;
-import com.part4.team09.otboo.module.domain.feed.event.FeedDeletedEvent;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepositoryQueryDSL;
@@ -115,7 +113,7 @@ class FeedServiceTest {
       given(weatherRepository.existsById(any())).willReturn(true);
       given(feedRepository.save(any(Feed.class))).willReturn(mockFeed);
       given(feedDtoAssembler.assemble(any(Feed.class), eq(userId))).willReturn(feedDto);
-      doNothing().when(eventPublisher).publishEvent(any(FeedCreatedEvent.class));
+      // doNothing().when(eventPublisher).publishEvent(any(FeedCreatedEvent.class));
       doNothing().when(eventPublisher).publishEvent(any(FeedCreatedFollowerEvent.class));
 
       // when
@@ -346,7 +344,7 @@ class FeedServiceTest {
       Feed mockFeed = mock(Feed.class);
 
       given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
-      doNothing().when(eventPublisher).publishEvent(any(FeedDeletedEvent.class));
+      // doNothing().when(eventPublisher).publishEvent(any(FeedDeletedEvent.class));
 
       // when
       feedService.delete(feedId);
