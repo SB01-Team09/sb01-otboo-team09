@@ -1,14 +1,12 @@
 package com.part4.team09.otboo.module.domain.follow.service;
 
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListRequest;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowSummaryDto;
 import com.part4.team09.otboo.module.domain.follow.entity.Follow;
 import com.part4.team09.otboo.module.domain.follow.event.FollowCacheEvictListener;
-import com.part4.team09.otboo.module.domain.follow.event.FollowCreatedEvent;
-import com.part4.team09.otboo.module.domain.follow.event.FollowDeletedEvent;
 import com.part4.team09.otboo.module.domain.follow.exception.FollowNotFoundException;
 import com.part4.team09.otboo.module.domain.follow.mapper.FollowMapper;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
@@ -42,302 +40,305 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class FollowServiceTest {
 
-    @InjectMocks
-    private FollowService followService;
+  @InjectMocks
+  private FollowService followService;
 
-    @Mock
-    private FollowRepository followRepository;
+  @Mock
+  private FollowRepository followRepository;
 
-    @Mock
-    private UserRepository userRepository;
+  @Mock
+  private UserRepository userRepository;
 
-    @Mock
-    private FollowMapper followMapper;
+  @Mock
+  private FollowMapper followMapper;
 
-    @Mock
-    private FollowRepositoryQueryDSL followRepositoryQueryDSL;
+  @Mock
+  private FollowRepositoryQueryDSL followRepositoryQueryDSL;
 
-    @Mock
-    private CacheManager cacheManager;
+  @Mock
+  private CacheManager cacheManager;
 
-    @Mock
-    private Cache cache;
+  @Mock
+  private Cache cache;
 
-    @Mock
-    private CustomUserDetails currentUser;
+  @Mock
+  private CustomUserDetails currentUser;
 
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
 
-    @InjectMocks
-    private FollowCacheEvictListener followCacheEvictListener;
-
-
-    @Test
-    @DisplayName("팔로우 등록 성공")
-    void createFollowSuccess() {
-        // given
-        UUID followeeId = UUID.randomUUID();
-        UUID followerId = UUID.randomUUID();
-        Follow follow = Follow.create(followeeId, followerId);
-        // 테스트용 아이디 생성
-        UUID fakeId = UUID.randomUUID();
-        ReflectionTestUtils.setField(follow, "id", fakeId);
-        String name = "옷부";
-
-        UserSummary followee = new UserSummary(followeeId, name, null);
-        UserSummary follower = new UserSummary(followerId, name, null);
-        FollowDto dto = new FollowDto(fakeId, followee, follower);
-
-        User mockFollowee = User.createUser("dusrud@email.com", name, "password");
-        ReflectionTestUtils.setField(mockFollowee, "id", followeeId);
-        ReflectionTestUtils.setField(mockFollowee, "profileImageUrl", null);
-
-        User mockFollower = User.createUser("dmstn@email.com", name, "password");
-        ReflectionTestUtils.setField(mockFollower, "id", followerId);
-        ReflectionTestUtils.setField(mockFollower, "profileImageUrl", null);
-
-        when(userRepository.existsById(any(UUID.class))).thenReturn(true); // 유저가 정상적으로 존재할 때를 가정해줌
-        lenient().when(userRepository.findById(followeeId)).thenReturn(Optional.of(mockFollowee));
-        lenient().when(userRepository.findById(followerId)).thenReturn(Optional.of(mockFollower)); // CI 통과를 위한 stub이므로 예외로 stub 허용하기 위한 lenient
-        when(followRepository.save(any(Follow.class))).thenReturn(follow);
-        when(followMapper.toDto(any(Follow.class))).thenReturn(dto);
-        doNothing().when(eventPublisher).publishEvent(any(FollowCreatedEvent.class));
-
-        // when
-        FollowDto result = followService.create(followeeId, followerId);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.followee().userId()).isEqualTo(followeeId);
-        assertThat(result.follower().userId()).isEqualTo(followerId);
-
-        verify(followRepository).save(any(Follow.class)); // save 메서드가 호출되었는지 확인
-    }
-
-    @Test
-    @DisplayName("팔로잉 목록 조회 성공")
-    void getFollowingsSuccess() {
-        // given
-        UUID followeeId = UUID.randomUUID();
-        UUID followerId = UUID.randomUUID();
-
-        UUID idAfter = UUID.randomUUID();
-        LocalDateTime cursor = LocalDateTime.of(2025, 6, 30, 0, 30, 0);
-        int limit = 1;
-        String nameLike = "연경";
-
-        // follow2: 커서 기준 (더 최근)
-        Follow follow2 = Follow.create(followeeId, followerId);
-        ReflectionTestUtils.setField(follow2, "id", idAfter);
-        ReflectionTestUtils.setField(follow2, "createdAt", cursor);
-
-        // follow1: 커서보다 더 과거
-        Follow follow1 = Follow.create(followeeId, followerId);
-        UUID id1 = UUID.randomUUID();
-        LocalDateTime time1 = cursor.minusSeconds(1);
-        ReflectionTestUtils.setField(follow1, "id", id1);
-        ReflectionTestUtils.setField(follow1, "createdAt", time1);
-
-        List<Follow> follows = List.of(follow1, follow2); // (limit + 1)개
-
-        // Mock 설정
-        when(followRepositoryQueryDSL.countFollowings(followerId, nameLike)).thenReturn(2);
-        when(followRepositoryQueryDSL.getFollowings(any(FollowListRequest.class))).thenReturn(follows);
-
-        when(followMapper.toDto(follow1)).thenReturn(
-                new FollowDto(
-                        id1,
-                        new UserSummary(followeeId, "followee", null),
-                        new UserSummary(followerId, "follower", null)
-                )
-        );
-
-        // when
-        String encodedCursor = cursor.toString(); // encodeCursor 방식과 동일
-        FollowListResponse result = followService.getFollowings(followerId, encodedCursor, idAfter, limit, nameLike);
-
-        // then
-        assertThat(result.hasNext()).isTrue(); // limit + 1 이니까 true
-        assertThat(result.data()).hasSize(1); // limit 만큼만 응답
-        assertThat(result.nextIdAfter()).isEqualTo(id1); // follow1의 idAfter
-        assertThat(result.nextCursor()).isEqualTo(time1.toString()); // follow1의 createdAt
-    }
+  @InjectMocks
+  private FollowCacheEvictListener followCacheEvictListener;
 
 
-    @Test
-    @DisplayName("팔로워 목록 조회 성공")
-    void getFollowersSuccess() {
-        // given
-        UUID followeeId = UUID.randomUUID();
-        UUID followerId = UUID.randomUUID();
+  @Test
+  @DisplayName("팔로우 등록 성공")
+  void createFollowSuccess() {
+    // given
+    UUID followeeId = UUID.randomUUID();
+    UUID followerId = UUID.randomUUID();
+    Follow follow = Follow.create(followeeId, followerId);
+    // 테스트용 아이디 생성
+    UUID fakeId = UUID.randomUUID();
+    ReflectionTestUtils.setField(follow, "id", fakeId);
+    String name = "옷부";
 
-        UUID idAfter = UUID.randomUUID();
-        LocalDateTime cursor = LocalDateTime.of(2025, 6, 30, 12, 0);
-        int limit = 1;
-        String nameLike = "연경";
+    UserSummary followee = new UserSummary(followeeId, name, null);
+    UserSummary follower = new UserSummary(followerId, name, null);
+    FollowDto dto = new FollowDto(fakeId, followee, follower);
 
-        // follow2: 커서 기준 (더 최근)
-        Follow follow2 = Follow.create(followeeId, followerId);
-        ReflectionTestUtils.setField(follow2, "id", idAfter);
-        ReflectionTestUtils.setField(follow2, "createdAt", cursor);
+    User mockFollowee = User.createUser("dusrud@email.com", name, "password");
+    ReflectionTestUtils.setField(mockFollowee, "id", followeeId);
+    ReflectionTestUtils.setField(mockFollowee, "profileImageUrl", null);
 
-        // follow1: 커서보다 더 과거
-        Follow follow1 = Follow.create(followeeId, followerId);
-        UUID id1 = UUID.randomUUID();
-        LocalDateTime time1 = cursor.minusSeconds(1);
-        ReflectionTestUtils.setField(follow1, "id", id1);
-        ReflectionTestUtils.setField(follow1, "createdAt", time1);
+    User mockFollower = User.createUser("dmstn@email.com", name, "password");
+    ReflectionTestUtils.setField(mockFollower, "id", followerId);
+    ReflectionTestUtils.setField(mockFollower, "profileImageUrl", null);
 
-        List<Follow> follows = List.of(follow1, follow2); // (limit + 1)개
+    when(userRepository.existsById(any(UUID.class))).thenReturn(true); // 유저가 정상적으로 존재할 때를 가정해줌
+    lenient().when(userRepository.findById(followeeId)).thenReturn(Optional.of(mockFollowee));
+    lenient().when(userRepository.findById(followerId))
+      .thenReturn(Optional.of(mockFollower)); // CI 통과를 위한 stub이므로 예외로 stub 허용하기 위한 lenient
+    when(followRepository.save(any(Follow.class))).thenReturn(follow);
+    when(followMapper.toDto(any(Follow.class))).thenReturn(dto);
+    // doNothing().when(eventPublisher).publishEvent(any(FollowCreatedEvent.class)); TODO: 캐시 연결 후 주석 해제 예정
 
-        // Mock 설정
-        when(followRepositoryQueryDSL.countFollowers(followeeId, nameLike)).thenReturn(2);
-        when(followRepositoryQueryDSL.getFollowers(any(FollowListRequest.class))).thenReturn(follows);
+    // when
+    FollowDto result = followService.create(followeeId, followerId);
 
-        when(followMapper.toDto(follow1)).thenReturn(
-                new FollowDto(
-                        follow1.getId(),
-                        new UserSummary(followeeId, "followee", null),
-                        new UserSummary(followerId, "follower", null)
-                )
-        );
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.followee().userId()).isEqualTo(followeeId);
+    assertThat(result.follower().userId()).isEqualTo(followerId);
 
-        // when
-        String encodedCursor = cursor.toString(); // encodeCursor 방식과 동일
-        FollowListResponse result = followService.getFollowers(followeeId, encodedCursor, idAfter, limit, nameLike);
+    verify(followRepository).save(any(Follow.class)); // save 메서드가 호출되었는지 확인
+  }
 
-        // then
-        assertThat(result.hasNext()).isTrue(); // limit + 1 이니까 true
-        assertThat(result.data()).hasSize(1); // limit 만큼만 응답
-        assertThat(result.nextIdAfter()).isEqualTo(follow1.getId()); // follow1의 idAfter
-        assertThat(result.nextCursor()).isEqualTo(time1.toString()); // follow1의 createdAt
-    }
+  @Test
+  @DisplayName("팔로잉 목록 조회 성공")
+  void getFollowingsSuccess() {
+    // given
+    UUID followeeId = UUID.randomUUID();
+    UUID followerId = UUID.randomUUID();
 
-    @Test
-    @DisplayName("팔로우 요약 정보 조회 성공")
-    void getFollowSummarySuccess() {
-        // given
-        UUID userId = UUID.randomUUID();        // 조회 대상
-        UUID loginUserId = UUID.randomUUID();   // 로그인한 유저 (Me)
-        UUID followedByMeId = null;      // 팔로우 관계 아이디
+    UUID idAfter = UUID.randomUUID();
+    LocalDateTime cursor = LocalDateTime.of(2025, 6, 30, 0, 30, 0);
+    int limit = 1;
+    String nameLike = "연경";
 
-        int followerCount = 10;
-        int followingCount = 5;
-        boolean followedByMe = false;
-        boolean followingMe = true;
+    // follow2: 커서 기준 (더 최근)
+    Follow follow2 = Follow.create(followeeId, followerId);
+    ReflectionTestUtils.setField(follow2, "id", idAfter);
+    ReflectionTestUtils.setField(follow2, "createdAt", cursor);
 
-        // Mock 설정
-        // 유저 존재 여부
-        when(userRepository.existsById(userId)).thenReturn(true);
-        when(userRepository.existsById(loginUserId)).thenReturn(true);
+    // follow1: 커서보다 더 과거
+    Follow follow1 = Follow.create(followeeId, followerId);
+    UUID id1 = UUID.randomUUID();
+    LocalDateTime time1 = cursor.minusSeconds(1);
+    ReflectionTestUtils.setField(follow1, "id", id1);
+    ReflectionTestUtils.setField(follow1, "createdAt", time1);
 
-        when(followRepository.countFollowersForSummary(userId)).thenReturn(followerCount);
-        when(followRepository.countFollowingsForSummary(userId)).thenReturn(followingCount);
-        when(followRepository.followRelationship(userId, loginUserId)).thenReturn(followedByMe);
-        when(followRepository.followedByMeId(userId, loginUserId)).thenReturn(followedByMeId);
-        when(followRepository.followRelationship(loginUserId, userId)).thenReturn(followingMe);
+    List<Follow> follows = List.of(follow1, follow2); // (limit + 1)개
 
-        // when
-        FollowSummaryDto result = followService.getFollowSummary(userId, loginUserId);
+    // Mock 설정
+    when(followRepositoryQueryDSL.countFollowings(followerId, nameLike)).thenReturn(2);
+    when(followRepositoryQueryDSL.getFollowings(any(FollowListRequest.class))).thenReturn(follows);
 
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.followeeId()).isEqualTo(userId);
-        assertThat(result.followerCount()).isEqualTo(followerCount);
-        assertThat(result.followingCount()).isEqualTo(followingCount);
-        assertThat(result.followedByMe()).isEqualTo(followedByMe);
-        assertThat(result.followedByMeId()).isEqualTo(followedByMeId);
-        assertThat(result.followingMe()).isEqualTo(followingMe);
-    }
+    when(followMapper.toDto(follow1)).thenReturn(
+      new FollowDto(
+        id1,
+        new UserSummary(followeeId, "followee", null),
+        new UserSummary(followerId, "follower", null)
+      )
+    );
 
+    // when
+    String encodedCursor = cursor.toString(); // encodeCursor 방식과 동일
+    FollowListResponse result = followService.getFollowings(followerId, encodedCursor, idAfter,
+      limit, nameLike);
 
-    @Test
-    @DisplayName("팔로우 요약 정보 조회 실패: 조회 대상 유저 Not Found")
-    void getFollowSummaryFail_UserNotFound() {
-        // given
-        UUID userId = UUID.randomUUID();        // 조회 대상
-        UUID loginUserId = UUID.randomUUID();   // 로그인한 유저 (Me)
-
-        // Mock 설정
-        // 유저 존재 여부 false로 설정
-        when(userRepository.existsById(userId)).thenReturn(false);
-
-        // when, then
-        assertThrows(UserNotFoundException.class, () -> {
-            followService.getFollowSummary(userId, loginUserId);
-        });
-    }
+    // then
+    assertThat(result.hasNext()).isTrue(); // limit + 1 이니까 true
+    assertThat(result.data()).hasSize(1); // limit 만큼만 응답
+    assertThat(result.nextIdAfter()).isEqualTo(id1); // follow1의 idAfter
+    assertThat(result.nextCursor()).isEqualTo(time1.toString()); // follow1의 createdAt
+  }
 
 
-    @Test
-    @DisplayName("팔로우 요약 정보 조회 실패: 로그인 유저 Not Found")
-    void getFollowSummaryFail_LoginUserNotFound() {
-        // given
-        UUID userId = UUID.randomUUID();        // 조회 대상
-        UUID loginUserId = UUID.randomUUID();   // 로그인한 유저 (Me)
+  @Test
+  @DisplayName("팔로워 목록 조회 성공")
+  void getFollowersSuccess() {
+    // given
+    UUID followeeId = UUID.randomUUID();
+    UUID followerId = UUID.randomUUID();
 
-        // Mock 설정
-        // 유저 존재 여부 false로 설정
-        when(userRepository.existsById(userId)).thenReturn(true);
-        when(userRepository.existsById(loginUserId)).thenReturn(false);
+    UUID idAfter = UUID.randomUUID();
+    LocalDateTime cursor = LocalDateTime.of(2025, 6, 30, 12, 0);
+    int limit = 1;
+    String nameLike = "연경";
 
-        // when, then
-        assertThrows(UserNotFoundException.class, () -> {
-            followService.getFollowSummary(userId, loginUserId);
-        });
-    }
+    // follow2: 커서 기준 (더 최근)
+    Follow follow2 = Follow.create(followeeId, followerId);
+    ReflectionTestUtils.setField(follow2, "id", idAfter);
+    ReflectionTestUtils.setField(follow2, "createdAt", cursor);
+
+    // follow1: 커서보다 더 과거
+    Follow follow1 = Follow.create(followeeId, followerId);
+    UUID id1 = UUID.randomUUID();
+    LocalDateTime time1 = cursor.minusSeconds(1);
+    ReflectionTestUtils.setField(follow1, "id", id1);
+    ReflectionTestUtils.setField(follow1, "createdAt", time1);
+
+    List<Follow> follows = List.of(follow1, follow2); // (limit + 1)개
+
+    // Mock 설정
+    when(followRepositoryQueryDSL.countFollowers(followeeId, nameLike)).thenReturn(2);
+    when(followRepositoryQueryDSL.getFollowers(any(FollowListRequest.class))).thenReturn(follows);
+
+    when(followMapper.toDto(follow1)).thenReturn(
+      new FollowDto(
+        follow1.getId(),
+        new UserSummary(followeeId, "followee", null),
+        new UserSummary(followerId, "follower", null)
+      )
+    );
+
+    // when
+    String encodedCursor = cursor.toString(); // encodeCursor 방식과 동일
+    FollowListResponse result = followService.getFollowers(followeeId, encodedCursor, idAfter,
+      limit, nameLike);
+
+    // then
+    assertThat(result.hasNext()).isTrue(); // limit + 1 이니까 true
+    assertThat(result.data()).hasSize(1); // limit 만큼만 응답
+    assertThat(result.nextIdAfter()).isEqualTo(follow1.getId()); // follow1의 idAfter
+    assertThat(result.nextCursor()).isEqualTo(time1.toString()); // follow1의 createdAt
+  }
+
+  @Test
+  @DisplayName("팔로우 요약 정보 조회 성공")
+  void getFollowSummarySuccess() {
+    // given
+    UUID userId = UUID.randomUUID();        // 조회 대상
+    UUID loginUserId = UUID.randomUUID();   // 로그인한 유저 (Me)
+    UUID followedByMeId = null;      // 팔로우 관계 아이디
+
+    int followerCount = 10;
+    int followingCount = 5;
+    boolean followedByMe = false;
+    boolean followingMe = true;
+
+    // Mock 설정
+    // 유저 존재 여부
+    when(userRepository.existsById(userId)).thenReturn(true);
+    when(userRepository.existsById(loginUserId)).thenReturn(true);
+
+    when(followRepository.countFollowersForSummary(userId)).thenReturn(followerCount);
+    when(followRepository.countFollowingsForSummary(userId)).thenReturn(followingCount);
+    when(followRepository.followRelationship(userId, loginUserId)).thenReturn(followedByMe);
+    when(followRepository.followedByMeId(userId, loginUserId)).thenReturn(followedByMeId);
+    when(followRepository.followRelationship(loginUserId, userId)).thenReturn(followingMe);
+
+    // when
+    FollowSummaryDto result = followService.getFollowSummary(userId, loginUserId);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.followeeId()).isEqualTo(userId);
+    assertThat(result.followerCount()).isEqualTo(followerCount);
+    assertThat(result.followingCount()).isEqualTo(followingCount);
+    assertThat(result.followedByMe()).isEqualTo(followedByMe);
+    assertThat(result.followedByMeId()).isEqualTo(followedByMeId);
+    assertThat(result.followingMe()).isEqualTo(followingMe);
+  }
 
 
-    @Test
-    @DisplayName("팔로우 삭제 성공")
-    void unfollowSuccess() {
-        // given
-        UUID followId = UUID.randomUUID();
-        UUID followeeId = UUID.randomUUID();
-        UUID followerId = UUID.randomUUID();
+  @Test
+  @DisplayName("팔로우 요약 정보 조회 실패: 조회 대상 유저 Not Found")
+  void getFollowSummaryFail_UserNotFound() {
+    // given
+    UUID userId = UUID.randomUUID();        // 조회 대상
+    UUID loginUserId = UUID.randomUUID();   // 로그인한 유저 (Me)
 
-        Follow follow = Follow.create(followeeId, followerId);
-        ReflectionTestUtils.setField(follow, "id", followId);
+    // Mock 설정
+    // 유저 존재 여부 false로 설정
+    when(userRepository.existsById(userId)).thenReturn(false);
 
-        // existsById가 true를 반환하도록 설정
-        when(followRepository.existsById(followId)).thenReturn(true);
-        when(followRepository.findById(followId)).thenReturn(Optional.of(follow));
-        doNothing().when(followRepository).deleteById(followId);
-        doNothing().when(eventPublisher).publishEvent(any(FollowDeletedEvent.class));
-
-        // when
-        followService.deleteFollow(followId);
-
-        // then
-        verify(followRepository).existsById(followId);
-        verify(followRepository).deleteById(followId);
-    }
+    // when, then
+    assertThrows(UserNotFoundException.class, () -> {
+      followService.getFollowSummary(userId, loginUserId);
+    });
+  }
 
 
-    @Test
-    @DisplayName("팔로우 삭제 실패 - 존재하지 않는 팔로우 ID")
-    void unfollowFail_NotFound() {
-        // given
-        UUID followId = UUID.randomUUID();
-        UUID followeeId = UUID.randomUUID();
-        UUID followerId = UUID.randomUUID();
+  @Test
+  @DisplayName("팔로우 요약 정보 조회 실패: 로그인 유저 Not Found")
+  void getFollowSummaryFail_LoginUserNotFound() {
+    // given
+    UUID userId = UUID.randomUUID();        // 조회 대상
+    UUID loginUserId = UUID.randomUUID();   // 로그인한 유저 (Me)
 
-        Follow follow = Follow.create(followeeId, followerId);
-        ReflectionTestUtils.setField(follow, "id", followId);
+    // Mock 설정
+    // 유저 존재 여부 false로 설정
+    when(userRepository.existsById(userId)).thenReturn(true);
+    when(userRepository.existsById(loginUserId)).thenReturn(false);
 
-        // existsById가 false를 반환 → 예외 발생 조건
-        when(followRepository.existsById(followId)).thenReturn(false);
-        when(followRepository.findById(followId)).thenReturn(Optional.of(follow));
+    // when, then
+    assertThrows(UserNotFoundException.class, () -> {
+      followService.getFollowSummary(userId, loginUserId);
+    });
+  }
 
-        // when, then
-        assertThrows(FollowNotFoundException.class, () -> {
-            followService.deleteFollow(followId);
-        });
 
-        // deleteById는 호출되지 않아야 함
-        verify(followRepository).existsById(followId);
-        verify(followRepository, never()).deleteById(any());
-    }
+  @Test
+  @DisplayName("팔로우 삭제 성공")
+  void unfollowSuccess() {
+    // given
+    UUID followId = UUID.randomUUID();
+    UUID followeeId = UUID.randomUUID();
+    UUID followerId = UUID.randomUUID();
+
+    Follow follow = Follow.create(followeeId, followerId);
+    ReflectionTestUtils.setField(follow, "id", followId);
+
+    // existsById가 true를 반환하도록 설정
+    when(followRepository.existsById(followId)).thenReturn(true);
+    when(followRepository.findById(followId)).thenReturn(Optional.of(follow));
+    doNothing().when(followRepository).deleteById(followId);
+//    doNothing().when(eventPublisher).publishEvent(any(FollowDeletedEvent.class)); TODO: 캐시 연결 후 주석 해제 예정
+
+    // when
+    followService.deleteFollow(followId);
+
+    // then
+    verify(followRepository).existsById(followId);
+    verify(followRepository).deleteById(followId);
+  }
+
+
+  @Test
+  @DisplayName("팔로우 삭제 실패 - 존재하지 않는 팔로우 ID")
+  void unfollowFail_NotFound() {
+    // given
+    UUID followId = UUID.randomUUID();
+    UUID followeeId = UUID.randomUUID();
+    UUID followerId = UUID.randomUUID();
+
+    Follow follow = Follow.create(followeeId, followerId);
+    ReflectionTestUtils.setField(follow, "id", followId);
+
+    // existsById가 false를 반환 → 예외 발생 조건
+    when(followRepository.existsById(followId)).thenReturn(false);
+    when(followRepository.findById(followId)).thenReturn(Optional.of(follow));
+
+    // when, then
+    assertThrows(FollowNotFoundException.class, () -> {
+      followService.deleteFollow(followId);
+    });
+
+    // deleteById는 호출되지 않아야 함
+    verify(followRepository).existsById(followId);
+    verify(followRepository, never()).deleteById(any());
+  }
 
 }

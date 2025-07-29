@@ -203,4 +203,23 @@ class CommentServiceTest {
     verify(userRepository).findById(authorId);
     verify(commentMapper).toDto(comment, mockAuthor);
   }
+
+
+  @Nested
+  @DisplayName("피드 아이디로 댓글 모두 삭제")
+  public class DeleteAllByFeedIdTest {
+
+    @Test
+    @DisplayName("댓글 모두 삭제 성공")
+    void delete_all_by_feedId_success() {
+      // given
+      UUID feedId = UUID.randomUUID();
+
+      // when
+      commentService.deleteAllByFeedId(feedId);
+
+      // then
+      verify(commentRepository).deleteAllByFeedId(feedId);
+    }
+  }
 }

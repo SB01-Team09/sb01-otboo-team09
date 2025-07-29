@@ -1,16 +1,16 @@
 package com.part4.team09.otboo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.part4.team09.otboo.module.common.security.CustomDaoAuthenticationProvider;
-import com.part4.team09.otboo.module.common.security.CustomUserDetailsService;
 import com.part4.team09.otboo.module.common.security.Filter.JsonLoginAuthenticationFilter;
 import com.part4.team09.otboo.module.common.security.Filter.JwtAuthenticationFilter;
+import com.part4.team09.otboo.module.common.security.basic.CustomDaoAuthenticationProvider;
+import com.part4.team09.otboo.module.common.security.basic.CustomUserDetailsService;
+import com.part4.team09.otboo.module.common.security.basic.JsonLoginFailureHandler;
+import com.part4.team09.otboo.module.common.security.basic.JsonLoginSuccessHandler;
 import com.part4.team09.otboo.module.common.security.handler.CustomAccessDeniedHandler;
 import com.part4.team09.otboo.module.common.security.handler.CustomAuthenticationEntryPoint;
 import com.part4.team09.otboo.module.common.security.handler.CustomLogoutHandler;
 import com.part4.team09.otboo.module.common.security.handler.CustomLogoutSuccessHandler;
-import com.part4.team09.otboo.module.common.security.handler.JsonLoginFailureHandler;
-import com.part4.team09.otboo.module.common.security.handler.JsonLoginSuccessHandler;
 import com.part4.team09.otboo.module.common.security.jwt.JwtProperty;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.common.security.oauth.CustomOAuth2SuccessHandler;
@@ -37,6 +37,7 @@ import org.springframework.security.config.annotation.web.configurers.AuthorizeH
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -65,9 +66,10 @@ public class SecurityConfig {
     return http
 
       .cors(AbstractHttpConfigurer::disable)
-      .csrf(AbstractHttpConfigurer::disable) // 정적 리소스 변경 후 활성화
-//      .csrf(csrf -> csrf
-//        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+//      .csrf(AbstractHttpConfigurer::disable) // 정적 리소스 변경 후 활성화
+      .csrf(csrf -> csrf
+        .ignoringRequestMatchers("/api/auth/sign-out")
+        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
 
       .authenticationProvider(customDaoAuthenticationProvider)
 

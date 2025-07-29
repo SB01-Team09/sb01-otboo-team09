@@ -59,7 +59,7 @@ class DirectMessageRepositoryQueryDSLTest {
         // 메서드 호출 확인
         verify(queryFactory).selectFrom(dm);
         verify(jpaQuery).where(any(Predicate.class));
-        verify(jpaQuery).orderBy(dm.createdAt.asc(), dm.id.asc());
+        verify(jpaQuery).orderBy(dm.createdAt.desc(), dm.id.desc());
         verify(jpaQuery).limit(10);
         verify(jpaQuery).fetch();
     }
@@ -88,7 +88,7 @@ class DirectMessageRepositoryQueryDSLTest {
 
         verify(queryFactory).selectFrom(dm);
         verify(jpaQuery).where(any(Predicate.class));
-        verify(jpaQuery).orderBy(dm.createdAt.asc(), dm.id.asc());
+        verify(jpaQuery).orderBy(dm.createdAt.desc(), dm.id.desc());
         verify(jpaQuery).limit(5);
         verify(jpaQuery).fetch();
     }

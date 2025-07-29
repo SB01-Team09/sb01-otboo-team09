@@ -1,9 +1,9 @@
-package com.part4.team09.otboo.module.common.security.handler;
+package com.part4.team09.otboo.module.common.security.basic;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.common.util.CookieUtil;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;

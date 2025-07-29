@@ -1,6 +1,6 @@
 package com.part4.team09.otboo.module.domain.notification.sse;
 
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.auth.exception.AuthenticationRequiredException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

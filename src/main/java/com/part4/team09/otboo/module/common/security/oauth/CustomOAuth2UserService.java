@@ -1,8 +1,9 @@
 package com.part4.team09.otboo.module.common.security.oauth;
 
-import com.part4.team09.otboo.module.common.security.oauth.OAuthProvider.SocialType;
 import com.part4.team09.otboo.module.common.security.oauth.dto.OAuth2UserDto;
-import com.part4.team09.otboo.module.common.security.oauth.dto.OAuthAttributes;
+import com.part4.team09.otboo.module.common.security.oauth.entity.OAuthProvider;
+import com.part4.team09.otboo.module.common.security.oauth.entity.OAuthProvider.SocialType;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomOAuth2User;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.mapper.AuthUserMapper;
 import com.part4.team09.otboo.module.domain.user.entity.User;
@@ -37,6 +38,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
   @Override
   @Transactional
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+
+    log.warn("Oauth 로그인 진입");
 
     // 로그인이 성공하면 spring 이 알아서 userRequest 데이터를 보내준다. (accessToken, provider 정보)
     // 액세스 토큰으로 사용자 정보 조회

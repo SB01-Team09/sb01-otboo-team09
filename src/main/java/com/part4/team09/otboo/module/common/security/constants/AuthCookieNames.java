@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.common.security;
+package com.part4.team09.otboo.module.common.security.constants;
 
 public final class AuthCookieNames {
 

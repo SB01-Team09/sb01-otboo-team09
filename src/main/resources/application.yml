@@ -4,7 +4,14 @@ spring:
   profiles:
     active: ${SPRING_PROFILE:dev} # 환경변수에 설정되어 있는 값으로 덮어씌워짐. ECS 환경변수에 SPRING_PROFILE=prod로 설정되어 있음
   config:
-    import: optional:file:.env[.properties]
+    import:
+      - optional:file:.env[.properties]
+      - optional:aws-secretsmanager:/prod/otboo/Keys
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -93,11 +100,10 @@ jwt:
   refresh-token:
     validity-seconds: 2592000 # 30일
   secret: ${JWT_SECRET:test-jwt-secret-key-for-test-should-be-long-enough}
-
 logging:
   level:
     root: info
-#    org.hibernate.SQL: debug // p6spy로 대신 로깅
+    org.apache.kafka: warn
 
 management:
   endpoints:

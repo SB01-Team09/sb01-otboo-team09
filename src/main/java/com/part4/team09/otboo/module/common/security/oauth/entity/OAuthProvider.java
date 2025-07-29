@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.common.security.oauth;
+package com.part4.team09.otboo.module.common.security.oauth.entity;
 
 import com.part4.team09.otboo.module.common.entity.BaseEntity;
 import jakarta.persistence.Column;

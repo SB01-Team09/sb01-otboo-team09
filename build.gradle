@@ -17,6 +17,32 @@ jacocoTestReport {
     html.required = true
   }
 
+  afterEvaluate {
+    classDirectories.setFrom(files(classDirectories.files.collect {
+      fileTree(dir: it, exclude: [
+              'com/part4/team09/otboo/config/**',
+              'com/part4/team09/otboo/module/common/exception/**',
+              'com/part4/team09/otboo/module/common/**/dto/**',
+              'com/part4/team09/otboo/module/common/**/entity/**',
+              'com/part4/team09/otboo/module/common/enums/**',
+              'com/part4/team09/otboo/module/common/monitoring/**',
+              'com/part4/team09/otboo/module/common/security/constants/**',
+              'com/part4/team09/otboo/module/common/security/userdetails/**',
+              'com/part4/team09/otboo/OtbooApplication.class',
+              'com/part4/team09/otboo/module/domain/**/dto/**',
+              'com/part4/team09/otboo/module/domain/**/entity/**',
+              'com/part4/team09/otboo/module/domain/**/mapper/**',
+              'com/part4/team09/otboo/module/domain/**/assembler/**',
+              'com/part4/team09/otboo/module/domain/**/exception/**',
+              'com/part4/team09/otboo/module/domain/notification/event/*Event.class',
+              'com/part4/team09/otboo/module/domain/weather/batch/listener/**',
+              'com/part4/team09/otboo/module/domain/weather/batch/retry/*Launcher.class',
+              'com/part4/team09/otboo/module/domain/weather/batch/*Launcher.class',
+              'com/part4/team09/otboo/module/domain/**/Q*.class'
+      ])
+    }))
+  }
+
   dependsOn test
 }
 
@@ -105,6 +131,10 @@ dependencies {
 
   // HTML 파싱
   implementation 'org.jsoup:jsoup:1.17.2'
+
+  // AWS secrets manager
+  implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.0.2")
+  implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
 }
 
 tasks.named('test') {

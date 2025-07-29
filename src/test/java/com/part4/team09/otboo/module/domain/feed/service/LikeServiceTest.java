@@ -3,7 +3,6 @@ package com.part4.team09.otboo.module.domain.feed.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -13,6 +12,7 @@ import com.part4.team09.otboo.module.domain.feed.dto.FeedDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
 import com.part4.team09.otboo.module.domain.feed.entity.Like;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
+import com.part4.team09.otboo.module.domain.feed.exception.like.LikeAlreadyExistsException;
 import com.part4.team09.otboo.module.domain.feed.exception.like.LikeNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
@@ -83,6 +83,7 @@ class LikeServiceTest {
           true
       );
 
+      given(likeRepository.existsByUserIdAndFeedId(userId, feedId)).willReturn(false);
       given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
       given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
       given(feedDtoAssembler.assemble(feedId, userId)).willReturn(feedDto);
@@ -93,6 +94,20 @@ class LikeServiceTest {
       // then
       assertThat(result).isEqualTo(feedDto);
       verify(likeRepository).save(any());
+    }
+
+    @Test
+    @DisplayName("좋아요 생성 실패 - 이미 존재하는 좋아요")
+    void create_like_throwsLikeAlreadyExistsException_whenLikeAlreadyExist() {
+      // given
+      UUID feedId = UUID.randomUUID();
+      UUID userId = UUID.randomUUID();
+
+      given(likeRepository.existsByUserIdAndFeedId(userId, feedId)).willReturn(true);
+
+      // when & then
+      assertThrows(LikeAlreadyExistsException.class,
+          () -> likeService.create(userId, feedId));
     }
 
     @Test
@@ -199,6 +214,24 @@ class LikeServiceTest {
       // when & then
       assertThrows(LikeNotFoundException.class,
           () -> likeService.delete(userId, feedId));
+    }
+  }
+
+  @Nested
+  @DisplayName("피드 아이디로 좋아요 모두 삭제")
+  public class DeleteAllByFeedIdTest {
+
+    @Test
+    @DisplayName("좋아요 모두 삭제 성공")
+    void delete_all_by_feedId_success() {
+      // given
+      UUID feedId = UUID.randomUUID();
+
+      // when
+      likeService.deleteAllByFeedId(feedId);
+
+      // then
+      verify(likeRepository).deleteAllByFeedId(feedId);
     }
   }
 }

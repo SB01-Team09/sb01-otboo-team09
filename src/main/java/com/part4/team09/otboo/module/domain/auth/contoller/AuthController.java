@@ -1,6 +1,6 @@
 package com.part4.team09.otboo.module.domain.auth.contoller;
 
-import com.part4.team09.otboo.module.common.security.AuthCookieNames;
+import com.part4.team09.otboo.module.common.security.constants.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.util.CookieUtil;
 import com.part4.team09.otboo.module.domain.auth.dto.ResetPasswordRequest;

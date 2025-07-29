@@ -31,9 +31,9 @@ public class DirectMessageRepositoryQueryDSL {
         // 커서 페이징 조건
         if (cursor != null) {
             BooleanBuilder cursorCond = new BooleanBuilder();
-            cursorCond.or(dm.createdAt.gt(cursor));
+            cursorCond.or(dm.createdAt.lt(cursor));
             if (idAfter != null) {
-                cursorCond.or(dm.createdAt.eq(cursor).and(dm.id.gt(idAfter)));
+                cursorCond.or(dm.createdAt.eq(cursor).and(dm.id.lt(idAfter)));
             }
             condition.and(cursorCond);
         }
@@ -41,7 +41,7 @@ public class DirectMessageRepositoryQueryDSL {
         return queryFactory
                 .selectFrom(dm)
                 .where(condition)
-                .orderBy(dm.createdAt.asc(), dm.id.asc())
+                .orderBy(dm.createdAt.desc(), dm.id.desc())
                 .limit(limit)
                 .fetch();
     }

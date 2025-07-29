@@ -2,6 +2,7 @@ package com.part4.team09.otboo.module.common.security.oauth;
 
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomOAuth2User;
 import com.part4.team09.otboo.module.common.util.CookieUtil;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
@@ -48,6 +49,8 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     response.setCharacterEncoding(StandardCharsets.UTF_8.name());
     response.setStatus(HttpServletResponse.SC_OK);
+
+    log.error("Oauth 로그인 성공 및 응답");
 
     response.sendRedirect("/");
   }

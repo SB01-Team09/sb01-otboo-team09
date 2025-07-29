@@ -193,7 +193,7 @@ CREATE TABLE clothes
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE,
     owner_id   UUID                     NOT NULL,
-    name       VARCHAR(50)              NOT NULL,
+    name       VARCHAR(255)             NOT NULL,
     type       VARCHAR(10)              NOT NULL,
     image_url  TEXT
 );
@@ -251,5 +251,6 @@ CREATE TABLE user_temp_passwords
     created_at         TIMESTAMP NOT NULL
 );
 
-CREATE INDEX idx_selectable_value_attribute_def_id ON selectable_values (attribute_def_id);
 CREATE INDEX idx_clothes_attribute_clothes_id ON clothes_attributes (clothes_id);
+CREATE INDEX idx_clothes_owner_type_created_id ON clothes (owner_id, type, created_at, id);
+CREATE INDEX idx_clothes_owner_type_name_id ON clothes (owner_id, type, name, id);

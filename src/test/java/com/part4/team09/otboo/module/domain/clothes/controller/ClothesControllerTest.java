@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.common.enums.SortDirection;
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesDto;
 import com.part4.team09.otboo.module.domain.clothes.dto.request.ClothesCreateRequest;
@@ -54,7 +54,7 @@ class ClothesControllerTest {
   void setUp() {
 
     userDetails = CustomUserDetails.create(
-        new AuthUserDto(UUID.randomUUID(), "test@gmail.com", "test", false, Role.USER));
+      new AuthUserDto(UUID.randomUUID(), "test@gmail.com", "test", false, Role.USER));
   }
 
   @Nested
@@ -67,34 +67,34 @@ class ClothesControllerTest {
 
       // given
       MockMultipartFile imagePart = new MockMultipartFile(
-          "image",
-          "test-image.jpg",
-          MediaType.IMAGE_JPEG_VALUE,
-          "test".getBytes()
+        "image",
+        "test-image.jpg",
+        MediaType.IMAGE_JPEG_VALUE,
+        "test".getBytes()
       );
 
       ClothesCreateRequest request = new ClothesCreateRequest(userDetails.getId(), "clothes1",
-          ClothesType.TOP, List.of());
+        ClothesType.TOP, List.of());
       MockMultipartFile requestPart = new MockMultipartFile(
-          "request",
-          null,
-          MediaType.APPLICATION_JSON_VALUE,
-          objectMapper.writeValueAsString(request).getBytes());
+        "request",
+        null,
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsString(request).getBytes());
 
       ClothesDto response = new ClothesDto(UUID.randomUUID(), request.ownerId(), request.name(),
-          "url", request.type(), LocalDateTime.now(), List.of());
+        "url", request.type(), LocalDateTime.now(), List.of());
 
       given(clothesService.create(request.ownerId(), request, imagePart)).willReturn(response);
 
       // when, then
       mockMvc.perform(multipart("/api/clothes")
-              .file(requestPart)
-              .file(imagePart)
-              .contentType(MediaType.MULTIPART_FORM_DATA)
-              .accept(MediaType.APPLICATION_JSON)
-              .with(user(userDetails))
-              .with(csrf()))
-          .andExpect(status().isCreated());
+          .file(requestPart)
+          .file(imagePart)
+          .contentType(MediaType.MULTIPART_FORM_DATA)
+          .accept(MediaType.APPLICATION_JSON)
+          .with(user(userDetails))
+          .with(csrf()))
+        .andExpect(status().isCreated());
 
     }
   }
@@ -112,22 +112,22 @@ class ClothesControllerTest {
       UUID ownerId = userDetails.getId();
 
       ClothesDtoCursorResponse response = new ClothesDtoCursorResponse(List.of(), null, null, false,
-          0, "createdAt", SortDirection.ASCENDING);
+        0, "createdAt", SortDirection.ASCENDING);
 
       given(clothesService.findByCursor(userDetails.getId(), null, null, limit, ClothesType.TOP,
-          ownerId)).willReturn(response);
+        ownerId)).willReturn(response);
 
       // when, then
       mockMvc.perform(get("/api/clothes")
-              .param("limit", "10")
-              .param("typeEqual", ClothesType.TOP.name())
-              .param("ownerId", ownerId.toString())
-              .accept(MediaType.APPLICATION_JSON)
-              .with(user(userDetails)))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.totalCount").value(0))
-          .andExpect(jsonPath("$.sortBy").value(response.sortBy()))
-          .andExpect(jsonPath("$.sortDirection").value(SortDirection.ASCENDING.name()));
+          .param("limit", "10")
+          .param("typeEqual", ClothesType.TOP.name())
+          .param("ownerId", ownerId.toString())
+          .accept(MediaType.APPLICATION_JSON)
+          .with(user(userDetails)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(0))
+        .andExpect(jsonPath("$.sortBy").value(response.sortBy()))
+        .andExpect(jsonPath("$.sortDirection").value(SortDirection.ASCENDING.name()));
     }
   }
 
@@ -143,37 +143,37 @@ class ClothesControllerTest {
       UUID clothesId = UUID.randomUUID();
 
       MockMultipartFile imagePart = new MockMultipartFile("image", "test-image.jpg",
-          MediaType.IMAGE_JPEG_VALUE, "test".getBytes());
+        MediaType.IMAGE_JPEG_VALUE, "test".getBytes());
 
       ClothesUpdateRequest request = new ClothesUpdateRequest("new", ClothesType.BOTTOM, List.of());
       MockMultipartFile requestPart = new MockMultipartFile(
-          "request",
-          null,
-          MediaType.APPLICATION_JSON_VALUE,
-          objectMapper.writeValueAsString(request).getBytes());
+        "request",
+        null,
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsString(request).getBytes());
 
       ClothesDto response = new ClothesDto(clothesId, userDetails.getId(), request.name(),
-          "new url",
-          request.type(), LocalDateTime.now(), List.of());
+        "new url",
+        request.type(), LocalDateTime.now(), List.of());
 
       given(clothesService.update(userDetails.getId(), clothesId, request, imagePart)).willReturn(
-          response);
+        response);
       // when, then
       mockMvc.perform(multipart("/api/clothes/{clothesId}", clothesId)
-              .file(requestPart)
-              .file(imagePart)
-              .with(r -> {
-                r.setMethod("PATCH"); // 👈 여기 필수
-                return r;
-              })
-              .contentType(MediaType.MULTIPART_FORM_DATA)
-              .accept(MediaType.APPLICATION_JSON)
-              .with(user(userDetails))
-              .with(csrf()))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.id").value(clothesId.toString()))
-          .andExpect(jsonPath("$.ownerId").value(userDetails.getId().toString()))
-          .andExpect(jsonPath("$.name").value("new"));
+          .file(requestPart)
+          .file(imagePart)
+          .with(r -> {
+            r.setMethod("PATCH"); // 👈 여기 필수
+            return r;
+          })
+          .contentType(MediaType.MULTIPART_FORM_DATA)
+          .accept(MediaType.APPLICATION_JSON)
+          .with(user(userDetails))
+          .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(clothesId.toString()))
+        .andExpect(jsonPath("$.ownerId").value(userDetails.getId().toString()))
+        .andExpect(jsonPath("$.name").value("new"));
     }
   }
 
@@ -190,9 +190,9 @@ class ClothesControllerTest {
 
       // when, then
       mockMvc.perform(delete("/api/clothes/{clothesId}", clothesId)
-              .with(user(userDetails))
-              .with(csrf()))
-          .andExpect(status().isNoContent());
+          .with(user(userDetails))
+          .with(csrf()))
+        .andExpect(status().isNoContent());
     }
   }
 
@@ -208,18 +208,18 @@ class ClothesControllerTest {
       String url = "url";
 
       ClothesDto response = new ClothesDto(null, userDetails.getId(), "name", "imageUrl",
-          ClothesType.TOP, null, List.of());
+        ClothesType.TOP, null, List.of());
 
       given(clothesService.extraction(userDetails.getId(), url)).willReturn(response);
 
       // when, then
       mockMvc.perform(get("/api/clothes/extractions")
-              .param("url", url)
-              .accept(MediaType.APPLICATION_JSON)
-              .with(user(userDetails))
-              .with(csrf()))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.ownerId").value(userDetails.getId().toString()));
+          .param("url", url)
+          .accept(MediaType.APPLICATION_JSON)
+          .with(user(userDetails))
+          .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.ownerId").value(userDetails.getId().toString()));
     }
   }
 }

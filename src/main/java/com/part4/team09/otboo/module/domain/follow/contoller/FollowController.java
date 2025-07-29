@@ -1,21 +1,27 @@
 package com.part4.team09.otboo.module.domain.follow.contoller;
 
-import com.part4.team09.otboo.module.common.security.CustomUserDetails;
+import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowCreateRequest;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowDto;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowListResponse;
 import com.part4.team09.otboo.module.domain.follow.dto.FollowSummaryDto;
 import com.part4.team09.otboo.module.domain.follow.service.FollowService;
 import jakarta.validation.constraints.Min;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpStatus;
-
-import java.util.UUID;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @Validated
@@ -24,73 +30,76 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FollowController {
 
-    private final FollowService followService;
+  private final FollowService followService;
 
-    // 팔로우 요청
-    @PostMapping
-    public ResponseEntity<FollowDto> follow(@RequestBody FollowCreateRequest request){
+  // 팔로우 요청
+  @PostMapping
+  public ResponseEntity<FollowDto> follow(@RequestBody FollowCreateRequest request) {
 
-        FollowDto followDto = followService.create(request.followeeId(), request.followerId());
+    FollowDto followDto = followService.create(request.followeeId(), request.followerId());
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(followDto);
-    }
+    return ResponseEntity
+      .status(HttpStatus.CREATED)
+      .body(followDto);
+  }
 
-    // 팔로잉 목록 조회
-    @GetMapping("/followings")
-    public ResponseEntity<FollowListResponse> getFollowings(
-            @RequestParam UUID followerId,
-            @RequestParam(required = false) String cursor,
-            @RequestParam(required = false) UUID idAfter,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit은 0보다 커야합니다.") Integer limit,
-            @RequestParam(required = false) String nameLike
-            ){
+  // 팔로잉 목록 조회
+  @GetMapping("/followings")
+  public ResponseEntity<FollowListResponse> getFollowings(
+    @RequestParam UUID followerId,
+    @RequestParam(required = false) String cursor,
+    @RequestParam(required = false) UUID idAfter,
+    @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit은 0보다 커야합니다.") Integer limit,
+    @RequestParam(required = false) String nameLike
+  ) {
 
-        FollowListResponse response = followService.getFollowings(followerId, cursor, idAfter, limit, nameLike);
+    FollowListResponse response = followService.getFollowings(followerId, cursor, idAfter, limit,
+      nameLike);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
-    }
+    return ResponseEntity
+      .status(HttpStatus.OK)
+      .body(response);
+  }
 
-    // 팔로워 목록 조회
-    @GetMapping("/followers")
-    public ResponseEntity<FollowListResponse> getFollowers(
-            @RequestParam UUID followeeId,
-            @RequestParam(required = false) String cursor,
-            @RequestParam(required = false) UUID idAfter,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit은 0보다 커야합니다.") Integer limit,
-            @RequestParam(required = false) String nameLike
-    ){
+  // 팔로워 목록 조회
+  @GetMapping("/followers")
+  public ResponseEntity<FollowListResponse> getFollowers(
+    @RequestParam UUID followeeId,
+    @RequestParam(required = false) String cursor,
+    @RequestParam(required = false) UUID idAfter,
+    @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit은 0보다 커야합니다.") Integer limit,
+    @RequestParam(required = false) String nameLike
+  ) {
 
-        FollowListResponse response = followService.getFollowers(followeeId, cursor, idAfter, limit, nameLike);
+    FollowListResponse response = followService.getFollowers(followeeId, cursor, idAfter, limit,
+      nameLike);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
-    }
+    return ResponseEntity
+      .status(HttpStatus.OK)
+      .body(response);
+  }
 
-    // 팔로우 요약 정보 조회
-    @GetMapping("/summary")
-    public ResponseEntity<FollowSummaryDto> getFollowSummary(@RequestParam UUID userId, @AuthenticationPrincipal CustomUserDetails currentUser){
+  // 팔로우 요약 정보 조회
+  @GetMapping("/summary")
+  public ResponseEntity<FollowSummaryDto> getFollowSummary(@RequestParam UUID userId,
+    @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        FollowSummaryDto response = followService.getFollowSummary(userId, currentUser.getId());
+    FollowSummaryDto response = followService.getFollowSummary(userId, currentUser.getId());
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
-    }
+    return ResponseEntity
+      .status(HttpStatus.OK)
+      .body(response);
+  }
 
 
-    // 팔로우 삭제
-    @DeleteMapping("/{followId}")
-    public ResponseEntity<Void> Unfollow(@PathVariable UUID followId){
-        followService.deleteFollow(followId);
+  // 팔로우 삭제
+  @DeleteMapping("/{followId}")
+  public ResponseEntity<Void> Unfollow(@PathVariable UUID followId) {
+    followService.deleteFollow(followId);
 
-        return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
-                .build();
-    }
+    return ResponseEntity
+      .status(HttpStatus.NO_CONTENT)
+      .build();
+  }
 
 }

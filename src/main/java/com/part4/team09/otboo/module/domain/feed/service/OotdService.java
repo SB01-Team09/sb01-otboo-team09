@@ -1,23 +1,12 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
-import com.part4.team09.otboo.module.domain.clothes.dto.data.ClothesAttributeWithDefDto;
 import com.part4.team09.otboo.module.domain.clothes.entity.Clothes;
-import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttribute;
-import com.part4.team09.otboo.module.domain.clothes.entity.ClothesAttributeDef;
-import com.part4.team09.otboo.module.domain.clothes.entity.SelectableValue;
 import com.part4.team09.otboo.module.domain.clothes.exception.Clothes.ClothesNotFoundException;
-import com.part4.team09.otboo.module.domain.clothes.exception.ClothesAttributeDef.ClothesAttributeDefNotFoundException;
-import com.part4.team09.otboo.module.domain.clothes.exception.SelectableValue.SelectableValueNotFoundException;
-import com.part4.team09.otboo.module.domain.clothes.mapper.ClothesAttributeWithDefMapper;
-import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeDefRepository;
-import com.part4.team09.otboo.module.domain.clothes.repository.ClothesAttributeRepository;
 import com.part4.team09.otboo.module.domain.clothes.repository.ClothesRepository;
-import com.part4.team09.otboo.module.domain.clothes.repository.SelectableValueRepository;
 import com.part4.team09.otboo.module.domain.feed.dto.OotdDto;
 import com.part4.team09.otboo.module.domain.feed.entity.Ootd;
-import com.part4.team09.otboo.module.domain.feed.mapper.OotdMapper;
+import com.part4.team09.otboo.module.domain.feed.mapper.OotdDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.OotdRepository;
-import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -29,14 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class OotdService {
 
   private final OotdRepository ootdRepository;
-  private final OotdMapper ootdMapper;
+  private final OotdDtoAssembler ootdDtoAssembler;
 
   private final ClothesRepository clothesRepository;
-  private final ClothesAttributeDefRepository clothesAttributeDefRepository;
-  private final ClothesAttributeRepository clothesAttributeRepository;
-  private final SelectableValueRepository selectableValueRepository;
-
-  private final ClothesAttributeWithDefMapper clothesAttributeWithDefMapper;
 
   @Transactional
   public void create(UUID feedId, List<UUID> clothesIds) {
@@ -53,11 +37,7 @@ public class OotdService {
     List<UUID> clothesIds = ootdRepository.findClothesIdsByFeedId(feedID);
     List<Clothes> selectedClothes = getAllByClothesIdsOrThrow(clothesIds);
 
-    return selectedClothes.stream()
-        .map(clothes ->
-            ootdMapper.toDto(clothes, getAttributes(clothes.getId()))
-        )
-        .toList();
+    return ootdDtoAssembler.assemble(selectedClothes);
   }
 
   @Transactional
@@ -81,34 +61,5 @@ public class OotdService {
     }
 
     return foundClothes;
-  }
-
-  private List<ClothesAttributeWithDefDto> getAttributes(UUID clothesId) {
-    List<ClothesAttribute> attributes = clothesAttributeRepository.findAllByClothesId(clothesId);
-
-    List<ClothesAttributeWithDefDto> clothesAttributeWithDefs = attributes.stream()
-        .map(attribute -> {
-          SelectableValue selectValue = selectableValueRepository.findById(attribute.getSelectableValueId())
-              .orElseThrow(() -> SelectableValueNotFoundException.withId(attribute.getSelectableValueId()));
-
-          UUID definitionId = selectValue.getAttributeDefId();
-          ClothesAttributeDef clothesAttributeDef = clothesAttributeDefRepository.findById(definitionId)
-              .orElseThrow(() -> ClothesAttributeDefNotFoundException.withId(definitionId));
-
-          List<String> selectableValues = selectableValueRepository.findAllByAttributeDefId(definitionId)
-              .stream()
-              .map(SelectableValue::getItem)
-              .toList();
-
-          return clothesAttributeWithDefMapper.toDto(
-              definitionId,
-              clothesAttributeDef.getName(),
-              selectableValues,
-              selectValue.getItem()
-          );
-        })
-        .toList();
-
-    return clothesAttributeWithDefs;
   }
 }

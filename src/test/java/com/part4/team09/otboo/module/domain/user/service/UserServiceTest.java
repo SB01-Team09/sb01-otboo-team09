@@ -3,6 +3,7 @@ package com.part4.team09.otboo.module.domain.user.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.part4.team09.otboo.config.TestSseServiceConfig;
 import com.part4.team09.otboo.module.domain.user.dto.UserDto;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserCreateRequest;
 import com.part4.team09.otboo.module.domain.user.dto.request.UserLockUpdateRequest;
@@ -16,12 +17,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Import(TestSseServiceConfig.class)
 class UserServiceTest {
 
   @Autowired
