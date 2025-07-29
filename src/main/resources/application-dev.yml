@@ -29,6 +29,13 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
+otboo:
+  file:
+    storage:
+      type: local
+      local:
+        path: ${FILE_STORAGE_PATH:${user.dir}/fileStorage}
+
 management:
   endpoints:
     web:
