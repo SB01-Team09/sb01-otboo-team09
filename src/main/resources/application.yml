@@ -6,7 +6,7 @@ spring:
   config:
     import:
       - optional:file:.env[.properties]
-      - optional:aws-secretsmanager:/prod/otboo/Keys
+      - optional:aws-secretsmanager:prod/otboo/Keys
   cloud:
     aws:
       region:
