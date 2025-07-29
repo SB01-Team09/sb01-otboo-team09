@@ -21,6 +21,8 @@ spring:
   kafka:
     listener:
       auto-startup: false
+    consumer:
+      group-id: test-group
   data:
     redis:
       host: dummy
