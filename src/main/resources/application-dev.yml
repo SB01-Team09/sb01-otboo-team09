@@ -41,3 +41,11 @@ logging:
     p6spy: debug
     com.nimbusds.jwt: debug
     org.springframework.web.socket: debug
+
+otboo:
+  file:
+    storage:
+      type: local
+      local:
+        path: ${FILE_STORAGE_PATH:${user.dir}/fileStorage}
+

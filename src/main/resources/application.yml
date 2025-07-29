@@ -6,11 +6,13 @@ spring:
   config:
     import:
       - optional:file:.env[.properties]
-      - optional:aws-secretsmanager:/prod/otboo/Keys
-  cloud:
-    aws:
-      region:
-        static: ap-northeast-2
+
+# Secrets Manager 설정
+#      - optional:aws-secretsmanager:/prod/otboo/Keys
+#  cloud:
+#    aws:
+#      region:
+#        static: ap-northeast-2
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -76,17 +78,17 @@ otboo:
     name: ${ADMIN_NAME:admin}
     email: ${ADMIN_EMAIL:admin@admin.com}
     password: ${ADMIN_PASSWORD:admin1234}
-  file:
-    storage:
-      type: ${FILE_STORAGE_TYPE:local}
-      local:
-        path: ${FILE_STORAGE_PATH:${user.dir}/fileStorage}
-      s3:
-        access-key: ${AWS_ACCESS_KEY_ID}
-        secret-key: ${AWS_SECRET_ACCESS_KEY}
-        region: ${AWS_S3_REGION}
-        bucket: ${AWS_S3_BUCKET}
-        image-prefix: ${AWS_S3_IMAGE_PREFIX:images}
+#  file:
+#    storage:
+#      type: ${FILE_STORAGE_TYPE:local}
+#      local:
+#        path: ${FILE_STORAGE_PATH:${user.dir}/fileStorage}
+#      s3:
+#        access-key: ${AWS_ACCESS_KEY_ID}
+#        secret-key: ${AWS_SECRET_ACCESS_KEY}
+#        region: ${AWS_S3_REGION}
+#        bucket: ${AWS_S3_BUCKET}
+#        image-prefix: ${AWS_S3_IMAGE_PREFIX:images}
   resource:
     path: files
   auth:
