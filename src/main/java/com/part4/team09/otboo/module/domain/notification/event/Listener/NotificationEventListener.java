@@ -37,7 +37,10 @@ public class NotificationEventListener {
   private final ObjectMapper objectMapper;
 
   // 권한 변경
-  @KafkaListener(topics = "otboo.role_change")
+  @KafkaListener(
+      topics = "otboo.role_change",
+      groupId = "${spring.kafka.consumer.group-id}"
+  )
   public void handleRoleChangedEvent(String kafkaEvent) {
     try {
       RoleChangedEvent event = objectMapper.readValue(kafkaEvent, RoleChangedEvent.class);
@@ -62,7 +65,10 @@ public class NotificationEventListener {
   }
 
   // 의상 속성 추가
-  @KafkaListener(topics = "otboo.clothes_attribute_def_create")
+  @KafkaListener(
+      topics = "otboo.clothes_attribute_def_create",
+      groupId = "${spring.kafka.consumer.group-id}"
+  )
   public void handleClothesAttributeDefCreatedEvent(String kafkaEvent) {
     try {
       ClothesAttributeDefCreatedEvent event = objectMapper.readValue(kafkaEvent, ClothesAttributeDefCreatedEvent.class);
@@ -85,7 +91,10 @@ public class NotificationEventListener {
   }
 
   // 의상 속성 변경
-  @KafkaListener(topics = "otboo.clothes_attribute_def_update")
+  @KafkaListener(
+      topics = "otboo.clothes_attribute_def_update",
+      groupId = "${spring.kafka.consumer.group-id}"
+  )
   public void handleClothesAttributeDefUpdatedEvent(String kafkaEvent) {
     try {
       ClothesAttributeDefUpdatedEvent event = objectMapper.readValue(kafkaEvent, ClothesAttributeDefUpdatedEvent.class);
@@ -108,7 +117,10 @@ public class NotificationEventListener {
   }
 
   // 내 피드에 좋아요
-  @KafkaListener(topics = "otboo.feed_like")
+  @KafkaListener(
+      topics = "otboo.feed_like",
+      groupId = "${spring.kafka.consumer.group-id}"
+  )
   public void handleFeedLikedEvent(String kafkaEvent) {
     try {
       FeedLikedEvent event = objectMapper.readValue(kafkaEvent, FeedLikedEvent.class);
@@ -132,7 +144,10 @@ public class NotificationEventListener {
   }
 
   // 내 피드에 댓글 등록
-  @KafkaListener(topics = "otboo.feed_comment")
+  @KafkaListener(
+      topics = "otboo.feed_comment",
+      groupId = "${spring.kafka.consumer.group-id}"
+  )
   public void handleFeedCommentedEvent(String kafkaEvent) {
     try {
       FeedCommentedEvent event = objectMapper.readValue(kafkaEvent, FeedCommentedEvent.class);
@@ -156,7 +171,10 @@ public class NotificationEventListener {
   }
 
   // 팔로우한 사용자가 피드 등록
-  @KafkaListener(topics = "otboo.feed_create_follower")
+  @KafkaListener(
+      topics = "otboo.feed_create_follower",
+      groupId = "${spring.kafka.consumer.group-id}"
+  )
   public void handleFeedCreatedEvent(String kafkaEvent) {
     try {
       FeedCreatedFollowerEvent event = objectMapper.readValue(kafkaEvent, FeedCreatedFollowerEvent.class);
@@ -180,7 +198,10 @@ public class NotificationEventListener {
   }
 
   // 다른 사용자가 나를 팔로우
-  @KafkaListener(topics = "otboo.follow")
+  @KafkaListener(
+      topics = "otboo.follow",
+      groupId = "${spring.kafka.consumer.group-id}"
+  )
   public void handleFollowedEvent(String kafkaEvent) {
     try {
       FollowedEvent event = objectMapper.readValue(kafkaEvent, FollowedEvent.class);
@@ -204,7 +225,10 @@ public class NotificationEventListener {
   }
 
   // DM 수신
-  @KafkaListener(topics = "otboo.direct_message_receive")
+  @KafkaListener(
+      topics = "otboo.direct_message_receive",
+      groupId = "${spring.kafka.consumer.group-id}"
+  )
   public void handleDirectMessageReceivedEvent(String kafkaEvent) {
     try {
       DirectMessageReceivedEvent event = objectMapper.readValue(kafkaEvent, DirectMessageReceivedEvent.class);
@@ -228,7 +252,10 @@ public class NotificationEventListener {
   }
 
   // 급격한 기온 상승 예정
-  @KafkaListener(topics = "otboo.rapid_temperature_rise")
+  @KafkaListener(
+      topics = "otboo.rapid_temperature_rise",
+      groupId = "${spring.kafka.consumer.group-id}"
+  )
   public void handleRapidTemperatureRiseEvent(String kafkaEvent) {
     try {
       RapidTemperatureRiseEvent event = objectMapper.readValue(kafkaEvent, RapidTemperatureRiseEvent.class);
@@ -252,7 +279,10 @@ public class NotificationEventListener {
   }
 
   // 급격한 기온 하강 예정
-  @KafkaListener(topics = "otboo.rapid_temperature_drop")
+  @KafkaListener(
+      topics = "otboo.rapid_temperature_drop",
+      groupId = "${spring.kafka.consumer.group-id}"
+  )
   public void handleRapidTemperatureDropEvent(String kafkaEvent) {
     try {
       RapidTemperatureDropEvent event = objectMapper.readValue(kafkaEvent, RapidTemperatureDropEvent.class);
@@ -276,7 +306,10 @@ public class NotificationEventListener {
   }
 
   // 비, 눈, 소나기 등 예정
-  @KafkaListener(topics = "otboo.weather_notification_create")
+  @KafkaListener(
+      topics = "otboo.weather_notification_create",
+      groupId = "${spring.kafka.consumer.group-id}"
+  )
   public void handleWeatherNotificationCreateEvent(String kafkaEvent) {
     try {
       WeatherNotificationCreateEvent event = objectMapper.readValue(kafkaEvent, WeatherNotificationCreateEvent.class);
