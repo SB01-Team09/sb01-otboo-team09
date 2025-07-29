@@ -6,8 +6,6 @@ import com.part4.team09.otboo.module.domain.feed.dto.request.FeedCreateRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedListRequest;
 import com.part4.team09.otboo.module.domain.feed.dto.request.FeedUpdateRequest;
 import com.part4.team09.otboo.module.domain.feed.entity.Feed;
-import com.part4.team09.otboo.module.domain.feed.event.FeedCreatedEvent;
-import com.part4.team09.otboo.module.domain.feed.event.FeedDeletedEvent;
 import com.part4.team09.otboo.module.domain.feed.exception.feed.FeedNotFoundException;
 import com.part4.team09.otboo.module.domain.feed.mapper.FeedDtoAssembler;
 import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
@@ -21,8 +19,6 @@ import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundExc
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -59,7 +55,7 @@ public class FeedService {
     Feed savedFeed = feedRepository.save(feed);
     ootdService.create(savedFeed.getId(), request.clothesIds());
 
-    eventPublisher.publishEvent(new FeedCreatedEvent()); // 캐시 무효화 이벤트
+//    eventPublisher.publishEvent(new FeedCreatedEvent()); // 캐시 무효화 이벤트
     eventPublisher.publishEvent(
         new FeedCreatedFollowerEvent(
             request.authorId(),
@@ -71,7 +67,7 @@ public class FeedService {
     return feedDtoAssembler.assemble(savedFeed, userId);
   }
 
-  @CachePut(cacheNames="feeds", key="'firstPage:' +  #request.sortBy()")
+  // @CachePut(cacheNames="feeds", key="'firstPage:' +  #request.sortBy()")
   @PreAuthorize("@feedPermissionEvaluator.isFeedAuthor(principal.id, #feedId)")
   @Transactional
   public FeedDto update(UUID feedId, UUID userId, FeedUpdateRequest request) {
@@ -90,14 +86,14 @@ public class FeedService {
     commentService.deleteAllByFeedId(feedId);
     likeService.deleteAllByFeedId(feedId);
 
-    eventPublisher.publishEvent(new FeedDeletedEvent(feedId)); // 캐시 무효화 이벤트
+//    eventPublisher.publishEvent(new FeedDeletedEvent(feedId)); // 캐시 무효화 이벤트
 
     feedRepository.deleteById(feedId);
   }
 
   // 피드 목록 조회
   @Transactional(readOnly = true)
-  @Cacheable(value = "feeds", key = "'firstPage:' +  #request.sortBy()", condition = "#request.cursor() == null && #request.idAfter() == null") // 첫 페이지만 캐싱
+//  @Cacheable(value = "feeds", key = "'firstPage:' +  #request.sortBy()", condition = "#request.cursor() == null && #request.idAfter() == null") // 첫 페이지만 캐싱
   public FeedDtoCursorResponse getFeeds(UUID currentUserId, FeedListRequest request){
 
     // 쿼리

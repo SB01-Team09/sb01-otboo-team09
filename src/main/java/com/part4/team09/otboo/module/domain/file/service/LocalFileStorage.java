@@ -3,10 +3,6 @@ package com.part4.team09.otboo.module.domain.file.service;
 import com.part4.team09.otboo.module.domain.file.FileDomain;
 import com.part4.team09.otboo.module.domain.file.exception.FileUploadFailedException;
 import jakarta.annotation.PostConstruct;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -16,6 +12,11 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.UUID;
 
 @Slf4j
 @Component

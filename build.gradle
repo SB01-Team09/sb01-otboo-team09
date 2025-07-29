@@ -131,6 +131,10 @@ dependencies {
 
   // HTML 파싱
   implementation 'org.jsoup:jsoup:1.17.2'
+
+  // AWS secrets manager
+  implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.0.2")
+  implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
 }
 
 tasks.named('test') {
