@@ -6,13 +6,11 @@ spring:
   config:
     import:
       - optional:file:.env[.properties]
-
-# Secrets Manager 설정
-#      - optional:aws-secretsmanager:/prod/otboo/Keys
-#  cloud:
-#    aws:
-#      region:
-#        static: ap-northeast-2
+      - optional:aws-secretsmanager:prod/otboo/Keys  # Secrets Manager 설정
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
