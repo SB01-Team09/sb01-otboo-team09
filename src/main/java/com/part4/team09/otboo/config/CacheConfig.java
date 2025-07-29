@@ -32,7 +32,7 @@ public class CacheConfig {
                                 new GenericJackson2JsonRedisSerializer(redisObjectMapper)
                         )
                 )
-                .prefixCacheNameWith("discodeit:")
+                .prefixCacheNameWith("otboo:")
                 .entryTtl(Duration.ofSeconds(600)) // TTL 10분
                 .disableCachingNullValues(); // null일 때 캐시에 저장하지 않도록 설정
     }
