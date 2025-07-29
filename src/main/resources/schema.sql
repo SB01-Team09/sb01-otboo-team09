@@ -193,7 +193,7 @@ CREATE TABLE clothes
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE,
     owner_id   UUID                     NOT NULL,
-    name       VARCHAR(50)              NOT NULL,
+    name       VARCHAR(255)             NOT NULL,
     type       VARCHAR(10)              NOT NULL,
     image_url  TEXT
 );
