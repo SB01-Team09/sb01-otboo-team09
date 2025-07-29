@@ -50,6 +50,8 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     response.setCharacterEncoding(StandardCharsets.UTF_8.name());
     response.setStatus(HttpServletResponse.SC_OK);
 
+    log.error("Oauth 로그인 성공 및 응답");
+
     response.sendRedirect("/");
   }
 }

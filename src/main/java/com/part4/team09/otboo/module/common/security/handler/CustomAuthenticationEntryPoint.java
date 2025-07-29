@@ -31,6 +31,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
   public void commence(HttpServletRequest request, HttpServletResponse response,
     AuthenticationException authException) throws IOException, ServletException {
 
+    log.error("인증 실패: {}", authException.getMessage(), authException);
     log.info("인증 실패 (이유: {} - {}, IP: {}, Method: {})",
       authException.getClass().getSimpleName(),
       authException.getMessage(),
