@@ -28,7 +28,7 @@ class FeedPermissionEvaluatorTest {
 
   @Nested
   @DisplayName("피드 작성자 확인")
-  public class CreateFeedTest {
+  public class isFeedAuthorTest {
 
     @Test
     @DisplayName("피드 작성자 확인 - true")

@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
+public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
   private final JwtTokenProvider jwtTokenProvider;
 
@@ -52,6 +52,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
     log.error("Oauth 로그인 성공 및 응답");
 
-    response.sendRedirect("/");
+    getRedirectStrategy().sendRedirect(request, response, "/");
+
   }
 }

@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.domain.notification.event.Listener;
+package com.part4.team09.otboo.module.domain.notification.event.listener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

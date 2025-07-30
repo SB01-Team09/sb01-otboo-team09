@@ -1,4 +1,4 @@
-package com.part4.team09.otboo.module.domain.notification.event.Listener;
+package com.part4.team09.otboo.module.domain.notification.event.listener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,12 +21,8 @@ import com.part4.team09.otboo.module.domain.notification.event.WeatherNotificati
 import com.part4.team09.otboo.module.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
