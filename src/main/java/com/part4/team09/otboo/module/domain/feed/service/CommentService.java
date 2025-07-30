@@ -24,7 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -70,11 +72,19 @@ public class CommentService {
     List<Comment> comments = commentRepositoryQueryDSL.getComments(feedId, cursor, idAfter, limit+1);
     int totalCount = commentRepositoryQueryDSL.countComments(feedId);
 
-    Feed feed = feedRepository.findById(feedId).orElseThrow();
-    User author = userRepository.findById(feed.getAuthorId()).orElseThrow();
+    // 댓글 작성자 로직
+    List<UUID> authorIds = comments.stream().map(comment -> comment.getAuthorId()).toList();
+    List<User> authors = userRepository.findAllById(authorIds);
+    // 작성자 ID로 객체 매핑
+    Map<UUID, User> authorMap = authors.stream()
+            .collect(Collectors.toMap(User::getId, user -> user));
 
     // Dto 리스트로 변환
-    List<CommentDto> commentDtos = comments.stream().map(comment -> commentMapper.toDto(comment, author)).toList();
+    List<CommentDto> commentDtos = comments.stream()
+            .map(comment -> {
+              User author = authorMap.get(comment.getAuthorId());
+              return commentMapper.toDto(comment, author);
+            }).toList();
 
     // 반환
     // hasNext
