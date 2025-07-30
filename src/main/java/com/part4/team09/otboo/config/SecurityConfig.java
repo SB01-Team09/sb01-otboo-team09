@@ -70,9 +70,6 @@ public class SecurityConfig {
       .cors(AbstractHttpConfigurer::disable)
 
       .csrf(AbstractHttpConfigurer::disable) // 정적 리소스 변경 후 활성화
-//      .csrf(csrf -> csrf
-//        .ignoringRequestMatchers("/api/auth/sign-out")
-//        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
 
       .authenticationProvider(customDaoAuthenticationProvider)
 
