@@ -25,6 +25,9 @@
 - Redis
 - Kafka
 
+### 🖼️ 배포 다이어그램
+<img width="1540" height="1069" alt="image" src="https://github.com/user-attachments/assets/4b1411d4-23e9-42df-b947-ddcc19ad7c7d" />
+
 ### 📁 폴더 구조
 - 도메인 주도 개발로 비즈니스 요구사항을 도메인 별로 분리
 <img width="299" height="568" alt="스크린샷 2025-07-29 152952" src="https://github.com/user-attachments/assets/183e3899-411d-4202-a1d0-1f6aa8796707" />
