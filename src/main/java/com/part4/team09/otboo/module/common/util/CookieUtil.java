@@ -9,6 +9,7 @@ public class CookieUtil {
     Cookie cookie = new Cookie(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME, token);
     cookie.setHttpOnly(true);
     cookie.setPath("/");
+    cookie.setMaxAge(30 * 24 * 60 * 60); // 30일
     return cookie;
   }
 
