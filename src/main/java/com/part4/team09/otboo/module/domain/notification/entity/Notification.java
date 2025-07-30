@@ -1,7 +1,6 @@
 package com.part4.team09.otboo.module.domain.notification.entity;
 
 import com.part4.team09.otboo.module.common.entity.BaseEntity;
-import com.part4.team09.otboo.module.domain.feed.entity.Comment;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -150,10 +150,12 @@ public class KafkaHandler {
       String payload = objectMapper.writeValueAsString(event);
       kafkaTemplate.send("otboo.direct_message_receive", event.receiverId().toString(), payload);
     } catch (JsonProcessingException e) {
-      log.error("Kafka 직렬화 실패: DirectMessageReceivedEvent for receiverId={}, senderName={}, content={}",
+      log.error(
+          "Kafka 직렬화 실패: DirectMessageReceivedEvent for receiverId={}, senderName={}, content={}",
           event.receiverId(), event.senderName(), event.content(), e);
     } catch (Exception e) {
-      log.error("Kafka 전송 실패: DirectMessageReceivedEvent for receiverId={}, senderName={}, content={}",
+      log.error(
+          "Kafka 전송 실패: DirectMessageReceivedEvent for receiverId={}, senderName={}, content={}",
           event.receiverId(), event.senderName(), event.content(), e);
     }
   }
