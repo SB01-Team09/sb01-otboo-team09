@@ -1,13 +1,5 @@
 package com.part4.team09.otboo.module.domain.feed.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.feed.dto.AuthorDto;
 import com.part4.team09.otboo.module.domain.feed.dto.CommentDto;
@@ -24,10 +16,6 @@ import com.part4.team09.otboo.module.domain.feed.repository.FeedRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -36,6 +24,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -159,26 +158,26 @@ class CommentServiceTest {
     UUID idAfter = null;
 
     Feed mockFeed = mock(Feed.class);
-    given(mockFeed.getAuthorId()).willReturn(authorId);
 
     User mockAuthor = mock(User.class);
+    given(mockAuthor.getId()).willReturn(authorId); // 작성자 ID 설정
+
     Comment comment = Comment.create(feedId, authorId, "댓글1");
     CommentDto commentDto = new CommentDto(
-      commentId,
-      LocalDateTime.now(),
-      feedId,
-      mock(AuthorDto.class),
-      comment.getContent()
+            commentId,
+            LocalDateTime.now(),
+            feedId,
+            mock(AuthorDto.class),
+            comment.getContent()
     );
 
     List<Comment> commentEntities = List.of(comment);
     List<CommentDto> commentDtoList = List.of(commentDto);
 
     // mock 처리
-    given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
-    given(userRepository.findById(authorId)).willReturn(Optional.of(mockAuthor));
+    given(userRepository.findAllById(List.of(authorId))).willReturn(List.of(mockAuthor));
     given(commentRepositoryQueryDSL.getComments(feedId, cursor, idAfter, limit + 1)).willReturn(
-      commentEntities);
+            commentEntities);
     given(commentRepositoryQueryDSL.countComments(feedId)).willReturn(1);
     given(commentMapper.toDto(comment, mockAuthor)).willReturn(commentDto);
 
@@ -199,8 +198,7 @@ class CommentServiceTest {
 
     verify(commentRepositoryQueryDSL).getComments(feedId, cursor, idAfter, limit + 1);
     verify(commentRepositoryQueryDSL).countComments(feedId);
-    verify(feedRepository).findById(feedId);
-    verify(userRepository).findById(authorId);
+    verify(userRepository).findAllById(List.of(authorId));
     verify(commentMapper).toDto(comment, mockAuthor);
   }
 
