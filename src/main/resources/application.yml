@@ -107,6 +107,10 @@ logging:
   level:
     root: info
     org.apache.kafka: warn
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.web: DEBUG
+    org.springframework.session: DEBUG
+    org.springframework.data.redis: DEBUG
 
 management:
   endpoints:
