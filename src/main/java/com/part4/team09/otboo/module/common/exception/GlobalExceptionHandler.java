@@ -2,10 +2,8 @@ package com.part4.team09.otboo.module.common.exception;
 
 import com.part4.team09.otboo.module.common.dto.ErrorResponse;
 import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
-import com.part4.team09.otboo.module.common.util.CookieUtil;
 import com.part4.team09.otboo.module.domain.auth.exception.AuthErrorCode;
 import com.part4.team09.otboo.module.domain.auth.exception.AuthException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
@@ -140,8 +138,8 @@ public class GlobalExceptionHandler {
     );
 
     // refresh token 쿠키 무효화
-    Cookie cookie = CookieUtil.expireRefreshTokenCookie();
-    response.addCookie(cookie);
+//    Cookie cookie = CookieUtil.expireRefreshTokenCookie();
+//    response.addCookie(cookie);
 
     return createErrorResponseEntity(errorCode.getHttpStatus(), errorResponse);
   }
