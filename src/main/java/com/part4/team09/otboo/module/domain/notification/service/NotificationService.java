@@ -144,12 +144,6 @@ public class NotificationService {
     notificationRepository.deleteById(notificationId);
   }
 
-  private String createDmKey(UUID senderId, UUID receiverId) {
-    List<UUID> ids = Arrays.asList(senderId, receiverId);
-    ids.sort(Comparator.comparing(UUID::toString));
-    return ids.get(0) + "_" + ids.get(1);
-  }
-
   private void createMultiple(List<UUID> receiverIds, NotificationCreateMultipleRequest request) {
     List<Notification> notifications = receiverIds.stream()
             .map(id -> Notification.create(
