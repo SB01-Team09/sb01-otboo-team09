@@ -17,17 +17,18 @@ import com.part4.team09.otboo.module.domain.notification.event.FeedCommentedEven
 import com.part4.team09.otboo.module.domain.user.entity.User;
 import com.part4.team09.otboo.module.domain.user.exception.UserNotFoundException;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommentService {
@@ -43,6 +44,8 @@ public class CommentService {
 
   @Transactional
   public CommentDto create(UUID feedId, CommentCreateRequest request) {
+    log.info("댓글 생성 요청 - feedId: {}, authorId: {}", feedId, request.authorId());
+
     Feed feed = getFeedOrThrow(feedId);
     User author = getUserOrThrow(request.authorId());
 
@@ -59,17 +62,22 @@ public class CommentService {
         )
     );
 
+    log.info("댓글 생성 완료 - commentId: {}, feedId: {}", savedComment.getId(), feedId);
     return commentMapper.toDto(savedComment, author);
   }
 
   // 댓글 목록 조회
   @Transactional(readOnly = true)
-  @Cacheable(value = "comments", key = "#feedId", condition = "#cursor == null && #idAfter == null") // 첫 페이지만 캐싱
-  public CommentDtoCursorResponse getComments(UUID feedId, String cursor, UUID idAfter, int limit){
+  @Cacheable(value = "comments", key = "#feedId", condition = "#cursor == null && #idAfter == null")
+  // 첫 페이지만 캐싱
+  public CommentDtoCursorResponse getComments(UUID feedId, String cursor, UUID idAfter, int limit) {
+    log.debug("댓글 목록 조회 - feedId: {}, cursor: {}, idAfter: {}, limit: {}", feedId, cursor, idAfter,
+        limit);
 
     // 쿼리
     // 댓글 불러오기
-    List<Comment> comments = commentRepositoryQueryDSL.getComments(feedId, cursor, idAfter, limit+1);
+    List<Comment> comments = commentRepositoryQueryDSL.getComments(feedId, cursor, idAfter,
+        limit + 1);
     int totalCount = commentRepositoryQueryDSL.countComments(feedId);
 
     // 댓글 작성자 로직
@@ -77,14 +85,14 @@ public class CommentService {
     List<User> authors = userRepository.findAllById(authorIds);
     // 작성자 ID로 객체 매핑
     Map<UUID, User> authorMap = authors.stream()
-            .collect(Collectors.toMap(User::getId, user -> user));
+        .collect(Collectors.toMap(User::getId, user -> user));
 
     // Dto 리스트로 변환
     List<CommentDto> commentDtos = comments.stream()
-            .map(comment -> {
-              User author = authorMap.get(comment.getAuthorId());
-              return commentMapper.toDto(comment, author);
-            }).toList();
+        .map(comment -> {
+          User author = authorMap.get(comment.getAuthorId());
+          return commentMapper.toDto(comment, author);
+        }).toList();
 
     // 반환
     // hasNext
@@ -103,24 +111,38 @@ public class CommentService {
       nextIdAfter = lastCommentDto.id();
     }
 
+    log.debug("댓글 조회 완료 - 총 개수: {}, 반환 개수: {}, hasNext: {}", totalCount, commentDtos.size(),
+        hasNext);
+
     // 최종 반환
-    return new CommentDtoCursorResponse(commentDtos, nextCursor, nextIdAfter, hasNext, totalCount, "createdAt", SortDirection.ASCENDING);
+    return new CommentDtoCursorResponse(commentDtos, nextCursor, nextIdAfter, hasNext, totalCount,
+        "createdAt", SortDirection.ASCENDING);
   }
 
   @Transactional
   public void deleteAllByFeedId(UUID feedId) {
-    commentRepository.deleteAllByFeedId(feedId);
+    log.warn("피드에 대한 모든 댓글 삭제 요청 - feedId: {}", feedId);
 
+    commentRepository.deleteAllByFeedId(feedId);
     eventPublisher.publishEvent(new CommentDeletedEvent(feedId));
+
+    log.info("댓글 삭제 완료 - feedId: {}", feedId);
   }
 
   private User getUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
-        .orElseThrow(() -> UserNotFoundException.withId(userId));
+        .orElseThrow(() -> {
+          log.error("사용자 조회 실패 - userId: {}", userId);
+          return UserNotFoundException.withId(userId);
+        });
+
   }
 
   private Feed getFeedOrThrow(UUID feedId) {
     return feedRepository.findById(feedId)
-        .orElseThrow(() -> FeedNotFoundException.withId(feedId));
+        .orElseThrow(() -> {
+          log.error("피드 조회 실패 - feedId: {}", feedId);
+          return FeedNotFoundException.withId(feedId);
+        });
   }
 }

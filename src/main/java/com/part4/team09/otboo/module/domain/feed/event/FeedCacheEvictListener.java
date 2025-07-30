@@ -14,75 +14,75 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class FeedCacheEvictListener {
 
-    private final CacheManager cacheManager;
+  private final CacheManager cacheManager;
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void cacheEvictWhenFeedCreated(FeedCreatedEvent event){
-        log.info("피드 등록시 생성일순 캐시 무효화 이벤트 처리 시작");
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void cacheEvictWhenFeedCreated(FeedCreatedEvent event) {
+    log.info("피드 등록시 생성일순 캐시 무효화 이벤트 처리 시작");
 
-        Cache cache = cacheManager.getCache("feeds");
+    Cache cache = cacheManager.getCache("feeds");
 
-        if (cache != null) {
-          cache.evict("firstPage:createdAt");
-            log.debug("피드 등록시 생성일순 캐시 무효화 완료");
-        }else {
-            log.debug("feeds 캐시를 찾을 수 없습니다.");
-        }
-
-        log.info("피드 등록시 생성일순 피드 캐시 무효화 이벤트 처리 완료");
+    if (cache != null) {
+      cache.evict("firstPage:createdAt");
+      log.debug("피드 등록시 생성일순 캐시 무효화 완료");
+    } else {
+      log.debug("feeds 캐시를 찾을 수 없습니다.");
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void cacheEvictWhenLikeCreated(FeedLikedEvent event){
-        log.info("좋아요 등록시 좋아요순 피드 캐시 무효화 이벤트 처리 시작");
+    log.info("피드 등록시 생성일순 피드 캐시 무효화 이벤트 처리 완료");
+  }
 
-        Cache cache = cacheManager.getCache("feeds");
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void cacheEvictWhenLikeCreated(FeedLikedEvent event) {
+    log.info("좋아요 등록시 좋아요순 피드 캐시 무효화 이벤트 처리 시작");
 
-        if (cache != null) {
-            cache.evict("firstPage:likeCount");
-            log.debug("좋아요 등록시 좋아요순 피드 캐시 무효화 완료");
-        }else {
-            log.debug("feeds 캐시를 찾을 수 없습니다.");
-        }
+    Cache cache = cacheManager.getCache("feeds");
 
-        log.info("좋아요 등록시 좋아요순 피드 캐시 무효화 이벤트 처리 완료");
+    if (cache != null) {
+      cache.evict("firstPage:likeCount");
+      log.debug("좋아요 등록시 좋아요순 피드 캐시 무효화 완료");
+    } else {
+      log.debug("feeds 캐시를 찾을 수 없습니다.");
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void cacheEvictWhenFeedDeleted(FeedDeletedEvent event){
-        log.info("피드 삭제시 캐시 무효화 이벤트 처리 시작");
+    log.info("좋아요 등록시 좋아요순 피드 캐시 무효화 이벤트 처리 완료");
+  }
 
-        Cache cache = cacheManager.getCache("feeds");
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void cacheEvictWhenFeedDeleted(FeedDeletedEvent event) {
+    log.info("피드 삭제시 캐시 무효화 이벤트 처리 시작");
 
-        if (cache != null) {
-            cache.evict("firstPage:createdAt");
-            log.debug("피드 삭제시 생성일순 피드 목록 캐시 무효화 완료");
-        }else {
-            log.debug("feeds 캐시를 찾을 수 없습니다.");
-        }
+    Cache cache = cacheManager.getCache("feeds");
 
-        if (cache != null) {
-            cache.evict("firstPage:likeCount");
-            log.debug("피드 삭제시 좋아요순 피드 목록 캐시 무효화 완료");
-        }else {
-            log.debug("feeds 캐시를 찾을 수 없습니다.");
-        }
-        log.info("피드 삭제시 캐시 무효화 이벤트 처리 완료");
+    if (cache != null) {
+      cache.evict("firstPage:createdAt");
+      log.debug("피드 삭제시 생성일순 피드 목록 캐시 무효화 완료");
+    } else {
+      log.debug("feeds 캐시를 찾을 수 없습니다.");
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void cacheEvictWhenLikeDeleted(FeedLikeDeletedEvent event){
-        log.info("좋아요 삭제시 좋아요순 캐시 무효화 이벤트 처리 시작");
-
-        Cache cache = cacheManager.getCache("feeds");
-
-        if (cache != null) {
-            cache.evict("firstPage:likeCount");
-            log.debug("좋아요 삭제시 좋아요순 캐시 무효화 완료");
-        }else {
-            log.debug("feeds 캐시를 찾을 수 없습니다.");
-        }
-
-        log.info("좋아요 삭제시 좋아요순 피드 캐시 무효화 이벤트 처리 완료");
+    if (cache != null) {
+      cache.evict("firstPage:likeCount");
+      log.debug("피드 삭제시 좋아요순 피드 목록 캐시 무효화 완료");
+    } else {
+      log.debug("feeds 캐시를 찾을 수 없습니다.");
     }
+    log.info("피드 삭제시 캐시 무효화 이벤트 처리 완료");
+  }
+
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void cacheEvictWhenLikeDeleted(FeedLikeDeletedEvent event) {
+    log.info("좋아요 삭제시 좋아요순 캐시 무효화 이벤트 처리 시작");
+
+    Cache cache = cacheManager.getCache("feeds");
+
+    if (cache != null) {
+      cache.evict("firstPage:likeCount");
+      log.debug("좋아요 삭제시 좋아요순 캐시 무효화 완료");
+    } else {
+      log.debug("feeds 캐시를 찾을 수 없습니다.");
+    }
+
+    log.info("좋아요 삭제시 좋아요순 피드 캐시 무효화 이벤트 처리 완료");
+  }
 }
