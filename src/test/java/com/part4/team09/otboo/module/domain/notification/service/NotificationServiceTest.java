@@ -1,5 +1,13 @@
 package com.part4.team09.otboo.module.domain.notification.service;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.domain.follow.repository.FollowRepository;
 import com.part4.team09.otboo.module.domain.notification.dto.NotificationDto;
@@ -14,6 +22,11 @@ import com.part4.team09.otboo.module.domain.notification.mapper.NotificationMapp
 import com.part4.team09.otboo.module.domain.notification.repository.NotificationRepository;
 import com.part4.team09.otboo.module.domain.notification.repository.NotificationRepositoryQueryDSL;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,19 +36,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
@@ -70,13 +70,17 @@ class NotificationServiceTest {
     void create_notification_success() {
       // given
       UUID receiverId = UUID.randomUUID();
+      UUID notificationId = UUID.randomUUID();
+      Notification mockNotification = mock(Notification.class);
 
       NotificationCreateRequest request = new NotificationCreateRequest(
-        receiverId,
-        "title",
-        "content",
-        Level.INFO
+          receiverId,
+          "title",
+          "content",
+          Level.INFO
       );
+      given(notificationRepository.save(any())).willReturn(mockNotification);
+      given(mockNotification.getId()).willReturn(notificationId);
 
       // when
       notificationService.create(request);
@@ -99,9 +103,9 @@ class NotificationServiceTest {
       List<UUID> allUserIds = List.of(userId1, userId2);
 
       NotificationCreateAllRequest request = new NotificationCreateAllRequest(
-        "title",
-        "content",
-        Level.INFO
+          "title",
+          "content",
+          Level.INFO
       );
 
       given(userRepository.findAllIds()).willReturn(allUserIds);
@@ -128,10 +132,10 @@ class NotificationServiceTest {
       List<UUID> followerIds = List.of(userId1, userId2);
 
       NotificationCreateFollowerRequest request = new NotificationCreateFollowerRequest(
-        authorId,
-        "title",
-        "content",
-        Level.INFO
+          authorId,
+          "title",
+          "content",
+          Level.INFO
       );
 
       given(followRepository.findFollowerIdsByFolloweeId(authorId)).willReturn(followerIds);
@@ -158,10 +162,10 @@ class NotificationServiceTest {
       List<UUID> userIdsInLocation = List.of(userId1, userId2);
 
       NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
-        locationId,
-        "title",
-        "content",
-        Level.WARNING
+          locationId,
+          "title",
+          "content",
+          Level.WARNING
       );
 
       given(userRepository.findUserIdsByLocationId(locationId)).willReturn(userIdsInLocation);
@@ -186,13 +190,13 @@ class NotificationServiceTest {
 
     // mock 알림 6개 (limit + 1)
     List<Notification> fakeNotifications = IntStream.range(0, 6)
-            .mapToObj(i -> Notification.create(
-                    receiverId,
-                    "제목 " + i,
-                    "내용 " + i,
-                    Notification.Level.INFO
-            ))
-            .collect(Collectors.toList());
+        .mapToObj(i -> Notification.create(
+            receiverId,
+            "제목 " + i,
+            "내용 " + i,
+            Notification.Level.INFO
+        ))
+        .collect(Collectors.toList());
 
     // id, createdAt 설정
     for (int i = 0; i < fakeNotifications.size(); i++) {
@@ -205,19 +209,20 @@ class NotificationServiceTest {
 
     // DTO mock
     List<NotificationDto> fakeDtos = fakeNotifications.stream()
-            .map(noti -> new NotificationDto(
-                    (UUID) ReflectionTestUtils.getField(noti, "id"),
-                    noti.getCreatedAt(),
-                    noti.getReceiverId(),
-                    noti.getTitle(),
-                    noti.getContent(),
-                    noti.getLevel()
-            ))
-            .collect(Collectors.toList());
+        .map(noti -> new NotificationDto(
+            (UUID) ReflectionTestUtils.getField(noti, "id"),
+            noti.getCreatedAt(),
+            noti.getReceiverId(),
+            noti.getTitle(),
+            noti.getContent(),
+            noti.getLevel()
+        ))
+        .collect(Collectors.toList());
 
     // when
-    when(notificationRepositoryQueryDSL.getNotifications(eq(receiverId), any(), any(), eq(limit + 1)))
-            .thenReturn(fakeNotifications);
+    when(notificationRepositoryQueryDSL.getNotifications(eq(receiverId), any(), any(),
+        eq(limit + 1)))
+        .thenReturn(fakeNotifications);
     when(notificationRepositoryQueryDSL.countNotifications(eq(receiverId))).thenReturn(123);
 
     for (int i = 0; i < fakeNotifications.size(); i++) {
@@ -225,7 +230,8 @@ class NotificationServiceTest {
     }
 
     // when
-    NotificationDtoCursorResponse result = notificationService.get(receiverId, cursor, idAfter, limit);
+    NotificationDtoCursorResponse result = notificationService.get(receiverId, cursor, idAfter,
+        limit);
 
     // then
     assertThat(result).isNotNull();
@@ -240,7 +246,8 @@ class NotificationServiceTest {
     assertThat(result.nextIdAfter()).isEqualTo(lastDto.id());
 
     // verify
-    verify(notificationRepositoryQueryDSL).getNotifications(eq(receiverId), any(), any(), eq(limit + 1));
+    verify(notificationRepositoryQueryDSL).getNotifications(eq(receiverId), any(), any(),
+        eq(limit + 1));
     verify(notificationRepositoryQueryDSL).countNotifications(eq(receiverId));
   }
 
