@@ -20,10 +20,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DirectMessageService {
@@ -38,24 +40,30 @@ public class DirectMessageService {
 
   @Transactional
   public DirectMessageSendPayload create(DirectMessageCreateRequest request) {
+    log.debug("DM 생성 요청 - senderId: {}, receiverId: {}, content: {}",
+        request.senderId(), request.receiverId(), request.content());
+
     User sender = getUserOrThrow(request.senderId());
     getUserOrThrow(request.receiverId());
 
     String dmKey = createDmKey(request.senderId(), request.receiverId());
     DirectMessage directMessage = DirectMessage.create(
-      request.senderId(),
-      request.receiverId(),
-      request.content()
+        request.senderId(),
+        request.receiverId(),
+        request.content()
     );
 
     DirectMessage savedDirectMessage = directMessageRepository.save(directMessage);
     DirectMessageDto directMessageDto = directMessageDtoAssembler.assemble(savedDirectMessage);
 
     eventPublisher.publishEvent(new DirectMessageReceivedEvent(
-      request.receiverId(),
-      sender.getName(),
-      request.content()
+        request.receiverId(),
+        sender.getName(),
+        request.content()
     ));
+
+    log.debug("DM 저장 및 이벤트 발행 완료 - directMessageId: {}, dmKey: {}", savedDirectMessage.getId(),
+        dmKey);
 
     return new DirectMessageSendPayload(dmKey, directMessageDto);
   }
@@ -63,25 +71,25 @@ public class DirectMessageService {
   // DM 목록 조회
   @Transactional(readOnly = true)
   public DirectMessageDtoCursorResponse getDirectMessages(UUID userId,
-    CustomUserDetails currentUser, String cursor, UUID idAfter, int limit) {
+      CustomUserDetails currentUser, String cursor, UUID idAfter, int limit) {
     UUID currentUserId = currentUser.getId();
+    log.debug("DM 목록 조회 요청 - userId: {}, currentUserId: {}, cursor: {}, idAfter: {}, limit: {}",
+        userId, currentUserId, cursor, idAfter, limit);
 
     // 예외처리
-    if (!userRepository.existsById(userId)) {
-      throw UserNotFoundException.withId(userId);
-    }
+    getUserOrThrow(userId);
 
     // 쿼리
     // cursor을 LocalDateTime으로 디코딩
     LocalDateTime decodedCursor = decodeCursor(cursor);
     List<DirectMessage> directMessages = directMessageRepositoryQueryDSL.getDirectMessages(userId,
-      currentUserId, decodedCursor, idAfter, limit + 1);
+        currentUserId, decodedCursor, idAfter, limit + 1);
     int totalCount = directMessageRepositoryQueryDSL.countDirectMessages(userId, currentUserId);
 
     // Dto 리스트로 변환
     List<DirectMessageDto> directMessageDtos = directMessages.stream()
-      .map(dm -> directMessageDtoAssembler.assemble(dm))
-      .toList();
+        .map(dm -> directMessageDtoAssembler.assemble(dm))
+        .toList();
 
     // 반환
     // hasNext
@@ -101,9 +109,12 @@ public class DirectMessageService {
     // nextCursor 인코딩
     String encodedNextCursor = encodeCursor(nextCursor);
 
+    log.debug("DM 목록 조회 완료 - 조회 결과 수: {}, hasNext: {}, nextCursor: {}, nextIdAfter: {}",
+        directMessageDtos.size(), hasNext, encodedNextCursor, nextIdAfter);
+
     // 최종 반환
     return new DirectMessageDtoCursorResponse(directMessageDtos, encodedNextCursor, nextIdAfter,
-      hasNext, totalCount, "createdAt, id", SortDirection.ASCENDING);
+        hasNext, totalCount, "createdAt, id", SortDirection.ASCENDING);
   }
 
   // cursor 인코딩 로직 (LocalDateTime -> String)
@@ -118,7 +129,10 @@ public class DirectMessageService {
 
   private User getUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
-      .orElseThrow(() -> UserNotFoundException.withId(userId));
+        .orElseThrow(() -> {
+          log.warn("사용자 조회 실패 - userId: {}", userId);
+          return UserNotFoundException.withId(userId);
+        });
   }
 
   private String createDmKey(UUID senderId, UUID receiverId) {
