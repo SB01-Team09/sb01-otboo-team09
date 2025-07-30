@@ -65,7 +65,7 @@ class CustomOAuth2SuccessHandlerTest {
 
     // then
     assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_FOUND);
-    assertThat(response.getRedirectedUrl()).isEqualTo("/");
+    assertThat(response.getRedirectedUrl()).isEqualTo("/#/recommendation");
     assertThat(response.getCookies())
       .extracting(Cookie::getName)
       .contains(AuthCookieNames.REFRESH_TOKEN_COOKIE_NAME);
