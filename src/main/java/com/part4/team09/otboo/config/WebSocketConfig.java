@@ -24,8 +24,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/ws")
-        // TODO: 배포 후 실제 URL로 변경 (CORS 보안 강화)
-        .setAllowedOriginPatterns("*")
+        .setAllowedOriginPatterns("https://otboo-team09.com")
         .withSockJS();
   }
 
