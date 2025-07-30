@@ -113,7 +113,7 @@ class FeedServiceTest {
       given(weatherRepository.existsById(any())).willReturn(true);
       given(feedRepository.save(any(Feed.class))).willReturn(mockFeed);
       given(feedDtoAssembler.assemble(any(Feed.class), eq(userId))).willReturn(feedDto);
-//      doNothing().when(eventPublisher).publishEvent(any(FeedCreatedEvent.class)); TODO: 캐시 연결 후 주석 해제 예정
+      // doNothing().when(eventPublisher).publishEvent(any(FeedCreatedEvent.class));
       doNothing().when(eventPublisher).publishEvent(any(FeedCreatedFollowerEvent.class));
 
       // when
@@ -344,7 +344,7 @@ class FeedServiceTest {
       Feed mockFeed = mock(Feed.class);
 
       given(feedRepository.findById(feedId)).willReturn(Optional.of(mockFeed));
-      // doNothing().when(eventPublisher).publishEvent(any(FeedDeletedEvent.class)); TODO: 캐시 연결 후 주석 해제 예정
+      // doNothing().when(eventPublisher).publishEvent(any(FeedDeletedEvent.class));
 
       // when
       feedService.delete(feedId);

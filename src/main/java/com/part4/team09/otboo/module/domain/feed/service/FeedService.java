@@ -55,7 +55,7 @@ public class FeedService {
     Feed savedFeed = feedRepository.save(feed);
     ootdService.create(savedFeed.getId(), request.clothesIds());
 
-//    eventPublisher.publishEvent(new FeedCreatedEvent()); // 캐시 무효화 이벤트
+    // eventPublisher.publishEvent(new FeedCreatedEvent()); // 캐시 무효화 이벤트
     eventPublisher.publishEvent(
         new FeedCreatedFollowerEvent(
             request.authorId(),
@@ -86,14 +86,14 @@ public class FeedService {
     commentService.deleteAllByFeedId(feedId);
     likeService.deleteAllByFeedId(feedId);
 
-//    eventPublisher.publishEvent(new FeedDeletedEvent(feedId)); // 캐시 무효화 이벤트
+    // eventPublisher.publishEvent(new FeedDeletedEvent(feedId)); // 캐시 무효화 이벤트
 
     feedRepository.deleteById(feedId);
   }
 
   // 피드 목록 조회
   @Transactional(readOnly = true)
-//  @Cacheable(value = "feeds", key = "'firstPage:' +  #request.sortBy()", condition = "#request.cursor() == null && #request.idAfter() == null") // 첫 페이지만 캐싱
+  // @Cacheable(value = "feeds", key = "'firstPage:' +  #request.sortBy()", condition = "#request.cursor() == null && #request.idAfter() == null") // 첫 페이지만 캐싱
   public FeedDtoCursorResponse getFeeds(UUID currentUserId, FeedListRequest request){
 
     // 쿼리
