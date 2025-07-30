@@ -3,7 +3,7 @@ package com.part4.team09.otboo.module.domain.user.controller;
 import com.part4.team09.otboo.module.common.enums.SortDirection;
 import com.part4.team09.otboo.module.common.security.constants.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
-import com.part4.team09.otboo.module.common.util.CookieUtil;
+import com.part4.team09.otboo.module.common.util.CookieUtils;
 import com.part4.team09.otboo.module.domain.auth.exception.MissingRefreshTokenException;
 import com.part4.team09.otboo.module.domain.auth.service.AuthService;
 import com.part4.team09.otboo.module.domain.user.dto.ProfileDto;
@@ -94,7 +94,7 @@ public class UserController {
     GeneratedToken generatedToken = authService.refreshTokens(refreshToken);
 
     // 쿠키 설정
-    Cookie refreshCookie = CookieUtil.createRefreshTokenCookie(generatedToken.refreshToken());
+    Cookie refreshCookie = CookieUtils.createRefreshTokenCookie(generatedToken.refreshToken());
     response.addCookie(refreshCookie);
 
     return ResponseEntity.noContent().build();

@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.apache.kafka.common.quota.ClientQuotaAlteration.Op;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -97,7 +98,7 @@ class DirectMessageServiceTest {
     UUID currentUserId = UUID.randomUUID();
     CustomUserDetails currentUser = mock(CustomUserDetails.class);
     when(currentUser.getId()).thenReturn(currentUserId);
-    when(userRepository.existsById(userId)).thenReturn(true);
+    when(userRepository.findById(userId)).thenReturn(Optional.ofNullable(mock(User.class)));
 
     // DirectMessage 엔티티 생성
     DirectMessage dm = DirectMessage.create(UUID.randomUUID(), UUID.randomUUID(), "안녕");

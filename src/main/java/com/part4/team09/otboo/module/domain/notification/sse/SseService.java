@@ -27,7 +27,7 @@ public class SseService {
 
   public SseEmitter connect(UUID receiverId) {
     log.debug("userId: {}, emitter 수: {}", receiverId,
-      sseEmitterRepository.findByReceiverId(receiverId).size());
+        sseEmitterRepository.findByReceiverId(receiverId).size());
 
     SseEmitter sseEmitter = new SseEmitter(timeout);
 
@@ -38,6 +38,7 @@ public class SseService {
     try {
       sseEmitter.send(SseEmitter.event().name("connect").data("connected"));
     } catch (IOException e) {
+      log.error("SSE 연결 초기 메시지 전송 실패 - receiverId: {}", receiverId, e);
       sseEmitterRepository.delete(receiverId, sseEmitter);
     }
 
@@ -50,6 +51,9 @@ public class SseService {
     try {
       String payload = objectMapper.writeValueAsString(notificationDto);
       redisTemplate.convertAndSend("notification-channel", payload);
+
+      log.debug("NotificationDto Redis 발행 성공: notificationId={}, receiverId={}",
+          notificationDto.id(), notificationDto.receiverId());
     } catch (JsonProcessingException e) {
       log.error("NotificationDto 직렬화 실패: notificationId={}, receiverId={}",
           notificationDto.id(), notificationDto.receiverId(), e);
@@ -57,13 +61,16 @@ public class SseService {
   }
 
   public void sendToUsers(List<NotificationDto> notificationDtos) {
+    log.debug("다수 알림 전송 시작 - count: {}", notificationDtos.size());
     notificationDtos.forEach(this::send);
+    log.debug("다수 알림 전송 완료");
   }
 
   // sse 연결 해제
   public void disconnectAllEmitters(UUID userId, String reason) {
     log.debug("Emitter 제거 작업 시작, userId: {}, reason: {}", userId, reason);
     redisTemplate.convertAndSend("disconnect-channel", userId.toString());
+    log.debug("Redis disconnect 완료 - userId: {}", userId);
   }
 
   // sse 연결종료 시

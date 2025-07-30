@@ -6,9 +6,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+@Slf4j
 @Repository
 public class SseEmitterRepository {
 
@@ -17,6 +19,8 @@ public class SseEmitterRepository {
   public SseEmitter save(UUID receiverId, SseEmitter sseEmitter) {
     data.putIfAbsent(receiverId, new CopyOnWriteArrayList<>());
     data.get(receiverId).add(sseEmitter);
+
+    log.debug("SseEmitter 저장 - receiverId: {}, 현재 emitters 수: {}", receiverId, data.get(receiverId).size());
 
     return sseEmitter;
   }
@@ -34,6 +38,7 @@ public class SseEmitterRepository {
   public void delete(UUID receiverId, SseEmitter sseEmitter) {
     if (data.containsKey(receiverId)) {
       data.get(receiverId).remove(sseEmitter);
+      log.debug("SseEmitter 삭제 - receiverId: {}, 현재 emitters 수: {}", receiverId, data.get(receiverId).size());
     }
   }
 }

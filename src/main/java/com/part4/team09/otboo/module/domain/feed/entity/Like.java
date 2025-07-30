@@ -12,12 +12,12 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(
-  name = "likes",
-  uniqueConstraints = {
-    @UniqueConstraint(
-      name = "unique_likes_feed_user",
-      columnNames = {"feedId", "userId"})
-  }
+    name = "likes",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "unique_likes_feed_user",
+            columnNames = {"feedId", "userId"})
+    }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
