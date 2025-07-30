@@ -52,7 +52,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
 
     log.error("Oauth 로그인 성공 및 응답");
 
-    getRedirectStrategy().sendRedirect(request, response, "/#/recommendation");
+    getRedirectStrategy().sendRedirect(request, response, "/");
 
   }
 }
