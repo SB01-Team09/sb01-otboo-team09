@@ -10,7 +10,7 @@ import com.part4.team09.otboo.module.common.security.constants.AuthCookieNames;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.common.security.userdetails.CustomOAuth2User;
-import com.part4.team09.otboo.module.common.util.CookieUtil;
+import com.part4.team09.otboo.module.common.util.CookieUtils;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
 import jakarta.servlet.http.Cookie;
@@ -30,7 +30,7 @@ import org.springframework.security.core.Authentication;
 class CustomOAuth2SuccessHandlerTest {
 
   @Spy
-  private CookieUtil cookieUtil;
+  private CookieUtils cookieUtil;
 
   @Mock
   private CustomOAuth2User customOAuth2User;

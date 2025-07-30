@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.common.security.userdetails.CustomUserDetails;
-import com.part4.team09.otboo.module.common.util.CookieUtil;
+import com.part4.team09.otboo.module.common.util.CookieUtils;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
 import jakarta.servlet.ServletException;
@@ -45,7 +45,7 @@ public class JsonLoginSuccessHandler implements AuthenticationSuccessHandler {
     GeneratedToken generatedToken = jwtTokenProvider.generateToken(authUserDto, tempPasswordMeta);
 
     // 쿠키 생성 (refresh token)
-    Cookie refreshTokenCookie = CookieUtil.createRefreshTokenCookie(generatedToken.refreshToken());
+    Cookie refreshTokenCookie = CookieUtils.createRefreshTokenCookie(generatedToken.refreshToken());
     response.addCookie(refreshTokenCookie);
 
     // 응답 설정

@@ -3,7 +3,7 @@ package com.part4.team09.otboo.module.common.security.oauth;
 import com.part4.team09.otboo.module.common.security.jwt.GeneratedToken;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.common.security.userdetails.CustomOAuth2User;
-import com.part4.team09.otboo.module.common.util.CookieUtil;
+import com.part4.team09.otboo.module.common.util.CookieUtils;
 import com.part4.team09.otboo.module.domain.auth.dto.AuthUserDto;
 import com.part4.team09.otboo.module.domain.auth.dto.TempPasswordMetadata;
 import jakarta.servlet.ServletException;
@@ -42,7 +42,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     GeneratedToken generatedToken = jwtTokenProvider.generateToken(authUserDto, tempPasswordMeta);
 
     // 쿠키 설정
-    Cookie refreshTokenCookie = CookieUtil.createRefreshTokenCookie(generatedToken.refreshToken());
+    Cookie refreshTokenCookie = CookieUtils.createRefreshTokenCookie(generatedToken.refreshToken());
     response.addCookie(refreshTokenCookie);
 
     // 응답 설정

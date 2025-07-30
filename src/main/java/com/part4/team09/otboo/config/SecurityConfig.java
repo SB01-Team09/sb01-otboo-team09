@@ -15,6 +15,7 @@ import com.part4.team09.otboo.module.common.security.jwt.JwtProperty;
 import com.part4.team09.otboo.module.common.security.jwt.JwtTokenProvider;
 import com.part4.team09.otboo.module.common.security.oauth.CustomOAuth2SuccessHandler;
 import com.part4.team09.otboo.module.common.security.oauth.CustomOAuth2UserService;
+import com.part4.team09.otboo.module.common.security.oauth.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.part4.team09.otboo.module.domain.auth.repository.UserTempPasswordRepository;
 import com.part4.team09.otboo.module.domain.user.entity.User.Role;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -60,7 +62,8 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(
     HttpSecurity http,
     JsonLoginAuthenticationFilter jsonLoginAuthenticationFilter,
-    AuthenticationProvider customDaoAuthenticationProvider
+    AuthenticationProvider customDaoAuthenticationProvider,
+    HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository
   ) throws Exception {
     return http
 
@@ -83,11 +86,18 @@ public class SecurityConfig {
       )
 
       .oauth2Login(oauth2Login -> oauth2Login
+        .authorizationEndpoint(authorization -> authorization
+          .authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository)
+        )
         .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
           .userService(customOAuth2UserService)
         )
         .successHandler(customOAuth2SuccessHandler)
-        .failureUrl("/")
+        .failureUrl("/error")
+      )
+
+      .sessionManagement(session -> session
+        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
       )
 
       // 예외 핸들러
