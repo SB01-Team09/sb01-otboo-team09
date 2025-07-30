@@ -38,6 +38,8 @@ public class NotificationEventListener {
       groupId = "${spring.kafka.consumer.group-id}"
   )
   public void handleRoleChangedEvent(String kafkaEvent) {
+    log.info("수신: RoleChangedEvent - payload={}", kafkaEvent);
+
     try {
       RoleChangedEvent event = objectMapper.readValue(kafkaEvent, RoleChangedEvent.class);
 
@@ -53,6 +55,8 @@ public class NotificationEventListener {
       );
 
       notificationService.create(request);
+
+      log.info("처리 성공: RoleChangedEvent - receiverId={}", event.receiverId());
     } catch (JsonProcessingException e) {
       log.error("Kafka 역직렬화 실패: RoleChangedEvent - payload={}", kafkaEvent, e);
     } catch (Exception e) {
@@ -66,8 +70,11 @@ public class NotificationEventListener {
       groupId = "${spring.kafka.consumer.group-id}"
   )
   public void handleClothesAttributeDefCreatedEvent(String kafkaEvent) {
+    log.info("수신: ClothesAttributeDefCreatedEvent - payload={}", kafkaEvent);
+
     try {
-      ClothesAttributeDefCreatedEvent event = objectMapper.readValue(kafkaEvent, ClothesAttributeDefCreatedEvent.class);
+      ClothesAttributeDefCreatedEvent event = objectMapper.readValue(kafkaEvent,
+          ClothesAttributeDefCreatedEvent.class);
 
       String title = "새로운 의상 속성이 추가되었어요.";
       String content = String.format("내 의상에 [%s] 속성을 추가해보세요.", event.name());
@@ -79,6 +86,8 @@ public class NotificationEventListener {
       );
 
       notificationService.createAll(request);
+
+      log.info("처리 성공: ClothesAttributeDefCreatedEvent - attributeName={}", event.name());
     } catch (JsonProcessingException e) {
       log.error("Kafka 역직렬화 실패: ClothesAttributeDefCreatedEvent - payload={}", kafkaEvent, e);
     } catch (Exception e) {
@@ -92,8 +101,11 @@ public class NotificationEventListener {
       groupId = "${spring.kafka.consumer.group-id}"
   )
   public void handleClothesAttributeDefUpdatedEvent(String kafkaEvent) {
+    log.info("수신: ClothesAttributeDefUpdatedEvent - payload={}", kafkaEvent);
+
     try {
-      ClothesAttributeDefUpdatedEvent event = objectMapper.readValue(kafkaEvent, ClothesAttributeDefUpdatedEvent.class);
+      ClothesAttributeDefUpdatedEvent event = objectMapper.readValue(kafkaEvent,
+          ClothesAttributeDefUpdatedEvent.class);
 
       String title = "의상 속성이 변경되었어요.";
       String content = String.format("[%s] 속성을 확인해보세요.", event.name());
@@ -105,6 +117,8 @@ public class NotificationEventListener {
       );
 
       notificationService.createAll(request);
+
+      log.info("처리 성공: ClothesAttributeDefUpdatedEvent - attributeName={}", event.name());
     } catch (JsonProcessingException e) {
       log.error("Kafka 역직렬화 실패: ClothesAttributeDefUpdatedEvent - payload={}", kafkaEvent, e);
     } catch (Exception e) {
@@ -118,6 +132,8 @@ public class NotificationEventListener {
       groupId = "${spring.kafka.consumer.group-id}"
   )
   public void handleFeedLikedEvent(String kafkaEvent) {
+    log.info("수신: FeedLikedEvent - payload={}", kafkaEvent);
+
     try {
       FeedLikedEvent event = objectMapper.readValue(kafkaEvent, FeedLikedEvent.class);
 
@@ -132,6 +148,9 @@ public class NotificationEventListener {
       );
 
       notificationService.create(request);
+
+      log.info("처리 성공: FeedLikedEvent - receiverId={}, username={}", event.receiverId(),
+          event.username());
     } catch (JsonProcessingException e) {
       log.error("Kafka 역직렬화 실패: FeedLikedEvent - payload={}", kafkaEvent, e);
     } catch (Exception e) {
@@ -145,6 +164,8 @@ public class NotificationEventListener {
       groupId = "${spring.kafka.consumer.group-id}"
   )
   public void handleFeedCommentedEvent(String kafkaEvent) {
+    log.info("수신: FeedCommentedEvent - payload={}", kafkaEvent);
+
     try {
       FeedCommentedEvent event = objectMapper.readValue(kafkaEvent, FeedCommentedEvent.class);
 
@@ -159,6 +180,9 @@ public class NotificationEventListener {
       );
 
       notificationService.create(request);
+
+      log.info("처리 성공: FeedCommentedEvent - receiverId={}, username={}", event.receiverId(),
+          event.username());
     } catch (JsonProcessingException e) {
       log.error("Kafka 역직렬화 실패: FeedCommentedEvent - payload={}", kafkaEvent, e);
     } catch (Exception e) {
@@ -172,8 +196,11 @@ public class NotificationEventListener {
       groupId = "${spring.kafka.consumer.group-id}"
   )
   public void handleFeedCreatedEvent(String kafkaEvent) {
+    log.info("수신: FeedCreatedFollowerEvent - payload={}", kafkaEvent);
+
     try {
-      FeedCreatedFollowerEvent event = objectMapper.readValue(kafkaEvent, FeedCreatedFollowerEvent.class);
+      FeedCreatedFollowerEvent event = objectMapper.readValue(kafkaEvent,
+          FeedCreatedFollowerEvent.class);
 
       String title = String.format("%s님이 새로운 피드를 작성했어요.", event.authorName());
       String content = event.content();
@@ -186,6 +213,9 @@ public class NotificationEventListener {
       );
 
       notificationService.createFollower(request);
+
+      log.info("처리 성공: FeedCreatedFollowerEvent - authorId={}, authorName={}", event.authorId(),
+          event.authorName());
     } catch (JsonProcessingException e) {
       log.error("Kafka 역직렬화 실패: FeedCreatedFollowerEvent - payload={}", kafkaEvent, e);
     } catch (Exception e) {
@@ -199,6 +229,8 @@ public class NotificationEventListener {
       groupId = "${spring.kafka.consumer.group-id}"
   )
   public void handleFollowedEvent(String kafkaEvent) {
+    log.info("수신: FollowedEvent - payload={}", kafkaEvent);
+
     try {
       FollowedEvent event = objectMapper.readValue(kafkaEvent, FollowedEvent.class);
 
@@ -213,6 +245,9 @@ public class NotificationEventListener {
       );
 
       notificationService.create(request);
+
+      log.info("처리 성공: FollowedEvent - receiverId={}, followerName={}", event.receiverId(),
+          event.followerName());
     } catch (JsonProcessingException e) {
       log.error("Kafka 역직렬화 실패: FollowedEvent - payload={}", kafkaEvent, e);
     } catch (Exception e) {
@@ -226,8 +261,11 @@ public class NotificationEventListener {
       groupId = "${spring.kafka.consumer.group-id}"
   )
   public void handleDirectMessageReceivedEvent(String kafkaEvent) {
+    log.info("수신: DirectMessageReceivedEvent - payload={}", kafkaEvent);
+
     try {
-      DirectMessageReceivedEvent event = objectMapper.readValue(kafkaEvent, DirectMessageReceivedEvent.class);
+      DirectMessageReceivedEvent event = objectMapper.readValue(kafkaEvent,
+          DirectMessageReceivedEvent.class);
 
       String title = String.format("[DM] %s", event.senderName());
       String content = event.content();
@@ -240,6 +278,9 @@ public class NotificationEventListener {
       );
 
       notificationService.create(request);
+
+      log.info("처리 성공: DirectMessageReceivedEvent - receiverId={}, senderName={}",
+          event.receiverId(), event.senderName());
     } catch (JsonProcessingException e) {
       log.error("Kafka 역직렬화 실패: DirectMessageReceivedEvent - payload={}", kafkaEvent, e);
     } catch (Exception e) {
@@ -253,8 +294,11 @@ public class NotificationEventListener {
       groupId = "${spring.kafka.consumer.group-id}"
   )
   public void handleRapidTemperatureRiseEvent(String kafkaEvent) {
+    log.info("수신: RapidTemperatureRiseEvent - payload={}", kafkaEvent);
+
     try {
-      RapidTemperatureRiseEvent event = objectMapper.readValue(kafkaEvent, RapidTemperatureRiseEvent.class);
+      RapidTemperatureRiseEvent event = objectMapper.readValue(kafkaEvent,
+          RapidTemperatureRiseEvent.class);
 
       String title = "어제보다 기온이 급격히 높아졌어요.";
       String content = "외출 시 옷차림에 유의하세요.";
@@ -267,6 +311,8 @@ public class NotificationEventListener {
       );
 
       notificationService.createLocation(request);
+
+      log.info("처리 성공: RapidTemperatureRiseEvent - locationId={}", event.locationId());
     } catch (JsonProcessingException e) {
       log.error("Kafka 역직렬화 실패: RapidTemperatureRiseEvent - payload={}", kafkaEvent, e);
     } catch (Exception e) {
@@ -280,8 +326,11 @@ public class NotificationEventListener {
       groupId = "${spring.kafka.consumer.group-id}"
   )
   public void handleRapidTemperatureDropEvent(String kafkaEvent) {
+    log.info("수신: RapidTemperatureDropEvent - payload={}", kafkaEvent);
+
     try {
-      RapidTemperatureDropEvent event = objectMapper.readValue(kafkaEvent, RapidTemperatureDropEvent.class);
+      RapidTemperatureDropEvent event = objectMapper.readValue(kafkaEvent,
+          RapidTemperatureDropEvent.class);
 
       String title = "어제보다 기온이 급격히 낮아졌어요.";
       String content = "외출 시 옷차림에 유의하세요.";
@@ -294,6 +343,8 @@ public class NotificationEventListener {
       );
 
       notificationService.createLocation(request);
+
+      log.info("처리 성공: RapidTemperatureDropEvent - locationId={}", event.locationId());
     } catch (JsonProcessingException e) {
       log.error("Kafka 역직렬화 실패: RapidTemperatureDropEvent - payload={}", kafkaEvent, e);
     } catch (Exception e) {
@@ -307,8 +358,11 @@ public class NotificationEventListener {
       groupId = "${spring.kafka.consumer.group-id}"
   )
   public void handleWeatherNotificationCreateEvent(String kafkaEvent) {
+    log.info("수신: WeatherNotificationCreateEvent - payload={}", kafkaEvent);
+
     try {
-      WeatherNotificationCreateEvent event = objectMapper.readValue(kafkaEvent, WeatherNotificationCreateEvent.class);
+      WeatherNotificationCreateEvent event = objectMapper.readValue(kafkaEvent,
+          WeatherNotificationCreateEvent.class);
 
       NotificationCreateLocationRequest request = new NotificationCreateLocationRequest(
           event.locationId(),
@@ -318,6 +372,8 @@ public class NotificationEventListener {
       );
 
       notificationService.createLocation(request);
+
+      log.info("처리 성공: WeatherNotificationCreateEvent - locationId={}", event.locationId());
     } catch (JsonProcessingException e) {
       log.error("Kafka 역직렬화 실패: WeatherNotificationCreateEvent - payload={}", kafkaEvent, e);
     } catch (Exception e) {

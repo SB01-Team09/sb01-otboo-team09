@@ -17,15 +17,14 @@ import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherErrorCode;
 import com.part4.team09.otboo.module.domain.weather.exception.WeatherNotFoundException;
 import com.part4.team09.otboo.module.domain.weather.repository.WeatherRepository;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -48,6 +47,8 @@ public class FeedService {
 
   @Transactional
   public FeedDto create(UUID userId, FeedCreateRequest request) {
+    log.info("피드 생성 요청 - 작성자ID: {}, 날씨ID: {}", request.authorId(), request.weatherId());
+
     User author = getUserOrThrow(request.authorId());
     validateWeatherExists(request.weatherId());
 
@@ -64,6 +65,7 @@ public class FeedService {
         )
     );
 
+    log.info("피드 생성 완료 - 피드ID: {}, 작성자ID: {}", savedFeed.getId(), request.authorId());
     return feedDtoAssembler.assemble(savedFeed, userId);
   }
 
@@ -71,15 +73,20 @@ public class FeedService {
   @PreAuthorize("@feedPermissionEvaluator.isFeedAuthor(principal.id, #feedId)")
   @Transactional
   public FeedDto update(UUID feedId, UUID userId, FeedUpdateRequest request) {
+    log.info("피드 수정 요청 - 피드ID: {}, 사용자ID: {}", feedId, userId);
+
     Feed feed = getFeedOrThrow(feedId);
     feed.update(request.content());
 
+    log.info("피드 수정 완료 - 피드ID: {}", feedId);
     return feedDtoAssembler.assemble(feed, userId);
   }
 
   @PreAuthorize("hasRole('ADMIN') or @feedPermissionEvaluator.isFeedAuthor(principal.id, #feedId)")
   @Transactional
   public void delete(UUID feedId) {
+    log.warn("피드 삭제 요청 - 피드ID: {}", feedId);
+
     getFeedOrThrow(feedId);
 
     ootdService.deleteAllByFeedId(feedId);
@@ -89,12 +96,16 @@ public class FeedService {
     // eventPublisher.publishEvent(new FeedDeletedEvent(feedId)); // 캐시 무효화 이벤트
 
     feedRepository.deleteById(feedId);
+
+    log.info("피드 삭제 완료 - 피드ID: {}", feedId);
   }
 
   // 피드 목록 조회
   @Transactional(readOnly = true)
   // @Cacheable(value = "feeds", key = "'firstPage:' +  #request.sortBy()", condition = "#request.cursor() == null && #request.idAfter() == null") // 첫 페이지만 캐싱
-  public FeedDtoCursorResponse getFeeds(UUID currentUserId, FeedListRequest request){
+  public FeedDtoCursorResponse getFeeds(UUID currentUserId, FeedListRequest request) {
+    log.debug("피드 목록 조회 - 사용자ID: {}, 정렬기준: {}, 제한: {}", currentUserId, request.sortBy(),
+        request.limit());
 
     // 쿼리
     // 피드 불러오기
@@ -102,13 +113,14 @@ public class FeedService {
     int totalCount = feedRepositoryQueryDSL.countFeeds(request);
 
     // Dto 리스트로 변환
-    List<FeedDto> feedDtos = feeds.stream().map(feed -> feedDtoAssembler.assemble(feed, currentUserId)).toList();
+    List<FeedDto> feedDtos = feeds.stream()
+        .map(feed -> feedDtoAssembler.assemble(feed, currentUserId)).toList();
 
     // 반환
     // hasNext
     boolean hasNext = feedDtos.size() > request.limit();
     if (hasNext) {
-      feedDtos = feedDtos.subList(0,request.limit());
+      feedDtos = feedDtos.subList(0, request.limit());
     }
 
     // nextCursor, nextIdAfter
@@ -126,22 +138,32 @@ public class FeedService {
       nextIdAfter = lastFeedDto.id();
     }
 
+    log.debug("피드 목록 조회 완료 - 총개수: {}, 반환개수: {}, hasNext: {}", totalCount, feedDtos.size(), hasNext);
+
     // 최종 반환
-    return new FeedDtoCursorResponse(feedDtos, nextCursor, nextIdAfter, hasNext, totalCount, request.sortBy(), request.sortDirection());
+    return new FeedDtoCursorResponse(feedDtos, nextCursor, nextIdAfter, hasNext, totalCount,
+        request.sortBy(), request.sortDirection());
   }
 
   private Feed getFeedOrThrow(UUID feedId) {
     return feedRepository.findById(feedId)
-        .orElseThrow(() -> FeedNotFoundException.withId(feedId));
+        .orElseThrow(() -> {
+          log.error("피드 조회 실패 - 피드ID: {}", feedId);
+          return FeedNotFoundException.withId(feedId);
+        });
   }
 
   private User getUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
-        .orElseThrow(() -> UserNotFoundException.withId(userId));
+        .orElseThrow(() -> {
+          log.error("사용자 조회 실패 - 사용자ID: {}", userId);
+          return UserNotFoundException.withId(userId);
+        });
   }
 
   private void validateWeatherExists(UUID weatherId) {
     if (!weatherRepository.existsById(weatherId)) {
+      log.error("날씨 조회 실패 - 날씨ID: {}", weatherId);
       throw WeatherNotFoundException.withId(WeatherErrorCode.WEATHER_NOF_FOUND, weatherId);
     }
   }

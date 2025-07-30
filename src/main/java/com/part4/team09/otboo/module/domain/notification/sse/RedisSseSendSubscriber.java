@@ -28,14 +28,28 @@ public class RedisSseSendSubscriber {
         NotificationDto notification = objectMapper.readValue(body, NotificationDto.class);
         UUID receiverId = notification.receiverId();
 
+        log.debug("Redis 메시지 수신 - receiverId: {}, notificationId: {}", receiverId,
+            notification.id());
+
         List<SseEmitter> emitters = sseEmitterRepository.findByReceiverId(receiverId);
+
+        if (emitters.isEmpty()) {
+          log.debug("발견된 Emitter 없음 - receiverId: {}", receiverId);
+        }
+
         for (SseEmitter emitter : emitters) {
           sseTaskExecutor.execute(() -> {
             try {
+              log.debug("Emitter로 알림 전송 시도 - receiverId: {}, notificationId: {}", receiverId,
+                  notification.id());
+
               emitter.send(SseEmitter.event()
                   .id(notification.id().toString())
                   .name("notifications")
                   .data(notification));
+
+              log.debug("Emitter로 알림 전송 성공 - receiverId: {}, notificationId: {}", receiverId,
+                  notification.id());
             } catch (IOException e) {
               sseEmitterRepository.delete(receiverId, emitter);
               log.info("Emitter 전송 중 예외 발생 - receiverId: {}", receiverId, e);

@@ -9,8 +9,10 @@ import com.part4.team09.otboo.module.domain.user.mapper.UserSummaryMapper;
 import com.part4.team09.otboo.module.domain.user.repository.UserRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DirectMessageDtoAssembler {
@@ -21,17 +23,25 @@ public class DirectMessageDtoAssembler {
   private final UserSummaryMapper userSummaryMapper;
 
   public DirectMessageDto assemble(DirectMessage directMessage) {
+    log.debug("DirectMessageDto assemble - directMessageId: {}, senderId: {}, receiverId: {}",
+        directMessage.getId(), directMessage.getSenderId(), directMessage.getReceiverId());
+
     User sender = getUserOrThrow(directMessage.getSenderId());
     UserSummary senderSummary = userSummaryMapper.toDto(sender);
 
     User receiver = getUserOrThrow(directMessage.getReceiverId());
     UserSummary receiverSummary = userSummaryMapper.toDto(receiver);
 
+    log.debug("DirectMessageDto assemble 완료 - directMessageId: {}", directMessage.getId());
+
     return directMessageMapper.toDto(directMessage, senderSummary, receiverSummary);
   }
 
   private User getUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
-        .orElseThrow(() -> UserNotFoundException.withId(userId));
+        .orElseThrow(() -> {
+          log.warn("사용자 미발견 - userId: {}", userId);
+          return UserNotFoundException.withId(userId);
+        });
   }
 }
